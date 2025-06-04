@@ -1,17 +1,17 @@
 // src/App.jsx
 import React from 'react'
 import {BrowserRouter, Routes, Route} from 'react-router-dom'
-import MainLayout from './components/layout/MainLayout'
-import LoginPage from './pages/LoginPage'
-import LandingPage from './pages/LandingPage'
-import EditorPage from './pages/EditorPage'
-import CreatePage from './pages/CreatePage'
-import CompletedCanvasPage from './components/editor/CompletedCanvasPage'
-import SearchResultsPage from './pages/SearchResultsPage'
-import PalettePage from "./pages/PalettePage.jsx";
-import FavoritesPage from "./pages/FavoritesPage.jsx";
-import DashboardPage from "./pages/DashboardPage.jsx";
-import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
+import MainLayout from '@/components/layout/MainLayout'
+import LoginPage from '@/pages/LoginPage'
+import LandingPage from '@/pages/LandingPage'
+import EditorPage from '@/pages/EditorPage'
+import CreatePage from '@/pages/CreatePage'
+import CompletedCanvasPage from '@/components/features/editor/CompletedCanvasPage'
+import SearchResultsPage from '@/pages/SearchResultsPage'
+import PalettePage from "@/pages/PalettePage.jsx"
+import FavoritesPage from "@/pages/FavoritesPage.jsx"
+import DashboardPage from "@/pages/DashboardPage.jsx"
+import ProtectedRoute from "@/components/features/auth/ProtectedRoute.jsx"
 
 export default function App() {
     return (

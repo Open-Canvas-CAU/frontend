@@ -1,8 +1,8 @@
 // src/pages/LandingPage.jsx
 import React, { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import SearchBar  from '../components/landing/SearchBar'
-import CanvasCard from '../components/landing/CanvasCard'
+import SearchBar  from '@/components/features/landing/SearchBar'
+import CanvasCard from '@/components/features/landing/CanvasCard'
 
 export default function LandingPage() {
     const navigate = useNavigate()

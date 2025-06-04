@@ -1,8 +1,8 @@
 // src/main.jsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App'
-import './index.css'
+import App from '@/App'
+import './styles/base/index.css'
 import 'flowbite'
 
 ReactDOM.createRoot(

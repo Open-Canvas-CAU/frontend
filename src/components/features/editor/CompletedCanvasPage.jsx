@@ -1,16 +1,18 @@
 // src/components/editor/CompletedCanvasPage.jsx
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CanvasCard      from '../landing/CanvasCard'
 import CarouselEditor  from './CarouselEditor'
+import VoteSection     from './VoteSection'
+import { getVoteInfo, vote } from '@/api/vote'
 
 // 아이콘 자산 가져오기
-import StarIconUrl    from '../../assets/icons/star.svg'
-import StarFillUrl    from '../../assets/icons/star-fill.svg'
-import ClockIconUrl   from '../../assets/icons/clock-rewind.svg'
-import CommentIconUrl from '../../assets/icons/comment.svg'
+import StarIconUrl    from '@/assets/icons/star.svg'
+import StarFillUrl    from '@/assets/icons/star-fill.svg'
+import ClockIconUrl   from '@/assets/icons/clock-rewind.svg'
+import CommentIconUrl from '@/assets/icons/comment.svg'
 
-export default function CompletedCanvasPage() {
+export default function CompletedCanvasPage({ canvasId = 'dummy-canvas-id' }) {
     const navigate = useNavigate()
 
     // drawers & favorites
@@ -30,6 +32,41 @@ export default function CompletedCanvasPage() {
     <p>Enim etiam dignissim cursus quam at vestibulum. Vestibulum integer ultrices etiam id a sit sagittis.</p>
   `
     const [bodyVariants] = useState([variant1.trim(), variant2.trim()])
+
+    // 투표 관련 상태
+    const [voteDeadline, setVoteDeadline] = useState(null)
+    const [hasVoted, setHasVoted] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [isDeadlinePassed, setIsDeadlinePassed] = useState(false)
+    const [winnerVersion, setWinnerVersion] = useState(null)
+
+    // 투표 정보 fetch
+    useEffect(() => {
+        async function fetchVoteInfo() {
+            try {
+                const data = await getVoteInfo(canvasId)
+                setVoteDeadline(data.voteDeadline)
+                setHasVoted(data.hasVoted)
+                setWinnerVersion(data.winnerVersion)
+                setIsDeadlinePassed(new Date() > new Date(data.voteDeadline))
+            } catch (e) {
+                // 에러 처리 (예: alert 또는 무시)
+            }
+        }
+        fetchVoteInfo()
+    }, [canvasId])
+
+    // 투표 핸들러
+    const handleVote = async (versionId) => {
+        setLoading(true)
+        try {
+            await vote(canvasId, versionId)
+            setHasVoted(true)
+        } catch (e) {
+            alert('투표에 실패했습니다. 다시 시도해주세요.')
+        }
+        setLoading(false)
+    }
 
     // dummy recommendations
     const recommendations = Array.from({ length: 6 }).map((_, i) => ({
@@ -108,6 +145,16 @@ export default function CompletedCanvasPage() {
                                 variants={bodyVariants}
                                 readOnly={true}
                                 onChange={() => { /* readOnly for completed */ }}
+                            />
+
+                            {/* 투표 섹션 추가 */}
+                            <VoteSection
+                                voteDeadline={voteDeadline}
+                                onVote={handleVote}
+                                hasVoted={hasVoted}
+                                loading={loading}
+                                isDeadlinePassed={isDeadlinePassed}
+                                winnerVersion={winnerVersion}
                             />
 
                             {/* 추천 작품 */}

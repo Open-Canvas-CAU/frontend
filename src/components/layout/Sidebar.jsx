@@ -1,10 +1,10 @@
 // src/components/layout/Sidebar.jsx
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import CanvasIconUrl from '../../assets/icons/canvas.svg'
-import StarIconUrl   from '../../assets/icons/star.svg'
-import UserIconUrl   from '../../assets/icons/user.svg'
-import PlusIconUrl   from '../../assets/icons/plus.svg'
+import CanvasIconUrl from '@/assets/icons/canvas.svg'
+import StarIconUrl   from '@/assets/icons/star.svg'
+import UserIconUrl   from '@/assets/icons/user.svg'
+import PlusIconUrl   from '@/assets/icons/plus.svg'
 
 export default function Sidebar() {
     const navigate = useNavigate()

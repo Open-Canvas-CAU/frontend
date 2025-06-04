@@ -17,7 +17,7 @@ export default function CanvasPage() {
     // keep exactly two variants in state
     const initialHtml = `
     <p>여기에 본문 내용이 출력됩니다. 이건 더미 HTML이에요.</p>
-    <p>나중에 실제 API 결과를 넣어 주시면 됩니다.</p>
+    <p>나중에 실제 API 결과를 넣으면 됩니다.</p>
   `
     const [variants, setVariants] = useState([initialHtml, initialHtml])
 

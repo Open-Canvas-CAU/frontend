@@ -1,12 +1,16 @@
 // src/components/auth/ProtectedRoute.jsx
 import React from 'react'
-import { Navigate } from 'react-router-dom'
-
-// TODO: 실제 로그인 상태 컨텍스트/스토어로 바꾸세요
-const isLoggedIn = false
+import { Navigate, useLocation } from 'react-router-dom'
+import { authService } from '@/services/authService'
 
 export default function ProtectedRoute({ children }) {
-    return isLoggedIn
-        ? <>{children}</>
-        : <Navigate to="/login" replace />
+    const location = useLocation()
+    const isAuthenticated = authService.isAuthenticated()
+
+    if (!isAuthenticated) {
+        // 로그인 페이지로 리다이렉트하면서 현재 위치를 state로 전달
+        return <Navigate to="/login" state={{ from: location }} replace />
+    }
+
+    return <>{children}</>
 }

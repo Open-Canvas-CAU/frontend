@@ -1,12 +1,23 @@
-# React + Vite
+# openCanvas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 프로젝트 소개
+openCanvas는 실시간 협업 스토리텔링 플랫폼입니다. 여러 사용자가 함께 이야기를 이어가며 창작하는 새로운 형태의 협업 글쓰기 서비스입니다.
 
-Currently, two official plugins are available:
+## ✨ 주요 기능
+- **실시간 협업 글쓰기**
+  - 실시간으로 여러 사용자가 함께 이야기를 이어가는 협업 글쓰기
+  - 블록 단위 메시지 전송으로 효율적인 동기화
+  - 동시 편집 충돌 해결 시스템
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **AI 기반 일러스트 생성**
+  - GPT를 활용한 자동 일러스트 생성
+  - 글의 내용을 바탕으로 한 맞춤형 이미지
+  - 정적 이미지 저장으로 빠른 로딩
 
-## Expanding the ESLint configuration
+- **소셜 기능**
+  - 실시간 댓글 시스템
+  - 좋아요/싫어요 기능
+  - 사용자 기반 추천 시스템
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🎯 비전
+openCanvas는 단순한 협업 도구를 넘어, 창작자들이 서로의 상상력을 공유하고 발전시킬 수 있는 새로운 창작 플랫폼을 지향합니다. AI 기술을 활용한 일러스트 생성과 실시간 협업을 통해, 더욱 풍부하고 역동적인 스토리텔링 경험을 제공하고자 합니다.

@@ -1,99 +1,133 @@
-// src/pages/SearchResultsPage.jsx
 import React, { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import SearchBar                    from '@/components/features/landing/SearchBar'
 import CanvasCard                   from '@/components/features/landing/CanvasCard'
+import { coverService } from '@/services/coverService'
 
 export default function SearchResultsPage() {
     const navigate = useNavigate()
-    const { search } = useLocation()
-    const params     = new URLSearchParams(search)
-    const query      = params.get('q') || ''
+    const [searchParams, setSearchParams] = useSearchParams()
+    const query = searchParams.get('q') || ''
+    const [searchInput, setSearchInput] = useState(query)
+    const [covers, setCovers] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [hasSearched, setHasSearched] = useState(false)
 
-    // replace these with your real API calls
-    const [results, setResults]           = useState([])
-    const [recommendations, setRecs]      = useState([])
-
+    // URL의 query 파라미터가 변경될 때만 검색 실행
     useEffect(() => {
-        // TODO: fetch(`/api/search?q=${query}`).then(...)
-        const dummy = Array.from({ length: 4 }).map((_, i) => ({
-            id:       `res${i}`,
-            title:    `제목 ${i + 1}`,
-            timeAgo:  '3 Minute ago',
-            desc:     'Lorem ipsum dolor sit amet consectetur.',
-            imgSrc:   `https://placehold.co/349x231?text=${i + 1}`,
-        }))
-        setResults(dummy)
+        if (query) {
+            fetchSearchResults(query)
+        }
+    }, [searchParams])
 
-        const recs = Array.from({ length: 6 }).map((_, i) => ({
-            id:       `rec${i}`,
-            title:    `추천 ${i + 1}`,
-            timeAgo:  '5 Minute ago',
-            desc:     '추천 설명입니다.',
-            imgSrc:   `https://placehold.co/348x231?text=R${i + 1}`,
-        }))
-        setRecs(recs)
-    }, [query])
+    const fetchSearchResults = async (searchQuery) => {
+        if (!searchQuery.trim()) {
+            setCovers([])
+            setLoading(false)
+            return
+        }
 
-    const goTo = (id) => navigate(`/completed/${id}`)
+        try {
+            setLoading(true)
+            const response = await coverService.searchCovers(searchQuery)
+            setCovers(response.data)
+            setHasSearched(true)
+        } catch (err) {
+            console.error('검색 결과를 불러오는데 실패했습니다:', err)
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleSearch = () => {
+        if (searchInput.trim()) {
+            setSearchParams({ q: searchInput.trim() })
+        }
+    }
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch()
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-8 py-8">
+                <SearchBar
+                    value={searchInput}
+                    onChange={setSearchInput}
+                    onSearch={handleSearch}
+                    onKeyPress={handleKeyPress}
+                    className="mb-8"
+                />
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-xl text-gray-600">검색 중...</div>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="container mx-auto px-8 py-8">
+                <SearchBar
+                    value={searchInput}
+                    onChange={setSearchInput}
+                    onSearch={handleSearch}
+                    onKeyPress={handleKeyPress}
+                    className="mb-8"
+                />
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-xl text-red-600">에러가 발생했습니다: {error}</div>
+                </div>
+            </div>
+        )
+    }
 
     return (
-        <div className="min-h-screen px-8 py-6 space-y-12">
-            {/* 1) Search Bar */}
+        <div className="container mx-auto px-8 py-8">
             <SearchBar
-                value={query}
-                onChange={() => {}}
-                onSearch={() => navigate(`/search?q=${query}`)}
-                className="mx-auto max-w-xl"
+                value={searchInput}
+                onChange={setSearchInput}
+                onSearch={handleSearch}
+                onKeyPress={handleKeyPress}
+                className="mb-8"
             />
 
-            {/* 2) Search Results */}
-            <section className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-white text-3xl font-semibold">검색 결과</h2>
-                    <span className="text-zinc-300 text-lg font-medium">
-            총 {results.length}개의 결과
-          </span>
-                    <button
-                        onClick={() => navigate(`/search?q=${query}&all=true`)}
-                        className="text-blue-300 text-xl font-medium underline leading-tight"
-                    >
-                        Show all
-                    </button>
+            {!hasSearched ? (
+                <div className="text-center py-12">
+                    <p className="text-gray-600 text-lg">
+                        검색어를 입력하고 엔터키를 누르거나 검색 버튼을 클릭하세요.
+                    </p>
                 </div>
-
-                <div className="grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {results.map(doc => (
-                        <CanvasCard
-                            key={doc.id}
-                            title={doc.title}
-                            timeAgo={doc.timeAgo}
-                            description={doc.desc}
-                            imgSrc={doc.imgSrc}
-                            onClick={() => goTo(doc.id)}
-                        />
-                    ))}
+            ) : covers.length === 0 ? (
+                <div className="text-center py-12">
+                    <p className="text-gray-600 text-lg">
+                        검색 결과가 없습니다.
+                    </p>
                 </div>
-            </section>
-
-            {/* 3) Recommendations */}
-            <section className="space-y-4">
-                <h3 className="text-white text-3xl font-semibold">
-                    회원님을 위한 추천 캔버스
-                </h3>
-                <div className="grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {recommendations.map(doc => (
-                        <CanvasCard
-                            key={doc.id}
-                            title={doc.title}
-                            timeAgo={doc.timeAgo}
-                            description={doc.desc}
-                            imgSrc={doc.imgSrc}
-                            onClick={() => goTo(doc.id)}
-                        />
-                    ))}
-                </div>
-            </section>
+            ) : (
+                <>
+                    <h1 className="text-2xl font-bold mb-8">
+                        "{query}" 검색 결과
+                    </h1>
+                    <div className="grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+                        {covers.map(doc => (
+                            <CanvasCard
+                                key={doc.contentId}
+                                title={doc.title}
+                                timeAgo={new Date(doc.time).toLocaleDateString()}
+                                description={`조회수: ${doc.view} | 좋아요: ${doc.likeNum}`}
+                                imgSrc={doc.coverImageUrl}
+                                onClick={() => navigate(`/completed/${doc.docId}`)}
+                            />
+                        ))}
+                    </div>
+                </>
+            )}
         </div>
     )
 }

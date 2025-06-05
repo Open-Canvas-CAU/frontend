@@ -25,9 +25,9 @@ export default function SearchBar({ value, onChange, onSearch, className = '' })
 
     return (
         <div className={`relative ${className}`}>
-            <div className={`w-full bg-white p-4 rounded-lg shadow-sm transition-all duration-200
-                ${isFocused ? 'ring-2 ring-teal-500' : 'hover:shadow-md'}`}>
-                <div className="flex items-center">
+            <div className={`w-full bg-white rounded-lg shadow-sm transition-all duration-200
+                ${isFocused ? 'ring-2 ring-solarized-cyan' : 'hover:shadow-md'}`}>
+                <div className="flex items-center h-12 px-4">
                     {/* 검색 아이콘 */}
                     <svg 
                         className="w-5 h-5 text-gray-400 mr-3" 
@@ -54,7 +54,7 @@ export default function SearchBar({ value, onChange, onSearch, className = '' })
                         onBlur={() => setIsFocused(false)}
                         placeholder="검색어를 입력해주세요"
                         className="flex-1 bg-transparent border-none text-gray-900 placeholder-gray-400 
-                            focus:outline-none text-base"
+                            focus:outline-none text-sm"
                     />
 
                     {/* 검색어가 있을 때만 지우기 버튼 표시 */}
@@ -67,7 +67,7 @@ export default function SearchBar({ value, onChange, onSearch, className = '' })
                             className="ml-2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                         >
                             <svg 
-                                className="w-5 h-5" 
+                                className="w-4 h-4" 
                                 fill="none" 
                                 stroke="currentColor" 
                                 viewBox="0 0 24 24"
@@ -85,8 +85,8 @@ export default function SearchBar({ value, onChange, onSearch, className = '' })
                     {/* 검색 버튼 */}
                     <button
                         onClick={onSearch}
-                        className="ml-4 px-4 py-2 bg-teal-500 text-white rounded-lg 
-                            hover:bg-teal-600 transition-colors font-medium"
+                        className="ml-4 px-3 py-1.5 bg-solarized-cyan text-white rounded-md 
+                            hover:bg-solarized-cyan/80 transition-colors text-sm font-medium"
                     >
                         검색
                     </button>
@@ -95,7 +95,7 @@ export default function SearchBar({ value, onChange, onSearch, className = '' })
 
             {/* 검색어 힌트 */}
             {isFocused && !value && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg p-2 text-sm text-gray-500">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg p-2 text-xs text-gray-500">
                     검색어를 입력하고 엔터를 누르거나 검색 버튼을 클릭하세요
                 </div>
             )}

@@ -168,6 +168,26 @@ const mockRecommendations = [
   }
 ]
 
+// 작업 중인 캔버스 목록
+const mockWorkingOnCovers = [
+  {
+    title: "작업 중인 캔버스 1",
+    coverImageUrl: "https://picsum.photos/400/300?random=6",
+    contentId: 6,
+    time: new Date().toISOString(),
+    view: 0,
+    likeNum: 0
+  },
+  {
+    title: "작업 중인 캔버스 2",
+    coverImageUrl: "https://picsum.photos/400/300?random=7",
+    contentId: 7,
+    time: new Date().toISOString(),
+    view: 0,
+    likeNum: 0
+  }
+]
+
 export const handlers = [
   // 인증 관련 API
   http.post('/api/auth/login', async ({ request }) => {
@@ -238,6 +258,12 @@ export const handlers = [
       cover.title.toLowerCase().includes(keyword.toLowerCase())
     )
     return HttpResponse.json(filteredCovers)
+  }),
+
+  // 작업 중인 캔버스 API
+  http.get('/api/covers/working-on', () => {
+    console.log('Mock API: GET /api/covers/working-on called')
+    return HttpResponse.json(mockWorkingOnCovers)
   }),
 
   // 컨텐츠 관련 API

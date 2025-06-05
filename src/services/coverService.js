@@ -11,5 +11,7 @@ export const coverService = {
   
   createCover: (coverData) => api.post('/api/covers', coverData),
   
-  deleteCover: (id) => api.delete(`/api/covers/${id}`)
+  deleteCover: (id) => api.delete(`/api/covers/${id}`),
+
+  getWorkingOnCovers: () => api.get('/api/covers/working-on')
 } 

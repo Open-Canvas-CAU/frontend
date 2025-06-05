@@ -1,7 +1,0 @@
-/* SortDropdown 컴포넌트의 고유 스타일 */
-.container {
-    gap: 12px;
-}
-
-/* 나머지 스타일은 Tailwind 클래스로 대체됩니다 */
-/* display, align-items, font-size, color 등은 Tailwind utility 클래스 사용 */

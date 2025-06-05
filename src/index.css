@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-solarized-base3 text-solarized-base00;
+  }
+}
+
+/* ... existing styles ... */ 

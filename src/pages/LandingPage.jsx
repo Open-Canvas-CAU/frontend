@@ -75,8 +75,8 @@ export default function LandingPage() {
         return (
             <div className="container mx-auto px-8 py-8">
                 <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-                    <div className="w-12 h-12 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin"></div>
-                    <div className="text-xl text-gray-600">로딩 중...</div>
+                    <div className="w-12 h-12 border-4 border-solarized-cyan/20 border-t-solarized-cyan/80 rounded-full animate-spin"></div>
+                    <div className="text-xl text-solarized-base00">로딩 중...</div>
                 </div>
             </div>
         )
@@ -86,11 +86,11 @@ export default function LandingPage() {
         return (
             <div className="container mx-auto px-8 py-8">
                 <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-                    <div className="text-2xl text-red-600">⚠️</div>
-                    <div className="text-xl text-red-600">{error}</div>
+                    <div className="text-2xl text-solarized-red">⚠️</div>
+                    <div className="text-xl text-solarized-red">{error}</div>
                     <button 
                         onClick={() => window.location.reload()}
-                        className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
+                        className="px-4 py-2 bg-solarized-cyan text-solarized-base3 rounded-lg hover:bg-solarized-cyan/80 transition-colors"
                     >
                         다시 시도
                     </button>
@@ -117,8 +117,8 @@ export default function LandingPage() {
                             onClick={() => setFilter(f)}
                             className={`px-4 py-2 rounded-full text-sm font-semibold
                                 ${filter === f
-                                    ? 'bg-teal-200 text-teal-800'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-solarized-cyan/20 text-solarized-cyan'
+                                    : 'bg-solarized-base2 text-solarized-base01 hover:bg-solarized-base1'
                                 }`}
                         >
                             {f}
@@ -129,7 +129,7 @@ export default function LandingPage() {
 
             {/* 검색 결과가 없을 때 */}
             {!loading && covers.length === 0 && (
-                <div className="flex flex-col items-center justify-center min-h-[40vh] text-gray-500">
+                <div className="flex flex-col items-center justify-center min-h-[40vh] text-solarized-base00">
                     <div className="text-2xl mb-2">🔍</div>
                     <div className="text-xl">
                         {query ? '검색 결과가 없습니다.' : '표시할 캔버스가 없습니다.'}

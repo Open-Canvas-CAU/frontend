@@ -1,28 +1,8 @@
+/* SearchBar 컴포넌트의 고유 스타일 */
 .container {
-    display: flex;
-    width: 100%;
     max-width: 1609px;
-    background: #2F3034;
-    padding: 16px 21px;
-    border-radius: 8px;
     margin-bottom: 40px;
 }
-.input {
-    flex: 1;
-    padding: 12px;
-    background: transparent;
-    border: none;
-    color: #7B7B7E;
-    font-size: 18px;
-}
-.button {
-    display: flex;
-    align-items: center;
-    padding: 13px;
-    background: #A0D5EC;
-    border-radius: 16px;
-    font-size: 18px;
-    font-weight: 600;
-    color: #2F3034;
-    margin-left: 16px;
-}
+
+/* 나머지 스타일은 Tailwind 클래스로 대체됩니다 */
+/* display, padding, background, border-radius, color 등은 Tailwind utility 클래스 사용 */

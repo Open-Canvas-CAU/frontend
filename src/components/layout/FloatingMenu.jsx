@@ -23,7 +23,7 @@ export default function FloatingMenu() {
                         <button
                             key={item.to}
                             onClick={item.onClick}
-                            className="group relative p-2 rounded-full hover:bg-solarized-cyan/80 transition-colors"
+                            className="group relative p-2 rounded-full hover:bg-yellow-300/80 transition-colors"
                         >
                             <img src={item.icon} alt={item.alt} className="w-6 h-6" />
                             <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-solarized-base03 text-solarized-base3 text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -36,7 +36,7 @@ export default function FloatingMenu() {
                             to={item.to}
                             className={({ isActive }) => `
                                 group relative p-2 rounded-full transition-colors
-                                ${isActive ? 'bg-solarized-cyan/80' : 'hover:bg-solarized-base1'}
+                                ${isActive ? 'bg-yellow-300/80' : 'hover:bg-red'}
                             `}
                         >
                             <img src={item.icon} alt={item.alt} className="w-6 h-6" />

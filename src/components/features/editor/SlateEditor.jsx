@@ -250,15 +250,17 @@ const SlateEditor = ({
   }
 
   return (
-    <div className={`border border-gray-300 rounded-lg overflow-hidden ${className}`}>
-      <Slate editor={editor} value={value} onChange={handleChange}>
+    <div className={`flex flex-col border border-gray-300 rounded-lg overflow-hidden ${className}`}>
+      <Slate editor={editor} initialValue={value} onChange={handleChange}>
         {!readOnly && <Toolbar />}
         <div className="p-4 min-h-[300px]">
           <Editable
+            className="relative flex-1 outline-none"
+            style={{ minHeight: 0 }}
             readOnly={readOnly}
             renderElement={renderElement}
             renderLeaf={renderLeaf}
-            placeholder={placeholder}
+            // placeholder={placeholder}
             spellCheck
             autoFocus
             onKeyDown={(event) => {

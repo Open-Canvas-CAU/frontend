@@ -32,7 +32,8 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
                 // 문서방 글 조회
                 const writingsResponse = await api.get(`/api/writings/room/${roomId}`)
-                setWritings(writingsResponse.data)
+                const data = writingsResponse.data
+                setWritings(Array.isArray(data) ? data : [])
 
                 // WebSocket 연결
                 websocketService.connect(roomId, {

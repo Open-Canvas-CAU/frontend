@@ -3,7 +3,7 @@ import React from 'react';
 const colorMap = {
   blue: 'bg-solarized-blue hover:bg-solarized-blue/80',
   green: 'bg-solarized-green hover:bg-solarized-green/80',
-  gray: 'bg-solarized-base1 hover:bg-solarized-base0',
+  gray: 'bg-red hover:bg-solarized-base0',
 };
 
 const VoteButton = ({ children, onClick, disabled, color = 'blue' }) => (

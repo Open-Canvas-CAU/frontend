@@ -1,13 +1,29 @@
 // src/components/editor/ThemeInput.jsx
-import React from 'react'
+import React, { useRef, useLayoutEffect } from 'react'
+
 export default function ThemeInput({ value, onChange }) {
-    return (
-        <input
-            type="text"
-            placeholder="캔버스 주제를 입력하세요"
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            className="p-2 text-3xl font-semibold text-black border-b border-gray-300 focus:outline-none"
-        />
-    )
+  const ta = useRef(null)
+
+  // 내용이 바뀔 때마다 높이를 자동으로 맞춰줍니다
+  useLayoutEffect(() => {
+    if (!ta.current) return
+    ta.current.style.height = 'auto'
+    ta.current.style.height = ta.current.scrollHeight + 'px'
+  }, [value])
+
+  return (
+    <textarea
+      ref={ta}
+      rows={1}                            // 최소 1줄
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder="캔버스 주제를 입력하세요"
+      className={
+        `w-full min-w-0 resize-none overflow-hidden
+         p-2 text-3xl font-semibold text-black
+         border-b border-gray-300 focus:outline-none
+         whitespace-pre-wrap break-words`
+      }
+    />
+  )
 }

@@ -18,7 +18,7 @@ export default function Header() {
     const handleSearch = (e) => {
         e.preventDefault()
         if (searchValue.trim()) {
-            navigate(`/gallery?search=${encodeURIComponent(searchValue.trim())}`)
+            navigate(`/search?q=${encodeURIComponent(searchValue.trim())}`)
             setIsSearchExpanded(false)
             setSearchValue('')
         }
@@ -37,16 +37,19 @@ export default function Header() {
     }, [])
 
     return (
-        <header className="h-24 flex items-center justify-between bg-solarized-base2 overflow-auto p-4 md:p-6 lg:p-8">
+        <header className="h-24 flex items-center justify-between 
+                            bg-white/10 overflow-auto 
+                            p-4 md:p-6 lg:p-8
+                            border-b border-white">
             <div className="flex items-center">
-                <Link to="/" className="text-xl font-bold text-solarized-base0 hover:text-solarized-base1">
+                <Link to="/" className="pl-5 text-xl font-extrabold text-white hover:text-red-400">
                     Live Canvas
                 </Link>
                 <nav className="ml-16 flex space-x-4">
                     <NavLink
                         to="/gallery"
                         className={({ isActive }) =>
-                            isActive ? 'text-solarized-cyan' : 'text-solarized-base00 hover:text-solarized-base1'
+                            isActive ? 'font-bold text-yellow-300' : 'text-solarized-base00 hover:text-red-400'
                         }
                     >
                         갤러리
@@ -54,7 +57,7 @@ export default function Header() {
                     <NavLink
                         to="/workingon"
                         className={({ isActive }) =>
-                            isActive ? 'text-solarized-cyan' : 'text-solarized-base00 hover:text-solarized-base1'
+                            isActive ? 'text-yellow-300' : 'text-solarized-base00 hover:text-red-400'
                         }
                     >
                         작업 중
@@ -73,12 +76,12 @@ export default function Header() {
                                 value={searchValue}
                                 onChange={(e) => setSearchValue(e.target.value)}
                                 placeholder="검색어를 입력하세요"
-                                className="px-4 py-2 w-64 focus:outline-none text-gray-900"
+                                className="px-4 py-2 w-44 focus:outline-none text-gray-900"
                                 autoFocus
                             />
                             <button
                                 type="submit"
-                                className="px-4 py-2 bg-solarized-cyan text-white hover:bg-solarized-cyan/80 transition-colors"
+                                className="px-4 py-2 bg-yellow-300 text-white hover:bg-yellow-300/80 transition-colors"
                             >
                                 검색
                             </button>
@@ -86,7 +89,7 @@ export default function Header() {
                     ) : (
                         <button
                             onClick={() => setIsSearchExpanded(true)}
-                            className="p-2 text-solarized-base00 hover:text-solarized-base1 transition-colors"
+                            className="p-2 text-solarized-base00 hover:text-red-400 transition-colors"
                         >
                             <svg 
                                 className="w-6 h-6" 
@@ -121,7 +124,7 @@ export default function Header() {
                 ) : (
                     <button
                         onClick={() => navigate('/login')}
-                        className="px-4 py-2 text-sm font-medium text-solarized-base3 bg-solarized-cyan hover:bg-solarized-cyan/80 rounded-md transition-colors"
+                        className="px-4 py-2 text-sm font-medium text-solarized-base3 bg-yellow-300 hover:bg-yellow-300/80 rounded-md transition-colors"
                     >
                         로그인
                     </button>

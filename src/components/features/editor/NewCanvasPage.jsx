@@ -66,8 +66,7 @@ export default function NewCanvasPage() {
                     <ThemeInput
                         value={title}
                         onChange={setTitle}
-                        placeholder="캔버스 제목을 입력하세요"
-                        className="min-h-[300px] p-4"
+                        className="p-4"
                     />
 
                     {/* 2) 본문 에디터 */}
@@ -75,7 +74,7 @@ export default function NewCanvasPage() {
                         content={body}
                         onChange={setBody}
                         readOnly={false}
-                        className="min-h-[300px] border border-gray-200 rounded-lg p-4"
+                        className="min-h-[300px] border border-grey-200 rounded-lg p-4"
                     />
 
                     {/* 3) 저장 버튼 */}

@@ -89,8 +89,8 @@ export default function LoginPage() {
                             disabled={loading}
                             className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
                                 loading
-                                    ? 'bg-solarized-cyan cursor-not-allowed'
-                                    : 'bg-solarized-cyan hover:bg-solarized-cyan/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-solarized-cyan'
+                                    ? 'bg-yellow-300 cursor-not-allowed'
+                                    : 'bg-yellow-300 hover:bg-yellow-300/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-300'
                             }`}
                         >
                             {loading ? '로그인 중...' : '로그인'}

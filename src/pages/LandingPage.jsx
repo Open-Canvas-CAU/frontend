@@ -52,6 +52,8 @@ export default function LandingPage() {
     }, [filter, location.pathname])
 
     const handleCardClick = (doc) => {
+        console.log('Card clicked:', doc, 'Current path:', location.pathname)
+        
         if (location.pathname === '/workingon') {
             navigate(`/editor/${doc.contentId}`)
         } else if (doc.contentId) {

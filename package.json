@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.1.1",
     "@tiptap/extension-collaboration": "^2.12.0",
     "@tiptap/extension-collaboration-cursor": "^2.12.0",
     "@tiptap/react": "^2.12.0",
@@ -19,6 +20,9 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0",
+    "slate": "^0.115.1",
+    "slate-history": "^0.113.1",
+    "slate-react": "^0.114.2",
     "swiper": "^11.2.8",
     "yjs": "^13.6.27",
     "zustand": "^5.0.4"

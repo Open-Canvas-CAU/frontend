@@ -1,5 +1,6 @@
+// src/components/editor/EditorSection.jsx
 import React from 'react'
-import Editor from './Editor'
+import SlateEditor from './SlateEditor'
 
 /**
  * @param {string} content     HTML to display
@@ -8,17 +9,18 @@ import Editor from './Editor'
  * @param {string} className   container styles/sizing
  */
 export default function EditorSection({
-                                          content,
-                                          onChange,
-                                          readOnly,
-                                          className = '',
-                                      }) {
+    content,
+    onChange,
+    readOnly,
+    className = '',
+}) {
     return (
         <div className={className}>
-            <Editor
+            <SlateEditor
                 initialContent={content}
                 onChange={onChange}
-                editable={!readOnly}
+                readOnly={readOnly}
+                placeholder={readOnly ? '' : '이야기를 작성해보세요...'}
             />
         </div>
     )

@@ -1,99 +1,131 @@
-// src/pages/LandingPage.jsx
-import React, { useState, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import SearchBar  from '@/components/features/landing/SearchBar'
 import CanvasCard from '@/components/features/landing/CanvasCard'
+import { coverService } from '@/services/coverService'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Navigation } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/navigation'
 
 export default function LandingPage() {
-    const navigate = useNavigate()
-    const { pathname } = useLocation()
-    const [query, setQuery]   = useState('')
     const [filter, setFilter] = useState('전체')
+    const [covers, setCovers] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [currentSlide, setCurrentSlide] = useState(0)
+    const navigate = useNavigate()
+    const location = useLocation()
 
-    const FILTERS = ['전체', '인기', '새로운 것들']
+    const FILTERS = ['전체', '인기순', '최신순']
 
-    const dummy = useMemo(
-        () =>
-            Array.from({ length: 8 }).map((_, i) => ({
-                id:       `doc${i}`,
-                title:    `제목 ${i + 1}`,
-                timeAgo:  '3 Minute ago',
-                desc:     'Lorem ipsum dolor sit amet consectetur.',
-                imgSrc:   `https://placehold.co/348x231?text=${i + 1}`,
-                category: FILTERS[i % FILTERS.length],
-                status:   i % 2 === 0 ? 'completed' : 'draft',
-            })),
-        []
-    )
+    useEffect(() => {
+        const fetchCovers = async () => {
+            try {
+                setLoading(true)
+                let response
+                
+                if (location.pathname === '/workingon') {
+                    response = await coverService.getWorkingOnCovers()
+                } else {
+                    switch (filter) {
+                        case '인기순':
+                            response = await coverService.getCoversByLikes()
+                            break
+                        case '최신순':
+                            response = await coverService.getAllCovers()
+                            break
+                        default:
+                            response = await coverService.getCoversByViews()
+                    }
+                }
+                
+                console.log('API Response:', response)
+                setCovers(response.data || [])
+            } catch (err) {
+                console.error('API 에러:', err)
+                setCovers([])
+            } finally {
+                setLoading(false)
+            }
+        }
 
-    const visibleDocs = useMemo(() => {
-        return dummy
-            // status filter by route
-            .filter(doc => {
-                if (pathname === '/gallery') return doc.status === 'completed'
-                if (pathname === '/workingon') return doc.status === 'draft'
-                return true
-            })
-            // category filter
-            .filter(doc => (filter === '전체' || doc.category === filter))
-            // search filter
-            .filter(doc => doc.title.includes(query))
-    }, [dummy, filter, query, pathname])
+        fetchCovers()
+    }, [filter, location.pathname])
 
-    const handleSearch = () => {
-        if (query.trim()) {
-            navigate(`/search?q=${encodeURIComponent(query.trim())}`)
+    const handleCardClick = (doc) => {
+        if (location.pathname === '/workingon') {
+            navigate(`/editor/${doc.contentId}`)
+        } else if (doc.contentId) {
+            navigate(`/completed/${doc.contentId}`)
+        } else {
+            console.error('컨텐츠 ID가 없습니다:', doc)
         }
     }
 
-    const handleCardClick = doc => {
-        if (doc.status === 'completed') {
-            navigate(`/completed/${doc.id}`)
-        } else {
-            navigate(`/editor/${doc.id}`)
-        }
+    if (loading) {
+        return (
+            <div className="container mx-auto px-8 py-8">
+                <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                    <div className="w-12 h-12 border-4 border-solarized-cyan/20 border-t-solarized-cyan/80 rounded-full animate-spin"></div>
+                    <div className="text-xl text-solarized-base00">로딩 중...</div>
+                </div>
+            </div>
+        )
     }
 
     return (
-        <div className="container mx-auto px-8 py-8">
-            {/* 검색 + 토글 필터 */}
-            <div className="flex-row items-start md:items-center justify-between mb-8 space-y-4 md:space-y-0">
-                <SearchBar
-                    value={query}
-                    onChange={setQuery}
-                    onSearch={handleSearch}
-                    className="flex-1 max-w-md md:mr-6"
-                />
-                <div className="flex space-x-3">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto">
+                <div className="flex space-x-3 mb-8">
                     {FILTERS.map(f => (
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
                             className={`px-4 py-2 rounded-full text-sm font-semibold
-                ${filter === f
-                                ? 'bg-teal-200 text-teal-800'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`
-
-                            }
+                                ${filter === f
+                                    ? 'bg-solarized-cyan/20 text-solarized-cyan'
+                                    : 'bg-solarized-base2 text-solarized-base01 hover:bg-solarized-base1'
+                                }`}
                         >
                             {f}
                         </button>
                     ))}
                 </div>
-            </div>
 
-            {/* 반응형 그리드 */}
-            <div className="grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-                {visibleDocs.map(doc => (
-                    <CanvasCard
-                        key={doc.id}
-                        title={doc.title}
-                        timeAgo={doc.timeAgo}
-                        description={doc.desc}
-                        imgSrc={doc.imgSrc}
-                        onClick={() => handleCardClick(doc)}
-                    />
-                ))}
+                {!loading && covers.length === 0 && (
+                    <div className="flex flex-col items-center justify-center min-h-[40vh] text-solarized-base00">
+                        <div className="text-2xl mb-2">🔍</div>
+                        <div className="text-xl">
+                            표시할 캔버스가 없습니다.
+                        </div>
+                    </div>
+                )}
+
+                {!loading && covers.length > 0 && (
+                    <div className="relative h-[400px]">
+                        <Swiper
+                            modules={[Navigation]}
+                            spaceBetween={24}
+                            slidesPerView={4}
+                            navigation
+                            loop={true}
+                            className="h-full"
+                        >
+                            {covers.map((doc) => (
+                                <SwiperSlide key={doc.contentId}>
+                                    <div className="h-full flex items-center justify-center">
+                                        <CanvasCard
+                                            title={doc.title}
+                                            timeAgo={new Date(doc.time).toLocaleDateString()}
+                                            description={`조회수: ${doc.view} | 좋아요: ${doc.likeNum || 0}`}
+                                            imgSrc={doc.coverImageUrl}
+                                            onClick={() => handleCardClick(doc)}
+                                        />
+                                    </div>
+                                </SwiperSlide>
+                            ))}
+                        </Swiper>
+                    </div>
+                )}
             </div>
         </div>
     )

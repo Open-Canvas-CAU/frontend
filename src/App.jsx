@@ -12,46 +12,64 @@ import PalettePage from "@/pages/PalettePage.jsx"
 import FavoritesPage from "@/pages/FavoritesPage.jsx"
 import DashboardPage from "@/pages/DashboardPage.jsx"
 import ProtectedRoute from "@/components/features/auth/ProtectedRoute.jsx"
+import ErrorBoundary from '@/components/common/ErrorBoundary'
 
 export default function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route element={<MainLayout/>}>
-                    <Route path="/" element={<LandingPage/>}/>
-                    <Route path="/gallery" element={<LandingPage/>}/>
-                    <Route path="/workingon" element={<LandingPage/>}/>
-                    <Route path="/editor/new" element={<CreatePage/>}/>
-                    <Route path="/editor/:docId" element={<EditorPage/>}/>
-                    <Route path="/completed/:docId" element={<CompletedCanvasPage/>}/>
-                    <Route path="/search" element={<SearchResultsPage/>}/>
-                    <Route path="/login"      element={<LoginPage />} />
-                    <Route
-                        path="/palette"
-                        element={
-                            <ProtectedRoute>
-                                <PalettePage/>
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/favorites"
-                        element={
-                            <ProtectedRoute>
-                                <FavoritesPage/>
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/mypage"
-                        element={
-                            <ProtectedRoute>
-                                <DashboardPage/>
-                            </ProtectedRoute>
-                        }
-                    />
-                </Route>
-            </Routes>
-        </BrowserRouter>
+        <ErrorBoundary>
+            <BrowserRouter>
+                <Routes>
+                    <Route element={<MainLayout/>}>
+                        <Route path="/" element={<LandingPage/>}/>
+                        <Route path="/gallery" element={<LandingPage/>}/>
+                        <Route path="/workingon" element={<LandingPage/>}/>
+                        <Route path="/search" element={<SearchResultsPage/>}/>
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/completed/:contentId" element={<CompletedCanvasPage />} />
+                        <Route path="/editor/:docId" element={<EditorPage />} />
+                        <Route
+                            path="/editor/new"
+                            element={
+                                <ProtectedRoute>
+                                    <CreatePage/>
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/editor/:docId/edit"
+                            element={
+                                <ProtectedRoute>
+                                    <EditorPage isEditing={true} />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/palette"
+                            element={
+                                <ProtectedRoute>
+                                    <PalettePage/>
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/favorites"
+                            element={
+                                <ProtectedRoute>
+                                    <FavoritesPage/>
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/mypage"
+                            element={
+                                <ProtectedRoute>
+                                    <DashboardPage/>
+                                </ProtectedRoute>
+                            }
+                        />
+                    </Route>
+                </Routes>
+            </BrowserRouter>
+        </ErrorBoundary>
     )
 }

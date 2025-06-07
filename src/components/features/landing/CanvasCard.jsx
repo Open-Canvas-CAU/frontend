@@ -8,25 +8,26 @@ export default function CanvasCard({
                                        onClick,
                                    }) {
     return (
-        <div
-            onClick={onClick}
-            className="cursor-pointer bg-white rounded-xl shadow-lg hover:shadow-xl overflow-hidden"
-        >
-            {/* 썸네일: 고정 높이(224px)로 데스크탑에 적합 */}
-            <div className="w-full h-56">
-                <img
-                    src={imgSrc}
+        <div className="w-full group">
+            {/* 이미지 카드 */}
+            <div 
+                className="w-full cursor-pointer"
+                onClick={onClick}
+            >
+                <img 
+                    src={imgSrc} 
                     alt={title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105"
                 />
             </div>
 
-            <div className="p-4 space-y-1">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">{timeAgo}</span>
-                    {/* 예: 즐겨찾기 아이콘 버튼 추가 가능 */}
+            {/* 호버 시 나타나는 정보 카드 */}
+            <div className="mt-3 ml-auto mr-0 bg-white p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ width: 'calc(100% - 2rem)' }}>
+                <h3 className="text-lg font-medium text-gray-900 mb-1">{title}</h3>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                    <span>{timeAgo}</span>
+                    <span className="text-gray-500">작가</span>
                 </div>
-                <p className="mt-2 text-base text-gray-700">{description}</p>
             </div>
         </div>
     )

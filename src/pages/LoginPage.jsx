@@ -8,16 +8,13 @@ import { useLocation } from 'react-router-dom';
 export default function LoginPage() {
     const location = useLocation();
 
-    // 1. 로그인 후 돌아올 콜백 URI를 현재 페이지의 origin을 기반으로 동적으로 생성합니다.
     const redirectUri = `${window.location.origin}/oauth2/callback`;
 
-    // 2. 로그인 버튼을 누르기 직전의 페이지 경로를 저장합니다.
     const from = location.state?.from?.pathname || '/';
     
     const handleGoogleLogin = () => {
         localStorage.setItem('login_redirect_path', from);
         
-        // 3. 백엔드로 전달할 최종 인증 URL을 생성합니다.
         const googleLoginUrl = `http://localhost:8080/oauth2/authorization/google?redirect_uri=${encodeURIComponent(redirectUri)}&mode=login`;
         
         // window.location.href를 사용하여 페이지 전체를 리다이렉트

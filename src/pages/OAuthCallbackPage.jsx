@@ -16,16 +16,12 @@ export default function OAuthCallbackPage() {
             const refreshToken = searchParams.get('refresh_token');
 
             if (accessToken && refreshToken) {
-                // 1. 토큰을 로컬 스토리지에 저장합니다.
                 authService.saveTokens({ accessToken, refreshToken });
                 
-                // 2. 서버에서 사용자 정보를 즉시 가져와 로컬 스토리지에 저장합니다.
                 await authService.fetchAndSaveUser();
 
-                // 3. 'auth-change' 이벤트를 발생시켜 Header 같은 다른 컴포넌트에 상태 변경을 알립니다.
                 window.dispatchEvent(new Event('auth-change'));
                 
-                // 4. [수정] 모든 처리가 끝나면, 홈페이지가 아닌 '원래 있던 페이지'로 이동합니다.
                 const redirectPath = localStorage.getItem('login_redirect_path') || '/';
                 localStorage.removeItem('login_redirect_path'); // 사용 후에는 제거합니다.
                 navigate(redirectPath, { replace: true });

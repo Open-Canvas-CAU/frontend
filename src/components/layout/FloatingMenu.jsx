@@ -9,7 +9,14 @@ export default function FloatingMenu() {
     const navigate = useNavigate()
 
     const menuItems = [
-        { icon: PlusIconUrl, to: '/editor/new', alt: 'New Canvas', label: '새 캔버스', onClick: () => navigate('/editor/new') },
+        { 
+            icon: PlusIconUrl, 
+            to: '/editor/new', 
+            alt: 'New Canvas', 
+            label: '새 캔버스', 
+            // "새 캔버스" 버튼 클릭 시, '/editor/new' 경로로 이동합니다.
+            onClick: () => navigate('/editor/new') 
+        },
         { icon: CanvasIconUrl, to: '/palette', alt: 'Palette', label: '내 캔버스' },
         { icon: StarIconUrl, to: '/favorites', alt: 'Favorites', label: '즐겨찾기' },
         { icon: UserIconUrl, to: '/mypage', alt: 'My Page', label: '내 정보' },
@@ -49,4 +56,4 @@ export default function FloatingMenu() {
             </div>
         </div>
     )
-} 
+}

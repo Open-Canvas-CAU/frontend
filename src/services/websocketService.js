@@ -1,6 +1,10 @@
 import { Client } from '@stomp/stompjs'
 import { authService } from './authService'
 
+/**
+ * 웹소켓 연결 및 메시지 전송을 관리하는 서비스 클래스
+ * StompJS 클라이언트를 사용하여 서버와 통신
+ */
 class WebSocketService {
   constructor() {
     this.client = null
@@ -10,7 +14,11 @@ class WebSocketService {
     this.isConnected = false
   }
 
-  // WebSocket 연결
+  /**
+   * WebSocket 서버에 연결
+   * @param {string} roomId - 접속할 문서방의 ID
+   * @param {object} callbacks - 연결 상태에 따른 콜백 함수들 (onConnect, onMessage 등)
+   */
   connect(roomId, callbacks = {}) {
     this.roomId = roomId
     const accessToken = authService.getAccessToken()
@@ -18,7 +26,7 @@ class WebSocketService {
     this.client = new Client({
       brokerURL: 'ws://localhost:8080/ws-stomp',
       connectHeaders: {
-        token: accessToken // Bearer 없이 토큰만 전송
+        token: accessToken // 'Bearer' 접두사 없이 토큰만 전송
       },
       debug: (str) => {
         console.log('STOMP Debug:', str)
@@ -29,6 +37,7 @@ class WebSocketService {
         
         this.subscribe(roomId, callbacks.onMessage)
         
+        // 연결이 지연된 경우를 대비해 큐에 쌓인 메시지를 전송
         this.flushMessageQueue()
         
         if (callbacks.onConnect) {
@@ -54,6 +63,11 @@ class WebSocketService {
     this.client.activate()
   }
 
+  /**
+   * 특정 문서방의 메시지를 구독
+   * @param {string} roomId - 구독할 문서방의 ID
+   * @param {function} onMessage - 메시지 수신 시 호출될 콜백 함수
+   */
   subscribe(roomId, onMessage) {
     if (this.subscription) {
       this.subscription.unsubscribe()
@@ -75,9 +89,12 @@ class WebSocketService {
     )
   }
 
+  /**
+   * 서버로 메시지를 전송
+   * @param {object} message - 전송할 메시지 객체
+   */
   sendMessage(message) {
     if (!this.isConnected) {
-      // 연결되지 않았으면 큐에 저장
       this.messageQueue.push(message)
       return
     }
@@ -95,7 +112,8 @@ class WebSocketService {
       body: JSON.stringify(messageData)
     })
   }
-
+  
+  // 큐에 쌓인 메시지를 모두 전송
   flushMessageQueue() {
     while (this.messageQueue.length > 0) {
       const message = this.messageQueue.shift()
@@ -103,6 +121,7 @@ class WebSocketService {
     }
   }
 
+  // 짧은 시간 내에 여러 번 발생하는 편집 이벤트를 모아서 한 번에 전송
   sendThrottledMessage = (() => {
     let timeout = null
     let pendingMessages = new Map()
@@ -123,10 +142,11 @@ class WebSocketService {
           })
         })
         pendingMessages.clear()
-      }, 2000) // 2초 throttle
+      }, 2000) // 2초
     }
   })()
 
+  // WebSocket 연결을 해제합니다.
   disconnect() {
     if (this.subscription) {
       this.subscription.unsubscribe()

@@ -1,37 +1,41 @@
-// src/App.jsx
-import React from 'react'
-import {BrowserRouter, Routes, Route} from 'react-router-dom'
-import MainLayout from '@/components/layout/MainLayout'
-import LoginPage from '@/pages/LoginPage'
-import LandingPage from '@/pages/LandingPage'
-import EditorPage from '@/pages/EditorPage'
-import CreatePage from '@/pages/CreatePage'
-import CompletedCanvasPage from '@/components/features/editor/CompletedCanvasPage'
-import SearchResultsPage from '@/pages/SearchResultsPage'
-import PalettePage from "@/pages/PalettePage.jsx"
-import FavoritesPage from "@/pages/FavoritesPage.jsx"
-import DashboardPage from "@/pages/DashboardPage.jsx"
-import ProtectedRoute from "@/components/features/auth/ProtectedRoute.jsx"
-import ErrorBoundary from '@/components/common/ErrorBoundary'
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MainLayout from '@/components/layout/MainLayout';
+import LoginPage from '@/pages/LoginPage';
+import LandingPage from '@/pages/LandingPage';
+import EditorPage from '@/pages/EditorPage';
+import CreatePage from '@/pages/CreatePage';
+import CompletedCanvasPage from '@/components/features/editor/CompletedCanvasPage';
+import SearchResultsPage from '@/pages/SearchResultsPage';
+import PalettePage from "@/pages/PalettePage.jsx";
+import FavoritesPage from "@/pages/FavoritesPage.jsx";
+import DashboardPage from "@/pages/DashboardPage.jsx";
+import ProtectedRoute from "@/components/features/auth/ProtectedRoute.jsx";
+import ErrorBoundary from '@/components/common/ErrorBoundary';
+import OAuthCallbackPage from '@/pages/OAuthCallbackPage'; // 콜백 페이지 임포트
 
 export default function App() {
     return (
         <ErrorBoundary>
             <BrowserRouter>
                 <Routes>
-                    <Route element={<MainLayout/>}>
-                        <Route path="/" element={<LandingPage/>}/>
-                        <Route path="/gallery" element={<LandingPage/>}/>
-                        <Route path="/workingon" element={<LandingPage/>}/>
-                        <Route path="/search" element={<SearchResultsPage/>}/>
+                    <Route element={<MainLayout />}>
+                        <Route path="/" element={<LandingPage />} />
+                        <Route path="/gallery" element={<LandingPage />} />
+                        <Route path="/workingon" element={<LandingPage />} />
+                        <Route path="/search" element={<SearchResultsPage />} />
                         <Route path="/login" element={<LoginPage />} />
+                        
+                        {/* OAuth2 콜백 라우트 추가 */}
+                        <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
+
                         <Route path="/completed/:contentId" element={<CompletedCanvasPage />} />
                         <Route path="/editor/:docId" element={<EditorPage />} />
                         <Route
                             path="/editor/new"
                             element={
                                 <ProtectedRoute>
-                                    <CreatePage/>
+                                    <CreatePage />
                                 </ProtectedRoute>
                             }
                         />
@@ -47,7 +51,7 @@ export default function App() {
                             path="/palette"
                             element={
                                 <ProtectedRoute>
-                                    <PalettePage/>
+                                    <PalettePage />
                                 </ProtectedRoute>
                             }
                         />
@@ -55,7 +59,7 @@ export default function App() {
                             path="/favorites"
                             element={
                                 <ProtectedRoute>
-                                    <FavoritesPage/>
+                                    <FavoritesPage />
                                 </ProtectedRoute>
                             }
                         />
@@ -63,7 +67,7 @@ export default function App() {
                             path="/mypage"
                             element={
                                 <ProtectedRoute>
-                                    <DashboardPage/>
+                                    <DashboardPage />
                                 </ProtectedRoute>
                             }
                         />
@@ -71,5 +75,5 @@ export default function App() {
                 </Routes>
             </BrowserRouter>
         </ErrorBoundary>
-    )
+    );
 }

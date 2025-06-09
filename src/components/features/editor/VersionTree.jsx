@@ -1,107 +1,103 @@
-import React, { useState, useEffect } from 'react'
-import Tree from 'react-d3-tree'
+import React, { useState, useEffect, useMemo } from 'react';
+import Tree from 'react-d3-tree';
 
-const VersionTree = ({ 
-    writings = [], 
-    onNodeClick,
-    currentVersion = null 
-}) => {
-    const [treeData, setTreeData] = useState(null)
-    const [translate, setTranslate] = useState({ x: 0, y: 0 })
+/**
+ * 글의 버전 기록을 이진 트리 형태로 시각화하는 컴포넌트입니다.
+ * @param {Array<object>} writings - 버전 정보를 담은 WritingDto 배열
+ * @param {function} onNodeClick - 트리 노드 클릭 시 호출될 콜백 함수
+ * @param {object} currentVersion - 현재 선택된 버전의 WritingDto
+ */
+const VersionTree = ({ writings = [], onNodeClick, currentVersion = null }) => {
+    const [treeData, setTreeData] = useState(null);
+    const [translate, setTranslate] = useState({ x: 0, y: 0 });
 
-    // WritingDto 배열을 트리 구조로 변환
+    // WritingDto 배열을 d3-tree가 요구하는 형식으로 변환합니다.
     useEffect(() => {
-        if (writings.length === 0) return
+        if (writings.length === 0) return;
 
-        // 트리 구조 생성
         const buildTree = () => {
-            const nodeMap = new Map()
+            const nodeMap = new Map();
             
-            // 모든 노드를 맵에 저장
             writings.forEach(writing => {
-                const key = `${writing.depth}-${writing.siblingIndex}`
+                const key = `${writing.depth}-${writing.siblingIndex}`;
                 nodeMap.set(key, {
-                    name: `v${writing.depth + 1}.${writing.siblingIndex + 1}`,
+                    name: `v${writing.depth}.${writing.siblingIndex}`,
                     attributes: {
                         author: writing.username,
                         time: new Date(writing.time).toLocaleString(),
                         color: writing.color || '#000',
-                        contentId: writing.contentId,
-                        depth: writing.depth,
-                        siblingIndex: writing.siblingIndex
                     },
                     children: [],
-                    data: writing
-                })
-            })
+                    // 원본 writing 데이터를 노드에 포함시켜 클릭 시 전달합니다.
+                    data: writing 
+                });
+            });
 
-            // 부모-자식 관계 설정
             writings.forEach(writing => {
-                if (writing.depth > 0) {
-                    const parentKey = `${writing.depth - 1}-${writing.parentSiblingIndex}`
-                    const childKey = `${writing.depth}-${writing.siblingIndex}`
+                if (writing.depth > 0 && writing.parentSiblingIndex !== undefined) {
+                    const parentKey = `${writing.depth - 1}-${writing.parentSiblingIndex}`;
+                    const childKey = `${writing.depth}-${writing.siblingIndex}`;
                     
-                    const parent = nodeMap.get(parentKey)
-                    const child = nodeMap.get(childKey)
+                    const parent = nodeMap.get(parentKey);
+                    const child = nodeMap.get(childKey);
                     
                     if (parent && child) {
-                        parent.children.push(child)
+                        parent.children.push(child);
                     }
                 }
-            })
+            });
 
-            // 루트 노드 찾기 (depth = 0)
             const rootNodes = writings
                 .filter(w => w.depth === 0)
-                .map(w => nodeMap.get(`${w.depth}-${w.siblingIndex}`))
+                .map(w => nodeMap.get(`${w.depth}-${w.siblingIndex}`));
 
-            return rootNodes.length > 0 ? rootNodes[0] : null
-        }
+            // 루트가 여러 개일 경우를 대비해 가상의 루트를 만들 수 있지만, 여기서는 첫 번째를 사용합니다.
+            return rootNodes.length > 0 ? rootNodes[0] : null;
+        };
 
-        const tree = buildTree()
-        setTreeData(tree)
-    }, [writings])
+        const tree = buildTree();
+        setTreeData(tree);
+    }, [writings]);
 
-    // 컨테이너 중앙에 트리 배치
+    // 컨테이너 중앙에 트리를 배치하기 위한 좌표 계산
     useEffect(() => {
-        const dimensions = document.getElementById('treeWrapper')?.getBoundingClientRect()
+        const dimensions = document.getElementById('treeWrapper')?.getBoundingClientRect();
         if (dimensions) {
-            setTranslate({
-                x: dimensions.width / 2,
-                y: 50
-            })
+            setTranslate({ x: dimensions.width / 2, y: 50 });
         }
-    }, [])
+    }, []);
 
+    // 노드 클릭 시 상위 컴포넌트로 데이터 전달
     const handleNodeClick = (nodeData) => {
-        if (onNodeClick) {
-            onNodeClick(nodeData.data)
+        if (onNodeClick && nodeData.data) {
+            onNodeClick(nodeData.data);
         }
-    }
+    };
+    
+    // 현재 선택된 버전인지 확인하는 함수
+    const isCurrentNode = (nodeDatum) => {
+        if (!currentVersion || !nodeDatum.data) return false;
+        return currentVersion.depth === nodeDatum.data.depth && 
+               currentVersion.siblingIndex === nodeDatum.data.siblingIndex;
+    };
 
     // 커스텀 노드 렌더링
-    const renderCustomNode = ({ nodeDatum, toggleNode }) => (
-        <g>
+    const renderCustomNode = ({ nodeDatum }) => (
+        <g onClick={() => handleNodeClick(nodeDatum)} style={{ cursor: 'pointer' }}>
             <circle
                 r={20}
-                fill={nodeDatum.attributes?.color || '#4A90E2'}
-                stroke={currentVersion?.depth === nodeDatum.attributes?.depth && 
-                        currentVersion?.siblingIndex === nodeDatum.attributes?.siblingIndex
-                        ? '#FFD700' : '#333'}
-                strokeWidth={currentVersion?.depth === nodeDatum.attributes?.depth && 
-                             currentVersion?.siblingIndex === nodeDatum.attributes?.siblingIndex
-                             ? 3 : 1}
-                onClick={() => handleNodeClick(nodeDatum)}
-                style={{ cursor: 'pointer' }}
+                fill={isCurrentNode(nodeDatum) ? '#f59e0b' : (nodeDatum.attributes?.color || '#4A90E2')}
+                stroke={isCurrentNode(nodeDatum) ? '#b45309' : '#333'}
+                strokeWidth={isCurrentNode(nodeDatum) ? 4 : 1.5}
             />
             <text
                 fill="white"
+                stroke="white"
+                strokeWidth="0.5px"
                 fontSize="12"
                 fontWeight="bold"
                 textAnchor="middle"
-                alignmentBaseline="middle"
-                onClick={() => handleNodeClick(nodeDatum)}
-                style={{ cursor: 'pointer' }}
+                dy=".3em" // 텍스트 수직 중앙 정렬
             >
                 {nodeDatum.name}
             </text>
@@ -109,20 +105,15 @@ const VersionTree = ({
                 fill="#333"
                 fontSize="10"
                 textAnchor="middle"
-                alignmentBaseline="middle"
-                y={35}
+                dy="3.5em"
             >
                 {nodeDatum.attributes?.author?.split('@')[0]}
             </text>
         </g>
-    )
+    );
 
     if (!treeData) {
-        return (
-            <div className="flex items-center justify-center h-64 text-gray-500">
-                버전 내역이 없습니다
-            </div>
-        )
+        return <div className="text-center text-gray-500">버전 내역이 없습니다.</div>;
     }
 
     return (
@@ -132,31 +123,16 @@ const VersionTree = ({
                 translate={translate}
                 orientation="vertical"
                 pathFunc="step"
-                nodeSize={{ x: 150, y: 100 }}
-                separation={{ siblings: 1.5, nonSiblings: 2 }}
+                nodeSize={{ x: 120, y: 80 }}
+                separation={{ siblings: 1.2, nonSiblings: 1.5 }}
                 renderCustomNodeElement={renderCustomNode}
-                zoom={0.8}
-                draggable
+                zoomable={true}
+                draggable={true}
                 collapsible={false}
                 enableLegacyTransitions
             />
-            
-            {/* 범례 */}
-            <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-md">
-                <div className="text-xs font-semibold mb-2">버전 정보</div>
-                <div className="text-xs text-gray-600">
-                    <div className="flex items-center gap-2 mb-1">
-                        <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                        <span>현재 선택된 버전</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span>다른 버전 (클릭하여 보기)</span>
-                    </div>
-                </div>
-            </div>
         </div>
-    )
-}
+    );
+};
 
-export default VersionTree
+export default VersionTree;

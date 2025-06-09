@@ -1,126 +1,103 @@
-import api from './api'
+import api from './api';
 
-// 토큰 만료 시간 (밀리초)
-const ACCESS_TOKEN_EXPIRY = 30 * 60 * 1000 // 30분
-const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000 // 7일
-
+/**
+ * 인증 및 토큰 관리를 담당하는 서비스 객체입니다.
+ */
 export const authService = {
-  // 로그인
-  login: async (email, password) => {
-    const response = await api.post('/api/auth/login', { email, password })
-    const { accessToken, refreshToken, user } = response.data
+
+    /**
+     * 로컬 스토리지에 토큰을 저장합니다.
+     * @param {object} tokens - { accessToken, refreshToken } 객체
+     */
+    saveTokens: (tokens) => {
+        if (tokens.accessToken) {
+            localStorage.setItem('accessToken', tokens.accessToken);
+        }
+        if (tokens.refreshToken) {
+            localStorage.setItem('refreshToken', tokens.refreshToken);
+        }
+    },
+
+    /**
+     * 로컬 스토리지에서 엑세스 토큰을 가져옵니다.
+     * @returns {string | null} 엑세스 토큰 또는 null
+     */
+    getAccessToken: () => {
+        return localStorage.getItem('accessToken');
+    },
+
+    /**
+     * 로컬 스토리지에서 리프레시 토큰을 가져옵니다.
+     * @returns {string | null} 리프레시 토큰 또는 null
+     */
+    getRefreshToken: () => {
+        return localStorage.getItem('refreshToken');
+    },
     
-    // 토큰 만료 시간 설정
-    const now = Date.now()
-    const tokens = {
-      accessToken,
-      refreshToken,
-      accessTokenExpiry: now + ACCESS_TOKEN_EXPIRY,
-      refreshTokenExpiry: now + REFRESH_TOKEN_EXPIRY
+    /**
+     * 로그아웃 처리. 로컬 스토리지에서 모든 인증 정보를 제거합니다.
+     */
+    logout: () => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user'); // 사용자 정보도 함께 제거
+        // 페이지를 새로고침하여 상태를 초기화합니다.
+        window.location.href = '/'; 
+    },
+
+    /**
+     * 현재 로그인(인증) 상태인지 확인합니다.
+     * @returns {boolean} 엑세스 토큰 존재 여부
+     */
+    isAuthenticated: () => {
+        return !!authService.getAccessToken();
+    },
+
+    /**
+     * 리프레시 토큰을 사용하여 새로운 엑세스 토큰을 발급받습니다.
+     */
+    refreshToken: async () => {
+        const refreshToken = authService.getRefreshToken();
+        if (!refreshToken) {
+            authService.logout();
+            throw new Error('리프레시 토큰이 없습니다.');
+        }
+
+        try {
+            const response = await api.post('/auth/refresh', { refreshToken });
+            const { accessToken } = response.data;
+            if (accessToken) {
+                authService.saveTokens({ accessToken });
+                return accessToken;
+            }
+        } catch (error) {
+            console.error('토큰 재발급 실패:', error);
+            authService.logout();
+            throw error;
+        }
+    },
+    
+    /**
+     * 서버로부터 현재 사용자 정보를 가져와 로컬 스토리지에 저장합니다.
+     */
+    fetchAndSaveUser: async () => {
+        try {
+            const response = await api.get('/api/users/');
+            if(response.data) {
+                localStorage.setItem('user', JSON.stringify(response.data));
+            }
+            return response.data;
+        } catch(error) {
+            console.error('사용자 정보 조회 실패:', error);
+            return null;
+        }
+    },
+
+    /**
+     * 로컬 스토리지에서 현재 사용자 정보를 가져옵니다.
+     */
+    getCurrentUser: () => {
+        const userStr = localStorage.getItem('user');
+        return userStr ? JSON.parse(userStr) : null;
     }
-    
-    authService.saveTokens(tokens, user)
-    return response
-  },
-
-  // 토큰 재발급
-  refreshToken: async (refreshToken) => {
-    try {
-      const response = await api.post('/auth/refresh', { refreshToken })
-      const { accessToken } = response.data
-      
-      // 새로운 accessToken 저장
-      const now = Date.now()
-      const tokens = {
-        ...authService.getTokens(),
-        accessToken,
-        accessTokenExpiry: now + ACCESS_TOKEN_EXPIRY
-      }
-      
-      authService.saveTokens(tokens, authService.getCurrentUser())
-      return response
-    } catch (error) {
-      // refreshToken도 만료된 경우 로그아웃
-      authService.logout()
-      throw error
-    }
-  },
-
-  // 로그아웃
-  logout: () => {
-    localStorage.removeItem('tokens')
-    localStorage.removeItem('user')
-  },
-
-  // 토큰 저장
-  saveTokens: (tokens, user) => {
-    localStorage.setItem('tokens', JSON.stringify(tokens))
-    localStorage.setItem('user', JSON.stringify(user))
-  },
-
-  // 토큰 가져오기
-  getTokens: () => {
-    const tokensStr = localStorage.getItem('tokens')
-    return tokensStr ? JSON.parse(tokensStr) : null
-  },
-
-  // 현재 사용자 정보 가져오기
-  getCurrentUser: () => {
-    const userStr = localStorage.getItem('user')
-    return userStr ? JSON.parse(userStr) : null
-  },
-
-  // 토큰이 유효한지 확인
-  isAuthenticated: () => {
-    const tokens = authService.getTokens()
-    if (!tokens) return false
-
-    const now = Date.now()
-    
-    // accessToken이 만료되었는지 확인
-    if (now >= tokens.accessTokenExpiry) {
-      // refreshToken도 만료되었는지 확인
-      if (now >= tokens.refreshTokenExpiry) {
-        authService.logout()
-        return false
-      }
-      
-      // accessToken만 만료된 경우 자동으로 갱신 시도
-      authService.refreshToken(tokens.refreshToken)
-        .catch(() => {
-          authService.logout()
-          return false
-        })
-    }
-    
-    return true
-  },
-
-  // API 요청을 위한 토큰 가져오기
-  getAccessToken: async () => {
-    const tokens = authService.getTokens()
-    if (!tokens) return null
-
-    const now = Date.now()
-    
-    // accessToken이 만료되었는지 확인
-    if (now >= tokens.accessTokenExpiry) {
-      // refreshToken도 만료되었는지 확인
-      if (now >= tokens.refreshTokenExpiry) {
-        authService.logout()
-        return null
-      }
-      
-      try {
-        // accessToken 갱신
-        await authService.refreshToken(tokens.refreshToken)
-        return authService.getTokens().accessToken
-      } catch (error) {
-        authService.logout()
-        return null
-      }
-    }
-    
-    return tokens.accessToken
-  }
-} 
+};

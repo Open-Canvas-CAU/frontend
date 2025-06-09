@@ -12,6 +12,9 @@ class WebSocketService {
     this.roomId = null
     this.messageQueue = []
     this.isConnected = false
+    this.reconnectAttempts = 0
+    this.maxReconnectAttempts = 3
+    this.callbacks = {}
   }
 
   /**
@@ -21,7 +24,13 @@ class WebSocketService {
    */
   connect(roomId, callbacks = {}) {
     this.roomId = roomId
+    this.callbacks = callbacks
     const accessToken = authService.getAccessToken()
+
+    // 이미 연결되어 있다면 해제하고 다시 연결
+    if (this.client && this.client.connected) {
+      this.disconnect()
+    }
 
     this.client = new Client({
       brokerURL: 'ws://localhost:8080/ws-stomp',
@@ -31,9 +40,14 @@ class WebSocketService {
       debug: (str) => {
         console.log('STOMP Debug:', str)
       },
+      // 재연결 설정
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
       onConnect: (frame) => {
         console.log('STOMP Connected:', frame)
         this.isConnected = true
+        this.reconnectAttempts = 0
         
         this.subscribe(roomId, callbacks.onMessage)
         
@@ -46,21 +60,47 @@ class WebSocketService {
       },
       onStompError: (frame) => {
         console.error('STOMP Error:', frame.headers['message'])
+        console.error('Error details:', frame.body)
         this.isConnected = false
+        
         if (callbacks.onError) {
           callbacks.onError(frame)
         }
+        
+        // 최대 재연결 시도 횟수 초과시 포기
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+          console.error('Max reconnection attempts reached. Giving up.')
+          return
+        }
+        
+        this.reconnectAttempts++
       },
-      onWebSocketClose: () => {
-        console.log('WebSocket Closed')
+      onWebSocketClose: (event) => {
+        console.log('WebSocket Closed:', event)
         this.isConnected = false
+        
         if (callbacks.onClose) {
           callbacks.onClose()
+        }
+      },
+      onWebSocketError: (event) => {
+        console.error('WebSocket Error:', event)
+        this.isConnected = false
+        
+        if (callbacks.onError) {
+          callbacks.onError(event)
         }
       }
     })
 
-    this.client.activate()
+    try {
+      this.client.activate()
+    } catch (error) {
+      console.error('Failed to activate WebSocket client:', error)
+      if (callbacks.onError) {
+        callbacks.onError(error)
+      }
+    }
   }
 
   /**
@@ -69,24 +109,35 @@ class WebSocketService {
    * @param {function} onMessage - 메시지 수신 시 호출될 콜백 함수
    */
   subscribe(roomId, onMessage) {
+    if (!this.client || !this.client.connected) {
+      console.warn('Cannot subscribe: STOMP client is not connected')
+      return
+    }
+
     if (this.subscription) {
       this.subscription.unsubscribe()
     }
 
-    this.subscription = this.client.subscribe(
-      `/sub/chat/room/${roomId}`,
-      (message) => {
-        console.log('Received message:', message.body)
-        if (onMessage) {
-          try {
-            const parsedMessage = JSON.parse(message.body)
-            onMessage(parsedMessage)
-          } catch (e) {
-            console.error('Failed to parse message:', e)
+    try {
+      this.subscription = this.client.subscribe(
+        `/sub/chat/room/${roomId}`,
+        (message) => {
+          console.log('Received message:', message.body)
+          if (onMessage) {
+            try {
+              const parsedMessage = JSON.parse(message.body)
+              onMessage(parsedMessage)
+            } catch (e) {
+              console.error('Failed to parse message:', e)
+              console.error('Raw message:', message.body)
+            }
           }
         }
-      }
-    )
+      )
+      console.log('Successfully subscribed to room:', roomId)
+    } catch (error) {
+      console.error('Failed to subscribe:', error)
+    }
   }
 
   /**
@@ -95,6 +146,13 @@ class WebSocketService {
    */
   sendMessage(message) {
     if (!this.isConnected) {
+      console.log('WebSocket not connected, queuing message:', message)
+      this.messageQueue.push(message)
+      return
+    }
+
+    if (!this.client || !this.client.connected) {
+      console.warn('Cannot send message: STOMP client is not connected')
       this.messageQueue.push(message)
       return
     }
@@ -107,14 +165,22 @@ class WebSocketService {
       ...message
     }
 
-    this.client.publish({
-      destination: '/pub/chat/message',
-      body: JSON.stringify(messageData)
-    })
+    try {
+      this.client.publish({
+        destination: '/pub/chat/message',
+        body: JSON.stringify(messageData)
+      })
+      console.log('Message sent:', messageData)
+    } catch (error) {
+      console.error('Failed to send message:', error)
+      // 전송 실패시 큐에 다시 추가
+      this.messageQueue.push(message)
+    }
   }
   
   // 큐에 쌓인 메시지를 모두 전송
   flushMessageQueue() {
+    console.log('Flushing message queue, count:', this.messageQueue.length)
     while (this.messageQueue.length > 0) {
       const message = this.messageQueue.shift()
       this.sendMessage(message)
@@ -148,18 +214,51 @@ class WebSocketService {
 
   // WebSocket 연결을 해제합니다.
   disconnect() {
+    console.log('Disconnecting WebSocket...')
+    
     if (this.subscription) {
-      this.subscription.unsubscribe()
+      try {
+        this.subscription.unsubscribe()
+      } catch (error) {
+        console.warn('Error unsubscribing:', error)
+      }
       this.subscription = null
     }
 
     if (this.client) {
-      this.client.deactivate()
+      try {
+        if (this.client.connected) {
+          this.client.deactivate()
+        }
+      } catch (error) {
+        console.warn('Error deactivating client:', error)
+      }
       this.client = null
     }
 
     this.isConnected = false
     this.roomId = null
+    this.reconnectAttempts = 0
+    this.messageQueue = []
+    this.callbacks = {}
+    
+    console.log('WebSocket disconnected successfully')
+  }
+
+  // 연결 상태 확인
+  isConnectedToRoom() {
+    return this.isConnected && this.client && this.client.connected
+  }
+
+  // 강제 재연결
+  forceReconnect() {
+    if (this.roomId && this.callbacks) {
+      console.log('Force reconnecting...')
+      this.disconnect()
+      setTimeout(() => {
+        this.connect(this.roomId, this.callbacks)
+      }, 1000)
+    }
   }
 }
 

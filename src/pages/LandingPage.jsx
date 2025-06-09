@@ -52,6 +52,8 @@ export default function LandingPage() {
     }, [filter, location.pathname])
 
     const handleCardClick = (doc) => {
+        console.log('Card clicked:', doc, 'Current path:', location.pathname)
+        
         if (location.pathname === '/workingon') {
             navigate(`/editor/${doc.contentId}`)
         } else if (doc.contentId) {
@@ -65,7 +67,7 @@ export default function LandingPage() {
         return (
             <div className="container mx-auto px-8 py-8">
                 <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-                    <div className="w-12 h-12 border-4 border-solarized-cyan/20 border-t-solarized-cyan/80 rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-yellow-300/20 border-t-yellow-300/80 rounded-full animate-spin"></div>
                     <div className="text-xl text-solarized-base00">로딩 중...</div>
                 </div>
             </div>
@@ -82,8 +84,8 @@ export default function LandingPage() {
                             onClick={() => setFilter(f)}
                             className={`px-4 py-2 rounded-full text-sm font-semibold
                                 ${filter === f
-                                    ? 'bg-solarized-cyan/20 text-solarized-cyan'
-                                    : 'bg-solarized-base2 text-solarized-base01 hover:bg-solarized-base1'
+                                    ? 'bg-yellow-300/20 text-yellow-300'
+                                    : 'bg-solarized-base2 text-solarized-base01 hover:bg-red'
                                 }`}
                         >
                             {f}

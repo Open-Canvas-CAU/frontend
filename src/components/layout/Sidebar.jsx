@@ -11,8 +11,8 @@ export default function Sidebar() {
 
     const linkClass = ({ isActive }) =>
         isActive
-            ? 'text-solarized-cyan'
-            : 'text-solarized-base0 hover:text-solarized-base1'
+            ? 'text-yellow-300'
+            : 'text-solarized-base0 hover:text-red-400'
 
     return (
         <aside className="w-24 h-screen bg-solarized-base2 flex flex-col items-center p-6">
@@ -34,7 +34,7 @@ export default function Sidebar() {
             </nav>
             <button
                 onClick={() => navigate('/editor/new')}
-                className="mt-auto bg-solarized-cyan hover:bg-solarized-cyan/80 rounded-full transition-colors"
+                className="mt-auto bg-yellow-300 hover:bg-yellow-300/80 rounded-full transition-colors"
             >
                 <img src={PlusIconUrl} alt="New Canvas" className="w-6 h-6"/>
             </button>

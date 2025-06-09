@@ -1,12 +1,13 @@
-// src/components/editor/CanvasPage.jsx
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import CarouselEditor from './CarouselEditor.jsx'
 import api from '@/services/api'
+import websocketService from '@/services/websocketService'
 import ReportIconUrl from '@/assets/icons/report.svg'
 
 export default function CanvasPage({ isEditing = false, onEdit, showEditButton = true }) {
-    const { roomId } = useParams()
+    const { docId } = useParams()  // 라우트 파라미터와 일치하도록 변경
+    const roomId = docId  // 내부적으로는 roomId로 사용
     const navigate = useNavigate()
 
     // 상태 관리
@@ -14,13 +15,14 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
     const [writings, setWritings] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [connectedUsers, setConnectedUsers] = useState([])
 
     // 신고 모달 상태
     const [showReportModal, setShowReportModal] = useState(false)
     const [reportReason, setReportReason] = useState('')
     const [isReporting, setIsReporting] = useState(false)
 
-    // 문서방 참여 및 글 조회
+    // 문서방 참여 및 WebSocket 연결
     useEffect(() => {
         async function joinRoom() {
             try {
@@ -30,9 +32,25 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
                 // 문서방 글 조회
                 const writingsResponse = await api.get(`/api/writings/room/${roomId}`)
-                setWritings(writingsResponse.data)
+                const data = writingsResponse.data
+                setWritings(Array.isArray(data) ? data : [])
 
-                // TODO: 웹소켓 연결
+                // WebSocket 연결
+                websocketService.connect(roomId, {
+                    onConnect: () => {
+                        console.log('WebSocket connected for room:', roomId)
+                    },
+                    onMessage: (message) => {
+                        handleWebSocketMessage(message)
+                    },
+                    onError: (error) => {
+                        console.error('WebSocket error:', error)
+                    },
+                    onClose: () => {
+                        console.log('WebSocket disconnected')
+                    }
+                })
+
             } catch (error) {
                 console.error('문서방 참여 실패:', error)
                 setError('문서방 참여에 실패했습니다.')
@@ -44,7 +62,68 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
         if (roomId) {
             joinRoom()
         }
+
+        // Cleanup: WebSocket 연결 해제
+        return () => {
+            if (roomId) {
+                websocketService.disconnect()
+            }
+        }
     }, [roomId])
+
+    // WebSocket 메시지 처리
+    const handleWebSocketMessage = (message) => {
+        console.log('Received WebSocket message:', message)
+        
+        switch (message.type) {
+            case 'EDIT':
+                // 다른 사용자의 편집 내용 반영
+                handleRemoteEdit(message)
+                break
+            case 'JOIN':
+                // 사용자 입장
+                console.log('User joined:', message)
+                break
+            case 'LEAVE':
+                // 사용자 퇴장
+                console.log('User left:', message)
+                break
+            case 'ROOMOUT':
+                // 편집자가 나가서 방이 삭제됨
+                alert('편집자가 나가서 문서방이 종료되었습니다.')
+                navigate('/')
+                break
+            default:
+                console.log('Unknown message type:', message.type)
+        }
+    }
+
+    // 원격 편집 처리
+    const handleRemoteEdit = (message) => {
+        const blockNum = parseInt(message.num || '0')
+        setWritings(prev => {
+            const copy = [...prev]
+            if (copy[blockNum]) {
+                copy[blockNum] = { ...copy[blockNum], body: message.message }
+            }
+            return copy
+        })
+    }
+
+    // 로컬 편집 처리 (WebSocket으로 전송)
+    const handleLocalEdit = (idx, html) => {
+        // 로컬 상태 업데이트
+        setWritings(prev => {
+            const copy = [...prev]
+            copy[idx] = { ...copy[idx], body: html }
+            return copy
+        })
+
+        // WebSocket으로 편집 내용 전송 (throttled)
+        if (isEditing) {
+            websocketService.sendThrottledMessage(idx, html)
+        }
+    }
 
     // 글 저장
     const handleSave = async () => {
@@ -70,6 +149,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
     const handleExit = async () => {
         try {
             await api.post(`/api/room/exit?arg0=${roomId}`)
+            websocketService.disconnect()
             navigate(-1)
         } catch (error) {
             console.error('문서방 나가기 실패:', error)
@@ -92,14 +172,13 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
         setIsReporting(true)
         try {
-            // TODO: ReportDto 연동
-            // await api.post('/api/reports', {
-            //     title: roomData?.title,
-            //     depth: 0,
-            //     siblingIndex: 0,
-            //     body: reportReason,
-            //     time: new Date().toISOString()
-            // })
+            await api.post('/api/reports', {
+                title: roomData?.title,
+                depth: 0,
+                siblingIndex: 0,
+                body: reportReason,
+                time: new Date().toISOString()
+            })
             alert('신고가 접수되었습니다.')
             setShowReportModal(false)
             setReportReason('')
@@ -146,17 +225,20 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                 </div>
 
                 <div className="p-6 space-y-8">
+                    {/* 실시간 편집 상태 표시 */}
+                    {isEditing && connectedUsers.length > 1 && (
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                            <span className="text-sm text-blue-700">
+                                {connectedUsers.length}명이 동시에 편집 중입니다
+                            </span>
+                        </div>
+                    )}
+
                     {/* 본문 에디터 */}
                     <CarouselEditor
                         variants={writings.map(w => w.body)}
                         readOnly={!isEditing}
-                        onChange={(idx, html) => {
-                            setWritings(prev => {
-                                const copy = [...prev]
-                                copy[idx] = { ...copy[idx], body: html }
-                                return copy
-                            })
-                        }}
+                        onChange={handleLocalEdit}
                     />
 
                     {/* 신고 버튼 - 편집 모드가 아닐 때만 표시 */}

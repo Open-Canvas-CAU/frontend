@@ -85,7 +85,7 @@ const mockContents = {
     commentDtos: [
       {
         id: 1,
-        contentDto: null, // 순환 참조 방지
+        contentDto: null,
         userDto: {
           id: 2,
           nickname: "user2@example.com",
@@ -105,7 +105,7 @@ const mockContents = {
         depth: 0,
         siblingIndex: 0,
         parentSiblingIndex: null,
-        body: "이 작품은...",
+        body: "<h1>첫 번째 캔버스 - 해피데이</h1><p>오늘은 정말 행복한 날이었습니다. 아침부터 화창한 날씨가 기분을 좋게 만들어주었고, 거리에는 봄꽃들이 만개하여 도시 전체가 화사한 분위기로 가득했습니다.</p><p>카페에서 마신 따뜻한 커피 한 잔이 하루의 시작을 더욱 특별하게 만들어주었습니다. 창밖으로 보이는 풍경을 바라보며 여유로운 시간을 보낼 수 있었죠.</p>",
         time: "2024-03-20T12:00:00Z",
         username: "test@example.com",
         title: "첫 번째 캔버스 - 해피데이",
@@ -117,13 +117,25 @@ const mockContents = {
         depth: 1,
         siblingIndex: 0,
         parentSiblingIndex: 0,
-        body: "이어쓰기 첫 번째...",
+        body: "<h2>이어쓰기 - 오후의 산책</h2><p>점심을 먹고 난 후, 근처 공원으로 산책을 나갔습니다. 공원에는 많은 사람들이 나와 봄날의 따스함을 즐기고 있었습니다.</p><p>벤치에 앉아 책을 읽는 사람들, 잔디밭에서 피크닉을 즐기는 가족들, 그리고 강아지와 함께 산책하는 사람들의 모습이 평화로워 보였습니다.</p>",
         time: "2024-03-20T12:15:00Z",
         username: "user2@example.com",
         title: "첫 번째 캔버스 - 해피데이",
         userId: 2,
         contentId: 1,
         color: "#33FF57"
+      },
+      {
+        depth: 1,
+        siblingIndex: 1,
+        parentSiblingIndex: 0,
+        body: "<h2>다른 버전 - 저녁의 여유</h2><p>해가 지면서 하늘이 주황빛으로 물들기 시작했습니다. 집으로 돌아오는 길에 들른 작은 서점에서 마음에 드는 책을 한 권 샀습니다.</p><p>집에 돌아와 창가에 앉아 새로 산 책을 펼쳤습니다. 따뜻한 차 한 잔과 함께하는 독서 시간은 하루의 완벽한 마무리였습니다.</p>",
+        time: "2024-03-20T12:20:00Z",
+        username: "user3@example.com",
+        title: "첫 번째 캔버스 - 해피데이",
+        userId: 3,
+        contentId: 1,
+        color: "#3357FF"
       }
     ],
     likeDtos: [
@@ -135,9 +147,9 @@ const mockContents = {
     ],
     coverDto: mockCovers[0],
     likeNum: 50,
-    likeType: null, // 현재 사용자의 좋아요 상태
+    likeType: null,
     title: "첫 번째 캔버스 - 해피데이"
-  }
+  },
 }
 
 // 추천 작품 목록 (ContentDto 배열)

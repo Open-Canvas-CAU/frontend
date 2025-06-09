@@ -3,7 +3,7 @@ import React from 'react'
 export default function SectionPlaceholder({ className }) {
     return (
         <div
-            className={`absolute bg-solarized-base1 opacity-50 rounded-2xl ${className}`}
+            className={`absolute bg-red opacity-50 rounded-2xl ${className}`}
         />
     )
 }

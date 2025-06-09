@@ -26,7 +26,7 @@ export default function SearchBar({ value, onChange, onSearch, className = '' })
     return (
         <div className={`relative ${className}`}>
             <div className={`w-full bg-white rounded-lg shadow-sm transition-all duration-200
-                ${isFocused ? 'ring-2 ring-solarized-cyan' : 'hover:shadow-md'}`}>
+                ${isFocused ? 'ring-2 ring-yellow-300' : 'hover:shadow-md'}`}>
                 <div className="flex items-center h-12 px-4">
                     {/* 검색 아이콘 */}
                     <svg 
@@ -85,8 +85,8 @@ export default function SearchBar({ value, onChange, onSearch, className = '' })
                     {/* 검색 버튼 */}
                     <button
                         onClick={onSearch}
-                        className="ml-4 px-3 py-1.5 bg-solarized-cyan text-white rounded-md 
-                            hover:bg-solarized-cyan/80 transition-colors text-sm font-medium"
+                        className="ml-4 px-3 py-1.5 bg-yellow-300 text-white rounded-md 
+                            hover:bg-yellow-300/80 transition-colors text-sm font-medium"
                     >
                         검색
                     </button>

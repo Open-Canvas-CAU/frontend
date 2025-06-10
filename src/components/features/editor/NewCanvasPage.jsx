@@ -65,7 +65,7 @@ export default function NewCanvasPage() {
 
             // 3. 성공적으로 생성되면 에디터 페이지로 이동
             console.log('Navigating to editor with roomId:', roomData.roomId)
-            navigate(`/editor/${roomData.roomId}`)
+            navigate(`/editor/${roomData.roomId}/edit`)
             
         } catch (error) {
             console.error('문서방 생성 실패:', error)

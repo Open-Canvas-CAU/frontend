@@ -16,8 +16,8 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     // 토큰이 필요한 요청인 경우에만 토큰 추가
-    if (!config.url.includes('/auth/login')) {
-      const token = await authService.getAccessToken()
+    if (!config.url.includes('/auth/login') && !config.url.includes('/auth/refresh')) {
+      const token = authService.getAccessToken()
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
       }
@@ -35,25 +35,31 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
-    // 토큰 만료로 인한 401 에러이고, 재시도하지 않은 요청인 경우
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // 토큰 만료로 인한 401 에러이고, 재시도하지 않은 요청이며, refresh 요청이 아닌 경우
+    if (error.response?.status === 401 && 
+        !originalRequest._retry && 
+        !originalRequest.url?.includes('/auth/refresh')) {
+      
       originalRequest._retry = true
 
       try {
-        // 토큰 갱신 시도
-        const tokens = authService.getTokens()
-        if (tokens?.refreshToken) {
-          await authService.refreshToken(tokens.refreshToken)
-          
-          // 새로운 토큰으로 원래 요청 재시도
-          const newToken = await authService.getAccessToken()
-          originalRequest.headers.Authorization = `Bearer ${newToken}`
-          return api(originalRequest)
-        }
+        // 토큰 갱신 시도 (파라미터 없이 호출)
+        const newToken = await authService.refreshToken()
+        
+        // 새로운 토큰으로 원래 요청 재시도
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
+        return api(originalRequest)
+        
       } catch (refreshError) {
         // 토큰 갱신 실패 시 로그아웃
+        console.error('토큰 갱신 실패, 로그아웃 처리:', refreshError)
         authService.logout()
-        window.location.href = '/login'
+        
+        // 현재 페이지가 로그인 페이지가 아닌 경우에만 리다이렉트
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
+        
         return Promise.reject(refreshError)
       }
     }
@@ -62,4 +68,4 @@ api.interceptors.response.use(
   }
 )
 
-export default api 
+export default api

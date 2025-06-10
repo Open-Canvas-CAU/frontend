@@ -33,6 +33,17 @@ export const authService = {
     getRefreshToken: () => {
         return localStorage.getItem('refreshToken');
     },
+
+    /**
+     * 로컬 스토리지에서 모든 토큰을 가져옵니다.
+     * @returns {object} { accessToken, refreshToken } 객체
+     */
+    getTokens: () => {
+        return {
+            accessToken: localStorage.getItem('accessToken'),
+            refreshToken: localStorage.getItem('refreshToken')
+        };
+    },
     
     /**
      * 로그아웃 처리. 로컬 스토리지에서 모든 인증 정보를 제거합니다.
@@ -55,20 +66,39 @@ export const authService = {
 
     /**
      * 리프레시 토큰을 사용하여 새로운 엑세스 토큰을 발급받습니다.
+     * @param {string} refreshToken - 선택적 리프레시 토큰 (없으면 저장된 것 사용)
+     * @returns {Promise<string>} 새로 발급된 엑세스 토큰
      */
-    refreshToken: async () => {
-        const refreshToken = authService.getRefreshToken();
-        if (!refreshToken) {
+    refreshToken: async (refreshToken = null) => {
+        const tokenToUse = refreshToken || authService.getRefreshToken();
+        
+        if (!tokenToUse) {
             authService.logout();
             throw new Error('리프레시 토큰이 없습니다.');
         }
 
         try {
-            const response = await api.post('/auth/refresh', { refreshToken });
-            const { accessToken } = response.data;
+            // API 호출 시 무한루프 방지를 위해 직접 axios 호출
+            const response = await fetch('http://localhost:8080/auth/refresh', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ refreshToken: tokenToUse })
+            });
+
+            if (!response.ok) {
+                throw new Error('토큰 갱신 실패');
+            }
+
+            const data = await response.json();
+            const { accessToken } = data;
+            
             if (accessToken) {
                 authService.saveTokens({ accessToken });
                 return accessToken;
+            } else {
+                throw new Error('새로운 엑세스 토큰을 받지 못했습니다.');
             }
         } catch (error) {
             console.error('토큰 재발급 실패:', error);

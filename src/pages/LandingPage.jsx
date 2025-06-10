@@ -79,7 +79,7 @@ export default function LandingPage() {
             // cover.id를 roomId로 사용 (백엔드에서 동일한 값으로 관리되는 것으로 가정)
             if (doc.id) {
                 console.log('Navigating to editor with roomId:', doc.id)
-                navigate(`/editor/${doc.id}`)
+                navigate(`/editor/${doc.id}/edit`)
             } else {
                 console.error('Cover ID가 없습니다:', doc)
                 alert('캔버스 정보가 올바르지 않습니다.')

@@ -21,16 +21,14 @@ const COMPLETION_CRITERIA = {
 }
 
 export default function CanvasPage({ isEditing = false, onEdit, showEditButton = true }) {
-    const { docId } = useParams()
-    const roomId = docId
+    const { roomId } = useParams();
     const navigate = useNavigate()
 
     // 기존 상태들
-    const [roomData, setRoomData] = useState(null)
-    const [writings, setWritings] = useState([])
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState(null)
-    const [connectedUsers, setConnectedUsers] = useState([])
+    const [roomData, setRoomData] = useState(null);
+    const [writings, setWritings] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     
     // WebSocket 관련 상태
     const [websocketConnected, setWebsocketConnected] = useState(false)
@@ -151,6 +149,51 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
     }
 
     // 문서방 참여 및 데이터 로딩
+
+    useEffect(() => {
+        async function joinRoomAndConnect() {
+            if (!roomId) {
+                setError("잘못된 접근입니다. Room ID가 없습니다.");
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                setIsLoading(true);
+                const roomResponse = await api.get(`/api/rooms/${roomId}`);
+                setRoomData(roomResponse.data);
+
+                const writingsResponse = await api.get(`/api/writings/room/${roomId}`);
+                const initialWritings = Array.isArray(writingsResponse.data) ? writingsResponse.data : [];
+                setWritings(initialWritings.length > 0 ? initialWritings : [{ body: '<p>이야기를 시작하세요...</p>' }]);
+
+
+                if (isEditing && authService.isAuthenticated()) {
+                    websocketService.connect(roomId, {
+                        onConnect: () => {
+                            setWebsocketConnected(true);
+                            console.log(`WebSocket 연결 성공: ${roomId}`);
+                        },
+                        onMessage: handleWebSocketMessage,
+                        onError: (err) => setError(`WebSocket 오류: ${err.message || '연결 실패'}`),
+                    });
+                }
+            } catch (err) {
+                setError(`문서방 정보를 불러올 수 없습니다: ${err.response?.data?.message || err.message}`);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        
+        joinRoomAndConnect();
+
+        return () => {
+            if (websocketService.client?.active) {
+                websocketService.disconnect();
+            }
+        };
+    }, [roomId, isEditing]);
+
     useEffect(() => {
         async function joinRoom() {
             try {
@@ -206,26 +249,18 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
     // WebSocket 메시지 처리
     const handleWebSocketMessage = (message) => {
-        console.log('🎯 Processing WebSocket message:', message)
-        
-        switch (message.type) {
-            case 'EDIT':
-                handleRemoteEdit(message)
-                break
-            case 'JOIN':
-                console.log('👋 User joined:', message)
-                break
-            case 'LEAVE':
-                console.log('👋 User left:', message)
-                break
-            case 'ROOMOUT':
-                alert('편집자가 나가서 문서방이 종료되었습니다.')
-                navigate('/')
-                break
-            default:
-                console.log('❓ Unknown message type:', message.type)
+        if (message.type === 'EDIT' && message.num === "1") {
+            setWritings(prev => {
+                const newWritings = [...prev];
+                if (newWritings.length > 0) {
+                    newWritings[0] = { ...newWritings[0], body: message.message };
+                } else {
+                     newWritings.push({ body: message.message });
+                }
+                return newWritings;
+            });
         }
-    }
+    };
 
     // 원격 편집 처리
     const handleRemoteEdit = (message) => {
@@ -242,30 +277,15 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
     }
 
     // 로컬 편집 처리 (WebSocket으로 전송)
-    const handleLocalEdit = (idx, html) => {
-        console.log(`✏️ Local edit for block ${idx}`)
-        
-        // 로컬 상태 업데이트
-        setWritings(prev => {
-            const copy = [...prev]
-            if (copy[idx]) {
-                copy[idx] = { ...copy[idx], body: html }
-            } else {
-                copy[idx] = { body: html, depth: 0, siblingIndex: idx }
-            }
-            return copy
-        })
+    const handleLocalEdit = (index, html) => {
+        const newWritings = [...writings];
+        newWritings[index] = { ...newWritings[index], body: html };
+        setWritings(newWritings);
 
-        // WebSocket으로 편집 내용 전송 (연결된 경우에만)
-        if (isEditing && websocketConnected) {
-            try {
-                websocketService.sendThrottledMessage(idx, html)
-                console.log(`📤 Sent edit via WebSocket for block ${idx}`)
-            } catch (error) {
-                console.warn('⚠️ Failed to send WebSocket message:', error)
-            }
+        if (isEditing && websocketService.throttledSend) {
+            websocketService.throttledSend(html);
         }
-    }
+    };
 
     // WebSocket 수동 재연결
     const handleWebSocketReconnect = () => {
@@ -383,21 +403,8 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
         }
     }
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-xl">로딩 중...</div>
-            </div>
-        )
-    }
-
-    if (error) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-xl text-red-500">{error}</div>
-            </div>
-        )
-    }
+    if (isLoading) return <div className="p-8 text-center">로딩 중...</div>;
+    if (error) return <div className="p-8 text-center text-red-500">오류: {error}</div>;
 
     return (
         <div className="min-h-screen">
@@ -424,7 +431,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
                 <div className="p-6 space-y-8">
                     {/* 작품 통계 및 상태 표시 */}
-                    {isEditing && (
+                    {isEditing && !error && (
                         <div className="bg-gray-50 p-4 rounded-lg">
                             <div className="grid grid-cols-3 gap-4 text-sm">
                                 <div>
@@ -450,7 +457,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                     )}
 
                     {/* WebSocket 연결 상태 표시 */}
-                    {isEditing && (
+                    {isEditing && !error && (
                         <div className={`p-3 rounded-lg flex items-center justify-between ${
                             websocketConnected 
                                 ? 'bg-green-50 border border-green-200' 
@@ -492,7 +499,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                     />
 
                     {/* 신고 버튼 - 편집 모드가 아닐 때만 표시 */}
-                    {!isEditing && (
+                    {isEditing && !error && (
                         <div className="flex justify-end">
                             <button
                                 onClick={handleReportClick}
@@ -505,7 +512,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                     )}
 
                     {/* 액션 버튼들 */}
-                    {isEditing && (
+                    {isEditing && !error && (
                         <div className="flex justify-end space-x-4">
                             <button
                                 onClick={handleSave}

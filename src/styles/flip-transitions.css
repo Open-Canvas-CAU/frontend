@@ -1,0 +1,183 @@
+/* 3D 카드 플립 컨테이너 */
+.flip-card-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    perspective: 1200px;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  /* 카드 앞면 (갤러리) */
+  .flip-card-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    transform: rotateY(0deg);
+    background: inherit;
+    overflow-y: auto;
+  }
+  
+  /* 카드 뒷면 (작업실) */
+  .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    transform: rotateY(180deg);
+    background: inherit;
+    overflow-y: auto;
+  }
+  
+  /* 플립된 상태 (작업실 보기) */
+  .flip-card-container.flipped {
+    transform: rotateY(180deg);
+  }
+  
+  /* 플립 중 상태 */
+  .flip-card-container.flipping {
+    transform: rotateY(90deg) scale(0.8);
+    transition: transform 0.4s ease-in-out;
+  }
+  
+  /* 추가 3D 효과 */
+  .flip-card-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 49%, rgba(255,255,255,0.05) 50%, transparent 51%);
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .flip-card-container.flipping::before {
+    opacity: 1;
+  }
+  
+  /* 개별 카드 3D 효과 개선 */
+  .workspace-card {
+    transform-style: preserve-3d;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .workspace-card:hover {
+    transform: translateY(-15px) rotateX(10deg) rotateY(5deg) translateZ(25px);
+    box-shadow: 
+      0 30px 60px rgba(255, 94, 77, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+  
+  .gallery-card {
+    transition: all 0.3s ease-out;
+  }
+  
+  .gallery-card:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 
+      0 20px 40px rgba(59, 130, 246, 0.2),
+      0 8px 20px rgba(139, 92, 246, 0.15);
+  }
+  
+  /* 호버 시 리프트 효과 */
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  }
+  
+  /* perspective 헬퍼 클래스들 */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .perspective-1200 {
+    perspective: 1200px;
+  }
+  
+  .rotateX-2 {
+    transform: rotateX(2deg);
+  }
+  
+  .rotateY-5 {
+    transform: rotateY(5deg);
+  }
+  
+  /* 3D 변형 유틸리티 */
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  /* 성능 최적화 */
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  /* 그림자 스타일 */
+  .shadow-workspace-hover {
+    box-shadow: 0 30px 60px rgba(255, 94, 77, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+  
+  .shadow-gallery-hover {
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2), 0 8px 20px rgba(139, 92, 246, 0.15);
+  }
+  
+  /* 반응형 최적화 */
+  @media (max-width: 768px) {
+    .flip-card-container {
+      perspective: 800px;
+    }
+    
+    .workspace-card:hover,
+    .gallery-card:hover {
+      transform: translateY(-5px) scale(1.02);
+    }
+    
+    .hover-lift:hover {
+      transform: translateY(-5px);
+    }
+  }
+  
+  /* 접근성 - 모션 감소 설정 */
+  @media (prefers-reduced-motion: reduce) {
+    .flip-card-container,
+    .workspace-card,
+    .gallery-card,
+    .hover-lift {
+      transition: none !important;
+      animation: none !important;
+      transform: none !important;
+    }
+    
+    .flip-card-container.flipped {
+      transform: none;
+    }
+    
+    /* 모션 감소 시 대신 색상 변화로 구분 */
+    .flip-card-back {
+      filter: hue-rotate(60deg);
+    }
+  }
+  
+  /* 플립 중 밝기 조정 */
+  .flip-card-container.flipping {
+    filter: brightness(0.9);
+  }
+  
+  .flip-card-container.flipping .flip-card-front,
+  .flip-card-container.flipping .flip-card-back {
+    filter: blur(1px);
+  }

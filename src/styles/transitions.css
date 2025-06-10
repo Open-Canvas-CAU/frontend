@@ -1,0 +1,128 @@
+/* 페이지 전환 기본 설정 */
+.page-transitioning {
+    overflow: hidden;
+  }
+  
+  /* 3D 변환을 위한 perspective 설정 */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .perspective-500 {
+    perspective: 500px;
+  }
+  
+  /* 3D 회전 효과 */
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+  
+  .rotate-y-0 {
+    transform: rotateY(0deg);
+  }
+  
+  .-rotate-y-180 {
+    transform: rotateY(-180deg);
+  }
+  
+  .rotateX-2 {
+    transform: rotateX(2deg);
+  }
+  
+  .hover\:rotateY-5:hover {
+    transform: rotateY(5deg);
+  }
+  
+  /* 카드 호버 효과 */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease-out;
+  }
+  
+  .card-3d:hover {
+    transform: translateZ(10px) rotateY(5deg);
+  }
+  
+  /* 작업실 효과를 위한 추가 스타일 */
+  .workspace-shadow {
+    box-shadow: 
+      0 10px 25px rgba(0, 0, 0, 0.1),
+      0 20px 40px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .workspace-card {
+    transform-style: preserve-3d;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .workspace-card:hover {
+    transform: translateY(-10px) rotateX(5deg) rotateY(5deg) translateZ(20px);
+    box-shadow: 
+      0 25px 50px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+  
+  /* 갤러리 효과 */
+  .gallery-card {
+    transition: all 0.3s ease-out;
+  }
+  
+  .gallery-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 
+      0 15px 35px rgba(0, 0, 0, 0.15),
+      0 5px 15px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* 호버 효과 */
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* 성능 최적화를 위한 레이어 생성 */
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  /* 그림자 스타일 */
+  .shadow-workspace-hover {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+  
+  .shadow-gallery-hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* 반응형 애니메이션 최적화 */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  /* 모바일 최적화 */
+  @media (max-width: 768px) {
+    .workspace-card:hover,
+    .gallery-card:hover {
+      transform: none;
+    }
+    
+    .hover-lift:hover {
+      transform: translateY(-4px);
+    }
+  }

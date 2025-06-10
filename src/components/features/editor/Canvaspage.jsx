@@ -4,19 +4,20 @@ import CarouselEditor from './CarouselEditor.jsx'
 import api from '@/services/api'
 import websocketService from '@/services/websocketService'
 import ReportIconUrl from '@/assets/icons/report.svg'
+import { authService } from '@/services/authService'
 
 // 캔버스 상태 정의
 const CANVAS_STATUS = {
-    WORKING: 'WORKING',      // 작업 중
-    COMPLETED: 'COMPLETED',  // 완성됨
-    PUBLISHED: 'PUBLISHED'   // 갤러리에 게시됨
+    WORKING: 'WORKING',
+    COMPLETED: 'COMPLETED',
+    PUBLISHED: 'PUBLISHED'
 }
 
 // 완성 조건 설정
 const COMPLETION_CRITERIA = {
-    MIN_WORDS: 100,          // 최소 단어 수
-    MIN_CHARACTERS: 500,     // 최소 글자 수
-    MAX_IDLE_HOURS: 24       // 최대 비활성 시간 (시간)
+    MIN_WORDS: 100,
+    MIN_CHARACTERS: 500,
+    MAX_IDLE_HOURS: 24
 }
 
 export default function CanvasPage({ isEditing = false, onEdit, showEditButton = true }) {
@@ -30,7 +31,12 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [connectedUsers, setConnectedUsers] = useState([])
+    
+    // WebSocket 관련 상태
     const [websocketConnected, setWebsocketConnected] = useState(false)
+    const [websocketError, setWebsocketError] = useState(null)
+    const [connectionAttempts, setConnectionAttempts] = useState(0)
+    const [showConnectionStatus, setShowConnectionStatus] = useState(false)
 
     // 캔버스 상태 관리
     const [canvasStatus, setCanvasStatus] = useState(CANVAS_STATUS.WORKING)
@@ -50,7 +56,6 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
     // 텍스트 통계 계산 함수
     const calculateTextStats = (htmlContent) => {
-        // HTML 태그 제거하고 텍스트만 추출
         const tempDiv = document.createElement('div')
         tempDiv.innerHTML = htmlContent
         const textContent = tempDiv.textContent || tempDiv.innerText || ''
@@ -97,52 +102,85 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
         }
     }
 
-    // 문서방 참여 및 WebSocket 연결
+    // WebSocket 연결 시도
+    const attemptWebSocketConnection = async () => {
+        if (!isEditing || !authService.isAuthenticated()) {
+            console.log('🚫 Skipping WebSocket connection (not editing or not authenticated)')
+            return
+        }
+
+        const attempts = connectionAttempts + 1
+        setConnectionAttempts(attempts)
+        
+        console.log(`🔌 WebSocket connection attempt ${attempts}...`)
+        
+        try {
+            websocketService.connect(roomId, {
+                onConnect: (frame) => {
+                    console.log('✅ WebSocket connected successfully:', frame)
+                    setWebsocketConnected(true)
+                    setWebsocketError(null)
+                    setConnectionAttempts(0)
+                    setShowConnectionStatus(false)
+                },
+                onMessage: (message) => {
+                    console.log('📨 WebSocket message received:', message)
+                    handleWebSocketMessage(message)
+                },
+                onError: (error) => {
+                    console.error('❌ WebSocket error:', error)
+                    setWebsocketConnected(false)
+                    setWebsocketError(error.message || 'WebSocket 연결 오류')
+                    
+                    // 3회 이상 실패하면 포기
+                    if (attempts >= 3) {
+                        console.log('🛑 Max WebSocket connection attempts reached')
+                        setShowConnectionStatus(true)
+                    }
+                },
+                onClose: () => {
+                    console.log('🔌 WebSocket disconnected')
+                    setWebsocketConnected(false)
+                }
+            })
+        } catch (error) {
+            console.error('❌ WebSocket connection setup failed:', error)
+            setWebsocketError(error.message)
+            setWebsocketConnected(false)
+        }
+    }
+
+    // 문서방 참여 및 데이터 로딩
     useEffect(() => {
         async function joinRoom() {
             try {
                 setIsLoading(true)
-                console.log('Joining room:', roomId)
+                setError(null)
+                console.log('🚪 Joining room:', roomId)
 
-                // 문서방 참여
+                // 1. 문서방 참여
                 const roomResponse = await api.get(`/api/rooms/${roomId}`)
-                console.log('Room response:', roomResponse.data)
+                console.log('🏠 Room response:', roomResponse.data)
                 setRoomData(roomResponse.data)
 
-                // 문서방 글 조회
+                // 2. 문서방 글 조회
                 const writingsResponse = await api.get(`/api/writings/room/${roomId}`)
-                console.log('Writings response:', writingsResponse.data)
+                console.log('📝 Writings response:', writingsResponse.data)
                 
                 const data = writingsResponse.data
                 const writingsArray = Array.isArray(data) ? data : (data ? [data] : [])
                 setWritings(writingsArray)
 
-                // WebSocket 연결 시도 (백엔드가 준비되지 않은 경우를 대비해 try-catch로 감쌈)
-                try {
-                    websocketService.connect(roomId, {
-                        onConnect: () => {
-                            console.log('WebSocket connected for room:', roomId)
-                            setWebsocketConnected(true)
-                        },
-                        onMessage: (message) => {
-                            handleWebSocketMessage(message)
-                        },
-                        onError: (error) => {
-                            console.error('WebSocket error:', error)
-                            setWebsocketConnected(false)
-                        },
-                        onClose: () => {
-                            console.log('WebSocket disconnected')
-                            setWebsocketConnected(false)
-                        }
-                    })
-                } catch (wsError) {
-                    console.warn('WebSocket connection failed, continuing without real-time updates:', wsError)
-                    setWebsocketConnected(false)
+                // 3. WebSocket 연결 시도 (편집 모드에서만)
+                if (isEditing) {
+                    console.log('⚡ Attempting WebSocket connection for editing mode...')
+                    await attemptWebSocketConnection()
+                } else {
+                    console.log('👀 View mode - skipping WebSocket connection')
                 }
 
             } catch (error) {
-                console.error('문서방 참여 실패:', error)
+                console.error('❌ Room joining failed:', error)
                 setError(`문서방 참여에 실패했습니다: ${error.response?.data?.message || error.message}`)
             } finally {
                 setIsLoading(false)
@@ -155,46 +193,45 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
         // Cleanup: WebSocket 연결 해제
         return () => {
-            if (roomId && websocketConnected) {
+            if (websocketConnected) {
                 try {
                     websocketService.disconnect()
+                    console.log('🧹 WebSocket cleanup completed')
                 } catch (e) {
-                    console.warn('WebSocket disconnect error:', e)
+                    console.warn('⚠️ WebSocket cleanup error:', e)
                 }
             }
         }
-    }, [roomId])
+    }, [roomId, isEditing])
 
     // WebSocket 메시지 처리
     const handleWebSocketMessage = (message) => {
-        console.log('Received WebSocket message:', message)
+        console.log('🎯 Processing WebSocket message:', message)
         
         switch (message.type) {
             case 'EDIT':
-                // 다른 사용자의 편집 내용 반영
                 handleRemoteEdit(message)
                 break
             case 'JOIN':
-                // 사용자 입장
-                console.log('User joined:', message)
+                console.log('👋 User joined:', message)
                 break
             case 'LEAVE':
-                // 사용자 퇴장
-                console.log('User left:', message)
+                console.log('👋 User left:', message)
                 break
             case 'ROOMOUT':
-                // 편집자가 나가서 방이 삭제됨
                 alert('편집자가 나가서 문서방이 종료되었습니다.')
                 navigate('/')
                 break
             default:
-                console.log('Unknown message type:', message.type)
+                console.log('❓ Unknown message type:', message.type)
         }
     }
 
     // 원격 편집 처리
     const handleRemoteEdit = (message) => {
         const blockNum = parseInt(message.num || '0')
+        console.log(`✏️ Remote edit for block ${blockNum}:`, message.message)
+        
         setWritings(prev => {
             const copy = [...prev]
             if (copy[blockNum]) {
@@ -206,13 +243,14 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
     // 로컬 편집 처리 (WebSocket으로 전송)
     const handleLocalEdit = (idx, html) => {
+        console.log(`✏️ Local edit for block ${idx}`)
+        
         // 로컬 상태 업데이트
         setWritings(prev => {
             const copy = [...prev]
             if (copy[idx]) {
                 copy[idx] = { ...copy[idx], body: html }
             } else {
-                // 새로운 인덱스인 경우 기본 객체 생성
                 copy[idx] = { body: html, depth: 0, siblingIndex: idx }
             }
             return copy
@@ -220,14 +258,27 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
         // WebSocket으로 편집 내용 전송 (연결된 경우에만)
         if (isEditing && websocketConnected) {
-            websocketService.sendThrottledMessage(idx, html)
+            try {
+                websocketService.sendThrottledMessage(idx, html)
+                console.log(`📤 Sent edit via WebSocket for block ${idx}`)
+            } catch (error) {
+                console.warn('⚠️ Failed to send WebSocket message:', error)
+            }
         }
     }
 
-    // 임시 저장 (작업 중 상태 유지)
+    // WebSocket 수동 재연결
+    const handleWebSocketReconnect = () => {
+        console.log('🔄 Manual WebSocket reconnection...')
+        setConnectionAttempts(0)
+        setWebsocketError(null)
+        attemptWebSocketConnection()
+    }
+
+    // 임시 저장
     const handleSave = async () => {
         try {
-            console.log('Saving writings as draft:', writings)
+            console.log('💾 Saving writings as draft:', writings)
             
             const writingDto = {
                 title: roomData?.title || '제목 없음',
@@ -237,13 +288,11 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                 time: new Date().toISOString()
             }
 
-            console.log('Saving draft with data:', writingDto)
-            
             await api.post('/api/writings', writingDto)
             alert('임시저장되었습니다!')
             
         } catch (error) {
-            console.error('임시저장 실패:', error)
+            console.error('❌ Save failed:', error)
             alert(`임시저장에 실패했습니다: ${error.response?.data?.message || error.message}`)
         }
     }
@@ -266,7 +315,6 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
         setIsCompleting(true)
         try {
-            // 1. 최종 글 저장
             const writingDto = {
                 title: roomData?.title || '제목 없음',
                 body: writings[0]?.body || '<p>내용이 없습니다.</p>',
@@ -275,29 +323,12 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                 time: new Date().toISOString()
             }
 
-            console.log('Saving final writing:', writingDto)
             await api.post('/api/writings', writingDto)
-
-            // 2. Content 생성 시도 (API가 있는지 확인 필요)
-            try {
-                console.log('Attempting to create content...')
-                
-                // TODO: 백엔드에서 완성 처리 통합 API 구현 시 이 부분 교체
-                // const completeResponse = await api.post(`/api/rooms/${roomId}/complete`)
-                
-                // 임시 방법: Cover를 업데이트하여 contentId 설정
-                // 실제로는 백엔드에서 통합 처리 필요
-                alert('작품이 임시저장되었습니다. 완성 처리를 위해 백엔드 API 구현이 필요합니다.')
-                
-            } catch (completeError) {
-                console.error('완성 처리 실패:', completeError)
-                alert('글은 저장되었지만 완성 처리에 문제가 있었습니다. 관리자에게 문의하세요.')
-            }
-            
+            alert('작품이 저장되었습니다.')
             setShowCompletionModal(false)
             
         } catch (error) {
-            console.error('작품 완성 실패:', error)
+            console.error('❌ Complete failed:', error)
             alert(`작품 완성에 실패했습니다: ${error.response?.data?.message || error.message}`)
         } finally {
             setIsCompleting(false)
@@ -311,11 +342,10 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                 websocketService.disconnect()
             }
             
-            await api.post(`/api/room/exit?arg0=${roomId}`)
+            await api.post(`/api/rooms/exit`, null, { params: { roomId } })
             navigate(-1)
         } catch (error) {
-            console.error('문서방 나가기 실패:', error)
-            // 에러가 발생해도 페이지를 떠남
+            console.error('❌ Exit failed:', error)
             navigate(-1)
         }
     }
@@ -346,7 +376,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
             setShowReportModal(false)
             setReportReason('')
         } catch (error) {
-            console.error('신고 제출 실패:', error)
+            console.error('❌ Report failed:', error)
             alert('신고 제출에 실패했습니다.')
         } finally {
             setIsReporting(false)
@@ -372,7 +402,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
     return (
         <div className="min-h-screen">
             <div className="container mx-auto bg-white rounded-xl shadow overflow-hidden">
-                {/* header */}
+                {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b">
                     <button
                         onClick={handleExit}
@@ -421,22 +451,36 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
                     {/* WebSocket 연결 상태 표시 */}
                     {isEditing && (
-                        <div className={`p-3 rounded-lg ${websocketConnected ? 'bg-green-50' : 'bg-yellow-50'}`}>
-                            <span className={`text-sm ${websocketConnected ? 'text-green-700' : 'text-yellow-700'}`}>
+                        <div className={`p-3 rounded-lg flex items-center justify-between ${
+                            websocketConnected 
+                                ? 'bg-green-50 border border-green-200' 
+                                : showConnectionStatus 
+                                    ? 'bg-red-50 border border-red-200'
+                                    : 'bg-yellow-50 border border-yellow-200'
+                        }`}>
+                            <span className={`text-sm ${
+                                websocketConnected 
+                                    ? 'text-green-700' 
+                                    : showConnectionStatus 
+                                        ? 'text-red-700'
+                                        : 'text-yellow-700'
+                            }`}>
                                 {websocketConnected 
-                                    ? '실시간 동기화 연결됨' 
-                                    : '실시간 동기화 연결 안됨 (로컬에서만 편집됩니다)'
+                                    ? '✅ 실시간 동기화 연결됨' 
+                                    : showConnectionStatus
+                                        ? `❌ 실시간 동기화 연결 실패: ${websocketError || '알 수 없는 오류'}`
+                                        : '🔄 실시간 동기화 연결 중...'
                                 }
                             </span>
-                        </div>
-                    )}
-
-                    {/* 실시간 편집 상태 표시 */}
-                    {isEditing && connectedUsers.length > 1 && (
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                            <span className="text-sm text-blue-700">
-                                {connectedUsers.length}명이 동시에 편집 중입니다
-                            </span>
+                            
+                            {showConnectionStatus && (
+                                <button 
+                                    onClick={handleWebSocketReconnect}
+                                    className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                                >
+                                    다시 연결
+                                </button>
+                            )}
                         </div>
                     )}
 

@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '@/services/authService';
 
-/**
- * 애플리케이션의 헤더 컴포넌트입니다.
- * 로그인 상태를 실시간으로 감지하여 UI를 동적으로 변경합니다.
- */
 export default function Header() {
     const navigate = useNavigate();
-    // React state를 사용하여 로그인 상태를 관리해야 동적으로 UI가 변경됩니다.
+    const location = useLocation();
     const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated());
     const [currentUser, setCurrentUser] = useState(null);
 
@@ -17,41 +13,47 @@ export default function Header() {
     const [searchValue, setSearchValue] = useState('');
     const searchRef = useRef(null);
 
-    // 로그인 상태가 변경될 때마다 실행될 Effect
+    // 네비게이션 전환 상태
+    const [activeNav, setActiveNav] = useState('');
+
     useEffect(() => {
         const updateAuthState = async () => {
             const authStatus = authService.isAuthenticated();
             setIsAuthenticated(authStatus);
 
             if (authStatus) {
-                // 로그인 상태이면, 사용자 정보를 가져옵니다.
-                // 로컬 스토리지에 정보가 없으면 API를 통해 가져옵니다.
                 let user = authService.getCurrentUser();
                 if (!user) {
                     user = await authService.fetchAndSaveUser();
                 }
                 setCurrentUser(user);
             } else {
-                // 로그아웃 상태이면 사용자 정보를 null로 설정합니다.
                 setCurrentUser(null);
             }
         };
 
-        // 'auth-change'라는 커스텀 이벤트를 감지하여 로그인 상태를 업데이트합니다.
         window.addEventListener('auth-change', updateAuthState);
-
-        // 컴포넌트가 처음 렌더링될 때도 상태를 확인합니다.
         updateAuthState();
 
-        // 컴포넌트가 사라질 때 이벤트 리스너를 정리합니다.
         return () => {
             window.removeEventListener('auth-change', updateAuthState);
         };
     }, []);
 
+    // 현재 페이지에 따른 활성 네비게이션 설정
+    useEffect(() => {
+        if (location.pathname === '/gallery' || location.pathname === '/') {
+            setActiveNav('gallery');
+        } else if (location.pathname === '/workingon') {
+            setActiveNav('workingon');
+        } else {
+            setActiveNav('');
+        }
+    }, [location.pathname]);
+
     const handleLogout = () => {
         authService.logout();
-        navigate('/'); // 로그아웃 후 홈으로 이동
+        navigate('/');
     };
 
     const handleSearch = (e) => {
@@ -60,6 +62,18 @@ export default function Header() {
             navigate(`/search?q=${encodeURIComponent(searchValue.trim())}`);
             setIsSearchExpanded(false);
             setSearchValue('');
+        }
+    };
+
+    // 네비게이션 클릭 핸들러
+    const handleNavClick = (path, navType) => {
+        if (activeNav !== navType) {
+            // 페이지 전환 애니메이션 트리거
+            document.body.classList.add('page-transitioning');
+            setTimeout(() => {
+                navigate(path);
+                document.body.classList.remove('page-transitioning');
+            }, 150);
         }
     };
 
@@ -74,79 +88,144 @@ export default function Header() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // 현재 페이지에 따른 헤더 스타일
+    const getHeaderStyle = () => {
+        const isWorkspace = location.pathname === '/workingon';
+        return isWorkspace
+            ? 'bg-gradient-to-r from-orange-400/10 via-red-400/10 to-pink-400/10 border-orange-200/50'
+            : 'bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-pink-400/10 border-blue-200/50';
+    };
+
+    // 네비게이션 버튼 스타일
+    const getNavStyle = (navType, isActive) => {
+        const baseStyle = 'relative px-4 py-2 rounded-lg font-medium transition-all duration-300 transform';
+        
+        if (isActive) {
+            return navType === 'workingon'
+                ? `${baseStyle} text-orange-600 bg-orange-100/80 shadow-lg scale-105`
+                : `${baseStyle} text-blue-600 bg-blue-100/80 shadow-lg scale-105`;
+        }
+        
+        return `${baseStyle} text-solarized-base00 hover:text-red-400 hover:bg-white/50 hover:scale-105 hover:shadow-md`;
+    };
+
     return (
-        <header className="h-24 flex items-center justify-between bg-white/10 p-4 md:p-6 lg:p-8 border-b border-white">
-            {/* 왼쪽 섹션: 로고 및 네비게이션 (항상 표시) */}
-            <div className="flex items-center">
-                <Link to="/" className="pl-5 text-xl font-extrabold text-white hover:text-red-400">
+        <header className={`
+            h-24 flex items-center justify-between p-4 md:p-6 lg:p-8 border-b backdrop-blur-sm
+            transition-all duration-500 ease-in-out
+            ${getHeaderStyle()}
+        `}>
+            {/* 왼쪽 섹션: 로고 및 네비게이션 */}
+            <div className="flex items-center space-x-8">
+                <Link 
+                    to="/" 
+                    className="text-xl font-extrabold text-white hover:text-red-400 transition-colors duration-300 transform hover:scale-105"
+                >
                     Live Canvas
                 </Link>
-                <nav className="ml-16 flex space-x-4">
-                    <NavLink
-                        to="/gallery"
-                        className={({ isActive }) =>
-                            isActive ? 'font-bold text-yellow-300' : 'text-solarized-base00 hover:text-red-400'
+                
+                <nav className="flex space-x-2 relative">
+                    {/* 배경 슬라이더
+                    <div className={`
+                        absolute top-0 left-0 h-full rounded-lg transition-all duration-500 ease-out
+                        ${activeNav === 'gallery' 
+                            ? 'w-20 bg-blue-400/20 translate-x-0' 
+                            : activeNav === 'workingon' 
+                                ? 'w-24 bg-orange-400/20 translate-x-24' 
+                                : 'w-0 opacity-0'
                         }
+                    `}></div> */}
+
+                    <button
+                        onClick={() => handleNavClick('/gallery', 'gallery')}
+                        className={getNavStyle('gallery', activeNav === 'gallery')}
                     >
-                        갤러리
-                    </NavLink>
-                    <NavLink
-                        to="/workingon"
-                        className={({ isActive }) =>
-                            isActive ? 'font-bold text-yellow-300' : 'text-solarized-base00 hover:text-red-400'
-                        }
+                        <span className="relative z-10 flex items-center space-x-2">
+                            <span>갤러리</span>
+                            {activeNav === 'gallery' && (
+                                <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                            )}
+                        </span>
+                    </button>
+                    
+                    <button
+                        onClick={() => handleNavClick('/workingon', 'workingon')}
+                        className={getNavStyle('workingon', activeNav === 'workingon')}
                     >
-                        작업 중
-                    </NavLink>
+                        <span className="relative z-10 flex items-center space-x-2">
+                            <span>작업 중</span>
+                            {activeNav === 'workingon' && (
+                                <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></span>
+                            )}
+                        </span>
+                    </button>
                 </nav>
             </div>
 
-            {/* 오른쪽 섹션: 검색 및 인증 (항상 표시) */}
-            <div className="flex items-center space-x-4">
+            {/* 오른쪽 섹션: 검색 및 인증 */}
+            <div className="flex items-center space-x-6">
                 {/* 검색 영역 */}
                 <div ref={searchRef} className="relative">
                     {isSearchExpanded ? (
-                         <form onSubmit={handleSearch} className="flex items-center bg-white rounded-md overflow-hidden">
-                             <input
-                                 type="text"
-                                 value={searchValue}
-                                 onChange={(e) => setSearchValue(e.target.value)}
-                                 placeholder="검색어를 입력하세요"
-                                 className="px-4 py-2 w-44 focus:outline-none text-gray-900"
-                                 autoFocus
-                             />
-                             <button type="submit" className="px-4 py-2 bg-yellow-300 text-white hover:bg-yellow-300/80 transition-colors">
-                                 검색
-                             </button>
-                         </form>
+                        <form 
+                            onSubmit={handleSearch} 
+                            className="flex items-center bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg transform scale-100 transition-all duration-300"
+                        >
+                            <input
+                                type="text"
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
+                                placeholder="검색어를 입력하세요"
+                                className="px-4 py-3 w-48 focus:outline-none text-gray-900 bg-transparent"
+                                autoFocus
+                            />
+                            <button 
+                                type="submit" 
+                                className="px-4 py-3 bg-yellow-300 text-gray-800 hover:bg-yellow-400 transition-colors duration-200 font-medium"
+                            >
+                                검색
+                            </button>
+                        </form>
                     ) : (
-                        <button onClick={() => setIsSearchExpanded(true)} className="p-2 text-solarized-base00 hover:text-red-400 transition-colors">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <button 
+                            onClick={() => setIsSearchExpanded(true)} 
+                            className="p-3 text-solarized-base00 hover:text-red-400 hover:bg-white/20 rounded-xl transition-all duration-300 transform hover:scale-110"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </button>
                     )}
                 </div>
 
-                {/* 인증 정보 영역: 로그인 상태에 따라 내용만 교체 */}
-                {isAuthenticated ? (
-                    <>
-                        <span className="text-sm text-white">
-                            {currentUser?.nickname || '사용자'}님 환영합니다!
-                        </span>
+                {/* 인증 정보 영역 */}
+                <div className="flex items-center space-x-4">
+                    {isAuthenticated ? (
+                        <>
+                            <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
+                                <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                    {currentUser?.nickname?.charAt(0)?.toUpperCase() || 'U'}
+                                </div>
+                                <span className="text-sm text-white font-medium">
+                                    {currentUser?.nickname || '사용자'}님
+                                </span>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-500/80 hover:bg-red-500 rounded-xl transition-all duration-300 transform hover:scale-105 backdrop-blur-sm"
+                            >
+                                로그아웃
+                            </button>
+                        </>
+                    ) : (
                         <button
-                            onClick={handleLogout}
-                            className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors"
+                            onClick={() => navigate('/login')}
+                            className="px-6 py-3 text-sm font-medium text-gray-800 bg-yellow-300/90 hover:bg-yellow-300 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg backdrop-blur-sm"
                         >
-                            로그아웃
+                            로그인
                         </button>
-                    </>
-                ) : (
-                    <button
-                        onClick={() => navigate('/login')}
-                        className="px-4 py-2 text-sm font-medium text-gray-800 bg-yellow-300 hover:bg-yellow-400 rounded-md transition-colors"
-                    >
-                        로그인
-                    </button>
-                )}
+                    )}
+                </div>
             </div>
         </header>
     );

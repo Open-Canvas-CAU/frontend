@@ -164,9 +164,9 @@ public class SecurityConfig {
 
                             {/* 추가 안내 */}
                             {config.id === 'global' && (
-                                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                                    <h4 className="font-semibold text-green-800 mb-2">✅ 추천 설정</h4>
-                                    <p className="text-sm text-green-700">
+                                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <h4 className="font-semibold text-red-800 mb-2">✅ 추천 설정</h4>
+                                    <p className="text-sm text-red-700">
                                         전역 설정은 모든 컨트롤러에 적용되므로 가장 편리합니다. 
                                         src/main/java/config 폴더에 WebConfig.java 파일을 생성하고 위 코드를 추가하세요.
                                     </p>
@@ -188,9 +188,9 @@ public class SecurityConfig {
                 {/* 푸터 */}
                 <div className="border-t border-white-200 p-6 bg-black-50">
                     <div className="space-y-4">
-                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <h4 className="font-semibold text-yellow-800 mb-2">🔄 설정 후 확인사항</h4>
-                            <ul className="text-sm text-yellow-700 space-y-1">
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <h4 className="font-semibold text-red-800 mb-2">🔄 설정 후 확인사항</h4>
+                            <ul className="text-sm text-red-700 space-y-1">
                                 <li>1. Spring Boot 서버를 재시작하세요</li>
                                 <li>2. 브라우저에서 F12 개발자 도구의 Network 탭을 확인하세요</li>
                                 <li>3. CORS 관련 에러가 사라졌는지 확인하세요</li>

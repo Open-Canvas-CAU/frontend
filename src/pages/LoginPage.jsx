@@ -30,7 +30,7 @@ export default function LoginPage() {
         localStorage.setItem('login_redirect_path', from);
         
         // 🔧 가이드에 따른 정확한 Google OAuth2 URL
-        const googleLoginUrl = `http://localhost:8080/oauth2/authorization/google?redirect_uri=${encodeURIComponent(redirectUri)}&mode=login`;
+        const googleLoginUrl = `http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/oauth2/authorization/google?redirect_uri=${encodeURIComponent(redirectUri)}&mode=login`;
         
         console.log('🚀 Google 로그인 URL:', googleLoginUrl);
         console.log('📍 로그인 후 리다이렉트 경로:', from);
@@ -73,10 +73,10 @@ export default function LoginPage() {
                         <div className="space-y-1 text-white-600">
                             <p>• 현재 포트: {currentPort}</p>
                             <p>• 리다이렉트 URI: {redirectUri}</p>
-                            <p>• 백엔드 서버: http://localhost:8080</p>
+                            <p>• 백엔드 서버: http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com</p>
                             <p>• 돌아갈 경로: {from}</p>
                         </div>
-                        <div className="mt-2 p-2 bg-yellow-50 rounded text-xs">
+                        <div className="mt-2 p-2 bg-red-50 rounded text-xs">
                             <p>⚠️ 백엔드에서 이 redirect_uri를 허용해야 합니다!</p>
                         </div>
                     </div>

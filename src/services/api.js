@@ -2,12 +2,12 @@
 import axios from 'axios'
 import { authService } from './authService'
 
-const BASE_URL = import.meta.env.VITE_USE_MOCK_API === 'true' 
-  ? ''
-  : 'http://localhost:8080'
+const API_BASE_URL = import.meta.env.VITE_USE_MOCK_API === 'true'
+  ? 'http://localhost:3000'
+  : 'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com'
 
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   },

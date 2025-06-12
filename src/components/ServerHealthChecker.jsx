@@ -69,9 +69,9 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
 
     const getStatusColor = () => {
         switch (serverStatus) {
-            case 'connected': return 'text-green-600'
+            case 'connected': return 'text-red-600'
             case 'disconnected': return 'text-red-600'
-            case 'checking': return 'text-yellow-600'
+            case 'checking': return 'text-red-600'
             case 'error': return 'text-orange-600'
             default: return 'text-white-600'
         }
@@ -91,7 +91,7 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
         switch (severity) {
             case 'critical': return 'border-red-500 bg-red-50'
             case 'high': return 'border-orange-500 bg-orange-50'
-            case 'medium': return 'border-yellow-500 bg-yellow-50'
+            case 'medium': return 'border-red-500 bg-red-50'
             default: return 'border-red-500 bg-red-50'
         }
     }
@@ -116,7 +116,7 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
                 </div>
                 
                 <div className="text-sm text-white-600 space-y-1">
-                    <div>대상 서버: http://localhost:8080</div>
+                    <div>대상 서버: http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com</div>
                     {lastChecked && (
                         <div>마지막 확인: {lastChecked.toLocaleTimeString()}</div>
                     )}
@@ -159,8 +159,8 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
                 )}
                 
                 {serverStatus === 'connected' && (
-                    <div className="p-3 bg-green-50 border border-green-200 rounded text-sm">
-                        <div className="text-green-700 flex items-center space-x-2">
+                    <div className="p-3 bg-red-50 border border-red-200 rounded text-sm">
+                        <div className="text-red-700 flex items-center space-x-2">
                             <span>🎉</span>
                             <span>서버가 정상적으로 연결되었습니다! 모든 기능을 사용할 수 있습니다.</span>
                         </div>

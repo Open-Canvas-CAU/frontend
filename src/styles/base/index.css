@@ -17,5 +17,5 @@ html, #root {
 
 /* 전체 페이지 배경색 설정 */
 body {
-  @apply bg-black text-solarized-base0;
+  @apply bg-black text-white;
 }

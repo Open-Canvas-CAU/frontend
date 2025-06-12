@@ -6,9 +6,9 @@ export default {
     ],
     safelist: [
         // 배경색
-        'bg-solarized-base02',
-        'bg-solarized-base02/50',
-        'bg-solarized-base01',
+        'bg-white',
+        'bg-white/50',
+        'bg-white',
         'bg-solarized-cyan',
         'bg-solarized-cyan/20',
         'bg-solarized-cyan/80',
@@ -18,7 +18,7 @@ export default {
         'text-red',
         'text-solarized-cyan',
         // 호버 상태
-        'hover:bg-solarized-base01',
+        'hover:bg-white',
         'hover:bg-solarized-cyan/80',
         'hover:text-solarized-base1',
     ],

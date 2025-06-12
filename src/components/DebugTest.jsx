@@ -195,7 +195,7 @@ export default function DebugTest() {
                     <button
                         onClick={runCompleteTest}
                         disabled={isRunning}
-                        className="px-6 py-4 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold disabled:opacity-50"
+                        className="px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold disabled:opacity-50"
                     >
                         🚀 전체 플로우 테스트
                     </button>
@@ -225,7 +225,7 @@ export default function DebugTest() {
                             <h3 className="font-semibold mb-2 flex items-center space-x-2">
                                 <span>{getStepIcon(key, result)}</span>
                                 <span>{getStepTitle(key)}</span>
-                                <span className={`text-sm ${result.success ? 'text-green-600' : 'text-red-600'}`}>
+                                <span className={`text-sm ${result.success ? 'text-red-600' : 'text-red-600'}`}>
                                     {result.success ? '✅ 성공' : '❌ 실패'}
                                 </span>
                             </h3>
@@ -239,7 +239,7 @@ export default function DebugTest() {
                 </div>
 
                 {/* 도움말 */}
-                <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <h4 className="font-semibold mb-2">💡 테스트 가이드</h4>
                     <ul className="text-sm space-y-1">
                         <li>• <strong>전체 플로우 테스트</strong>: 새 캔버스 생성부터 WebSocket 연결까지 전체 과정을 테스트합니다.</li>

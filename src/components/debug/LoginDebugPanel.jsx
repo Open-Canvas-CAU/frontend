@@ -43,10 +43,10 @@ export default function LoginDebugPanel() {
             
             // 예상 URL들
             urls: {
-                loginUrl: `http://localhost:8080/oauth2/authorization/google?redirect_uri=${encodeURIComponent(`http://localhost:${currentPort}/oauth2/callback`)}&mode=login`,
+                loginUrl: `http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/oauth2/authorization/google?redirect_uri=${encodeURIComponent(`http://localhost:${currentPort}/oauth2/callback`)}&mode=login`,
                 callbackUrl: `http://localhost:${currentPort}/oauth2/callback`,
-                backendBase: 'http://localhost:8080',
-                refreshEndpoint: 'http://localhost:8080/auth/refresh'
+                backendBase: 'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com',
+                refreshEndpoint: 'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/auth/refresh'
             }
         }
         
@@ -198,7 +198,7 @@ export default function LoginDebugPanel() {
                         </button>
                         <button
                             onClick={testBackendConnection}
-                            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
                         >
                             🌐 백엔드 테스트
                         </button>
@@ -227,7 +227,7 @@ export default function LoginDebugPanel() {
                                         {result.testing ? (
                                             <span className="text-red-600">테스트 중...</span>
                                         ) : result.success ? (
-                                            <span className="text-green-600">✅ 성공</span>
+                                            <span className="text-red-600">✅ 성공</span>
                                         ) : (
                                             <span className="text-red-600">❌ 실패: {result.error}</span>
                                         )}
@@ -242,7 +242,7 @@ export default function LoginDebugPanel() {
                         <h3 className="font-bold mb-3">📋 현재 상태</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
-                                <div className={`font-medium ${debugInfo.tokens?.isAuthenticated ? 'text-green-600' : 'text-red-600'}`}>
+                                <div className={`font-medium ${debugInfo.tokens?.isAuthenticated ? 'text-red-600' : 'text-red-600'}`}>
                                     인증 상태: {debugInfo.tokens?.isAuthenticated ? '로그인됨' : '로그인 안됨'}
                                 </div>
                                 <div>액세스 토큰: {debugInfo.tokens?.hasAccessToken ? '✅' : '❌'}</div>
@@ -258,7 +258,7 @@ export default function LoginDebugPanel() {
                     </div>
 
                     {/* URL 정보 */}
-                    <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="bg-red-50 p-4 rounded-lg">
                         <h3 className="font-bold mb-3">🔗 중요 URL들</h3>
                         <div className="space-y-2 text-xs">
                             <div>
@@ -294,7 +294,7 @@ export default function LoginDebugPanel() {
                     <div className="bg-red-50 p-4 rounded-lg">
                         <h3 className="font-bold mb-3 text-red-800">🆘 트러블슈팅 체크리스트</h3>
                         <ul className="text-sm space-y-1 text-red-700">
-                            <li>✅ 백엔드 서버가 http://localhost:8080에서 실행 중인지 확인</li>
+                            <li>✅ 백엔드 서버가 http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com에서 실행 중인지 확인</li>
                             <li>✅ 백엔드에서 현재 프론트엔드 URL을 CORS 허용 목록에 추가했는지 확인</li>
                             <li>✅ OAuth2 설정에서 리다이렉트 URI가 정확한지 확인</li>
                             <li>✅ 브라우저 개발자 도구 Network 탭에서 실패한 요청 확인</li>

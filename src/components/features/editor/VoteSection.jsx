@@ -22,13 +22,13 @@ const VoteSection = ({
         <VoteButton onClick={() => onVote('version1')} disabled={loading} color="red">
           버전 1에 투표
         </VoteButton>
-        <VoteButton onClick={() => onVote('version2')} disabled={loading} color="green">
+        <VoteButton onClick={() => onVote('version2')} disabled={loading} color="red">
           버전 2에 투표
         </VoteButton>
       </div>
     )}
     {hasVoted && !isDeadlinePassed && (
-      <div className="text-green-600 mt-2">투표해주셔서 감사합니다!</div>
+      <div className="text-red-600 mt-2">투표해주셔서 감사합니다!</div>
     )}
     {isDeadlinePassed && (
       <div className="mt-2">

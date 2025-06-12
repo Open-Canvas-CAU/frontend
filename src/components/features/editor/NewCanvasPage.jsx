@@ -100,9 +100,9 @@ export default function NewCanvasPage() {
 
   if (step === 3) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-green-100">
+      <div className="min-h-screen flex items-center justify-center bg-red-100">
         <div className="text-center space-y-4">
-          <div className="text-6xl text-green-600">🎉</div>
+          <div className="text-6xl text-red-600">🎉</div>
           <h2 className="text-3xl font-bold">생성이 완료되었습니다!</h2>
           <p className="text-lg">{loadingMessage}</p>
         </div>
@@ -137,7 +137,7 @@ export default function NewCanvasPage() {
         {/* 버튼 */}
         <div className="flex justify-end space-x-4">
           <button onClick={() => navigate(-1)} className="px-6 py-2 border rounded">취소</button>
-          <button onClick={handleCreateAsCompleted} disabled={isLoading || !title.trim()} className="px-6 py-2 bg-green-500 text-white rounded disabled:opacity-50">완성작으로 생성</button>
+          <button onClick={handleCreateAsCompleted} disabled={isLoading || !title.trim()} className="px-6 py-2 bg-red-500 text-white rounded disabled:opacity-50">완성작으로 생성</button>
           <button onClick={handleCreate} disabled={isLoading || !title.trim()} className="px-6 py-2 bg-red-500 text-white rounded disabled:opacity-50">작업용 캔버스 생성</button>
         </div>
       </div>

@@ -59,7 +59,7 @@ export const authService = {
         }
 
         try {
-            const response = await fetch('http://localhost:8080/auth/refresh', {
+            const response = await fetch('http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/auth/refresh', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ refreshToken })

@@ -244,7 +244,7 @@ export default function DBDataViewer() {
                     <button 
                         onClick={createTestContent}
                         disabled={seedingStatus === 'seeding'}
-                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
                     >
                         단일 테스트 데이터 생성
                     </button>
@@ -257,7 +257,7 @@ export default function DBDataViewer() {
                         <button 
                             onClick={createQuickWork}
                             disabled={seedingStatus === 'seeding'}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
                         >
                             ⚡ 빠른 완성작 1개 생성
                         </button>
@@ -333,18 +333,18 @@ export default function DBDataViewer() {
                 {/* Seeding 상태 표시 - 모든 생성 작업에 공통 사용 */}
                 {seedingStatus !== 'idle' && (
                     <div className={`p-4 rounded-lg mb-4 ${
-                        seedingStatus === 'seeding' ? 'bg-yellow-100 border border-yellow-300' :
-                        seedingStatus === 'success' ? 'bg-green-100 border border-green-300' :
+                        seedingStatus === 'seeding' ? 'bg-red-100 border border-red-300' :
+                        seedingStatus === 'success' ? 'bg-red-100 border border-red-300' :
                         'bg-red-100 border border-red-300'
                     }`}>
                         <div className="flex items-center space-x-2">
-                            {seedingStatus === 'seeding' && <div className="animate-spin text-yellow-600">🌀</div>}
-                            {seedingStatus === 'success' && <div className="text-green-600">✅</div>}
+                            {seedingStatus === 'seeding' && <div className="animate-spin text-red-600">🌀</div>}
+                            {seedingStatus === 'success' && <div className="text-red-600">✅</div>}
                             {seedingStatus === 'error' && <div className="text-red-600">❌</div>}
                             
                             <span className={`font-medium ${
-                                seedingStatus === 'seeding' ? 'text-yellow-800' :
-                                seedingStatus === 'success' ? 'text-green-800' :
+                                seedingStatus === 'seeding' ? 'text-red-800' :
+                                seedingStatus === 'success' ? 'text-red-800' :
                                 'text-red-800'
                             }`}>
                                 {seedingStatus === 'seeding' && '데이터를 생성하고 있습니다...'}
@@ -415,7 +415,7 @@ export default function DBDataViewer() {
                                 <div><strong>제목:</strong> {item.title}</div>
                                 <div>
                                     <strong>상태:</strong> 
-                                    <span className={item.error ? 'text-red-600' : 'text-green-600'}>
+                                    <span className={item.error ? 'text-red-600' : 'text-red-600'}>
                                         {item.error ? '오류' : '정상'}
                                     </span>
                                 </div>

@@ -1,10 +1,10 @@
 export class ServerChecker {
     static async checkConnection() {
-        const endpoints = [
-            'http://localhost:8080/',
-            'http://localhost:8080/api/health',
-            'http://localhost:8080/actuator/health',
-            'http://localhost:8080/api/test'
+        const SERVER_URLS = [
+            'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/',
+            'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/api/health',
+            'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/actuator/health',
+            'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/api/test'
         ]
 
         const results = {
@@ -15,7 +15,7 @@ export class ServerChecker {
             serverRunning: false
         }
 
-        for (const endpoint of endpoints) {
+        for (const endpoint of SERVER_URLS) {
             try {
                 console.log(`🔍 Testing endpoint: ${endpoint}`)
                 
@@ -104,7 +104,7 @@ export class ServerChecker {
             } else if (results.errors.some(e => e.type === 'connection_refused')) {
                 diagnosis.primaryIssue = '서버가 실행되지 않음'
                 diagnosis.solutions = [
-                    '백엔드 서버를 http://localhost:8080에서 실행하세요',
+                    '백엔드 서버를 http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com에서 실행하세요',
                     'application.properties에서 server.port=8080 확인',
                     '다른 프로세스가 8080 포트를 사용하고 있지 않은지 확인'
                 ]

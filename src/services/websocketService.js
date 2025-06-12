@@ -77,7 +77,7 @@ class WebSocketService {
   initializeStompConnection(accessToken, callbacks) {
     try {
       // SockJS 소켓 생성
-      const socket = new SockJS(`http://localhost:8080/ws-stomp?access_token=${accessToken}`)
+      const socket = new SockJS(`http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/ws-stomp?access_token=${accessToken}`)
       
       // STOMP 클라이언트 생성
       this.stompClient = Stomp.over(socket)

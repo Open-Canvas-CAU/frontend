@@ -11,11 +11,11 @@ export default function Sidebar() {
 
     const linkClass = ({ isActive }) =>
         isActive
-            ? 'text-yellow-300'
+            ? 'text-red-300'
             : 'text-solarized-base0 hover:text-red-400'
 
     return (
-        <aside className="w-24 h-screen bg-solarized-base2 flex flex-col items-center p-6">
+        <aside className="w-24 h-screen bg-base2 flex flex-col items-center p-6">
             <nav className="flex-1 flex flex-col items-center space-y-10 pt-24">
                 {/* 내 캔버스 (초안/작업중) */}
                 <NavLink to="/palette" className={linkClass}>
@@ -34,7 +34,7 @@ export default function Sidebar() {
             </nav>
             <button
                 onClick={() => navigate('/editor/new')}
-                className="mt-auto bg-yellow-300 hover:bg-yellow-300/80 rounded-full transition-colors"
+                className="mt-auto bg-red-300 hover:bg-red-300/80 rounded-full transition-colors"
             >
                 <img src={PlusIconUrl} alt="New Canvas" className="w-6 h-6"/>
             </button>

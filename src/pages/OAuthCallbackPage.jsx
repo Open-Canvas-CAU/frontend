@@ -162,16 +162,16 @@ export default function OAuthCallbackPage() {
                 <div className="space-y-3">
                     <h2 className={`
                         text-2xl font-bold transition-colors duration-500
-                        ${status === 'redirecting' ? 'text-green-600' : status === 'error' ? 'text-red-600' : 'text-white-800'}
+                        ${status === 'redirecting' ? 'text-red-600' : status === 'error' ? 'text-red-600' : 'text-white-800'}
                     `}>
                         {statusDisplay.title}
                     </h2>
                     <p className="text-white-600">{statusDisplay.subtitle}</p>
                     
                     {status === 'redirecting' && (
-                        <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-                            <p className="text-green-700 font-medium">✨ 환영합니다!</p>
-                            <p className="text-green-600 text-sm">Live Canvas에서 멋진 이야기를 만들어보세요</p>
+                        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                            <p className="text-red-700 font-medium">✨ 환영합니다!</p>
+                            <p className="text-red-600 text-sm">Live Canvas에서 멋진 이야기를 만들어보세요</p>
                         </div>
                     )}
                 </div>
@@ -190,10 +190,10 @@ export default function OAuthCallbackPage() {
                             </pre>
                             <div><strong>토큰 상태:</strong></div>
                             <ul className="ml-4 space-y-1">
-                                <li className={debugInfo.hasAccessToken ? 'text-green-600' : 'text-red-600'}>
+                                <li className={debugInfo.hasAccessToken ? 'text-red-600' : 'text-red-600'}>
                                     {debugInfo.hasAccessToken ? '✅' : '❌'} Access Token
                                 </li>
-                                <li className={debugInfo.hasRefreshToken ? 'text-green-600' : 'text-red-600'}>
+                                <li className={debugInfo.hasRefreshToken ? 'text-red-600' : 'text-red-600'}>
                                     {debugInfo.hasRefreshToken ? '✅' : '❌'} Refresh Token
                                 </li>
                             </ul>

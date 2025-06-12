@@ -4,10 +4,10 @@ export default function EditButton({ onClick, children }) {
     return (
         <button
             onClick={onClick}
-            className="w-52 h-14 p-3 bg-solarized-red/70 rounded-full flex items-center gap-2"
+            className="w-52 h-14 p-3 bg-red/70 rounded-full flex items-center gap-2"
         >
             {/* <img src={iconUrl} alt="edit icon" className="w-6 h-6" /> */}
-            <span className="text-solarized-base03 text-xl font-semibold">
+            <span className="text-white text-xl font-semibold">
         {children}
       </span>
         </button>

@@ -164,9 +164,9 @@ export default function DebugPage() {
     }
 
     const getStatusColor = (success) => {
-        if (success === true) return 'text-green-600'
+        if (success === true) return 'text-red-600'
         if (success === false) return 'text-red-600'
-        return 'text-yellow-600'
+        return 'text-red-600'
     }
 
     return (
@@ -204,7 +204,7 @@ export default function DebugPage() {
                                 </span>
                                 <button
                                     onClick={testAuth}
-                                    className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm"
+                                    className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm"
                                 >
                                     테스트
                                 </button>
@@ -238,9 +238,9 @@ export default function DebugPage() {
                             <h2 className="text-xl font-semibold">3. WebSocket 연결</h2>
                             <div className="flex items-center space-x-2">
                                 <span className={`font-medium ${
-                                    websocketStatus === 'connected' ? 'text-green-600' :
+                                    websocketStatus === 'connected' ? 'text-red-600' :
                                     websocketStatus === 'error' ? 'text-red-600' :
-                                    websocketStatus === 'connecting' ? 'text-yellow-600' :
+                                    websocketStatus === 'connecting' ? 'text-red-600' :
                                     'text-white-600'
                                 }`}>
                                     {websocketStatus === 'connected' && '✅ 연결됨'}
@@ -267,8 +267,8 @@ export default function DebugPage() {
                             <pre>
 {`현재 URL: ${window.location.href}
 Node ENV: ${process.env.NODE_ENV}
-API Base: ${import.meta.env.VITE_USE_MOCK_API === 'true' ? 'Mock API' : 'http://localhost:8080'}
-WebSocket URL: ws://localhost:8080/ws-stomp
+API Base: ${import.meta.env.VITE_USE_MOCK_API === 'true' ? 'Mock API' : 'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com'}
+WebSocket URL: ws://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/ws-stomp
 브라우저: ${navigator.userAgent}`}
                             </pre>
                         </div>
@@ -276,10 +276,10 @@ WebSocket URL: ws://localhost:8080/ws-stomp
                 </div>
 
                 {/* 추천 해결책 */}
-                <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="mt-8 p-6 bg-red-50 border border-red-200 rounded-lg">
                     <h3 className="text-lg font-semibold mb-3">🛠️ 문제 해결 체크리스트</h3>
                     <ul className="space-y-2 text-sm">
-                        <li>✅ 백엔드 서버가 http://localhost:8080에서 실행 중인지 확인</li>
+                        <li>✅ 백엔드 서버가 http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com에서 실행 중인지 확인</li>
                         <li>✅ WebSocket 엔드포인트 /ws-stomp가 활성화되어 있는지 확인</li>
                         <li>✅ 토큰이 유효하고 만료되지 않았는지 확인</li>
                         <li>✅ CORS 설정이 프론트엔드 도메인을 허용하는지 확인</li>

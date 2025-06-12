@@ -67,7 +67,7 @@ export default function Header() {
         const redirectUri = `http://localhost:${currentPort}/oauth2/callback`;
         
         // OAuth2 로그인 URL 생성
-        const googleLoginUrl = `http://localhost:8080/oauth2/authorization/google?redirect_uri=${encodeURIComponent(redirectUri)}&mode=login`;
+        const googleLoginUrl = `http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/oauth2/authorization/google?redirect_uri=${encodeURIComponent(redirectUri)}&mode=login`;
         
         console.log('🔑 Header에서 로그인 시도:', googleLoginUrl);
         
@@ -189,7 +189,7 @@ export default function Header() {
                             />
                             <button 
                                 type="submit" 
-                                className="px-4 py-3 bg-yellow-300 text-white-800 hover:bg-yellow-400 transition-colors duration-200 font-medium"
+                                className="px-4 py-3 bg-red-300 text-black hover:bg-red-400 transition-colors duration-200 font-medium"
                             >
                                 검색
                             </button>
@@ -230,8 +230,7 @@ export default function Header() {
                             {/* 🔧 수정된 로그인 버튼 - OAuth2 직접 연결 */}
                             <button
                                 onClick={handleLogin}
-                                className="px-6 py-3 text-sm font-medium text-white-800 bg-yellow-300/90 hover:bg-yellow-300 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg backdrop-blur-sm flex items-center space-x-2"
-                            >
+                                className="px-4 py-3 bg-red-500 text-white hover:bg-red-600 transition-colors duration-200 font-medium"                            >
                                 <img 
                                     className="w-5 h-5" 
                                     src="https://www.svgrepo.com/show/475656/google-color.svg" 

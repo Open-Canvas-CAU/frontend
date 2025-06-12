@@ -1,9 +1,9 @@
 import React from 'react';
 
 const colorMap = {
-  red: 'bg-solarized-red hover:bg-solarized-red/80',
-  green: 'bg-solarized-green hover:bg-solarized-green/80',
-  white: 'bg-red hover:bg-solarized-base0',
+  red: 'bg-red hover:bg-red/80',
+  red: 'bg-red hover:bg-red/80',
+  white: 'bg-red hover:bg-base0',
 };
 
 const VoteButton = ({ children, onClick, disabled, color = 'red' }) => (

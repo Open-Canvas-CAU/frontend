@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-solarized-base3 text-solarized-base00;
+    @apply bg-black text-white;
   }
 }
 

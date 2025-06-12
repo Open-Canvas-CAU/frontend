@@ -95,9 +95,9 @@ public class SecurityConfig {
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="bg-black rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
                 {/* 헤더 */}
-                <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6">
+                <div className="bg-gradient-to-r from-red-500 to-white-600 text-white p-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-2xl font-bold mb-2">🔧 CORS 설정 가이드</h2>
@@ -105,7 +105,7 @@ public class SecurityConfig {
                         </div>
                         <button
                             onClick={onClose}
-                            className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                            className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center transition-colors"
                         >
                             ✕
                         </button>
@@ -113,7 +113,7 @@ public class SecurityConfig {
                 </div>
 
                 {/* 탭 네비게이션 */}
-                <div className="border-b border-gray-200">
+                <div className="border-b border-white-200">
                     <div className="flex overflow-x-auto">
                         {springBootConfigs.map((config) => (
                             <button
@@ -121,8 +121,8 @@ public class SecurityConfig {
                                 onClick={() => setActiveTab(config.id)}
                                 className={`px-6 py-4 whitespace-nowrap font-medium transition-colors border-b-2 ${
                                     activeTab === config.id
-                                        ? 'border-blue-500 text-blue-600 bg-blue-50'
-                                        : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                                        ? 'border-red-500 text-red-600 bg-red-50'
+                                        : 'border-transparent text-white-600 hover:text-white-800 hover:bg-black-50'
                                 }`}
                             >
                                 {config.title}
@@ -139,25 +139,25 @@ public class SecurityConfig {
                             className={`${activeTab === config.id ? 'block' : 'hidden'}`}
                         >
                             <div className="mb-4">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                                <h3 className="text-lg font-semibold text-white-800 mb-2">
                                     {config.title}
                                 </h3>
-                                <p className="text-gray-600 mb-4">{config.description}</p>
+                                <p className="text-white-600 mb-4">{config.description}</p>
                             </div>
 
                             <div className="relative">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-gray-700">
+                                    <span className="text-sm font-medium text-white-700">
                                         Java/Spring Boot 코드:
                                     </span>
                                     <button
                                         onClick={() => copyToClipboard(config.code)}
-                                        className="text-sm px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors"
+                                        className="text-sm px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded transition-colors"
                                     >
                                         📋 복사
                                     </button>
                                 </div>
-                                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+                                <pre className="bg-black-900 text-white-100 p-4 rounded-lg overflow-x-auto text-sm">
                                     <code>{config.code}</code>
                                 </pre>
                             </div>
@@ -174,9 +174,9 @@ public class SecurityConfig {
                             )}
 
                             {config.id === 'properties' && (
-                                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                    <h4 className="font-semibold text-blue-800 mb-2">📝 파일 위치</h4>
-                                    <p className="text-sm text-blue-700">
+                                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <h4 className="font-semibold text-red-800 mb-2">📝 파일 위치</h4>
+                                    <p className="text-sm text-red-700">
                                         application.properties 파일은 src/main/resources/ 폴더에 있습니다.
                                     </p>
                                 </div>
@@ -186,7 +186,7 @@ public class SecurityConfig {
                 </div>
 
                 {/* 푸터 */}
-                <div className="border-t border-gray-200 p-6 bg-gray-50">
+                <div className="border-t border-white-200 p-6 bg-black-50">
                     <div className="space-y-4">
                         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                             <h4 className="font-semibold text-yellow-800 mb-2">🔄 설정 후 확인사항</h4>
@@ -199,12 +199,12 @@ public class SecurityConfig {
                         </div>
 
                         <div className="flex justify-between items-center">
-                            <div className="text-sm text-gray-600">
-                                💡 더 자세한 정보는 <a href="https://spring.io/guides/gs/rest-service-cors/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Spring CORS 가이드</a>를 참고하세요
+                            <div className="text-sm text-white-600">
+                                💡 더 자세한 정보는 <a href="https://spring.io/guides/gs/rest-service-cors/" target="_blank" rel="noopener noreferrer" className="text-red-600 hover:underline">Spring CORS 가이드</a>를 참고하세요
                             </div>
                             <button
                                 onClick={onClose}
-                                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
                             >
                                 닫기
                             </button>

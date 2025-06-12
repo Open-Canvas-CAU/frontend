@@ -53,8 +53,8 @@ export default function FloatingMenu() {
             icon: '✨', 
             label: '새 캔버스', 
             path: '/editor/new',
-            color: 'from-green-400 to-blue-500',
-            hoverColor: 'hover:from-green-500 hover:to-blue-600',
+            color: 'from-red-400 to-white-500',
+            hoverColor: 'hover:from-red-500 hover:to-red-600',
             onClick: () => {
                 if (!isAuthenticated) {
                     navigate('/login')
@@ -68,24 +68,24 @@ export default function FloatingMenu() {
             icon: '🎨', 
             label: '내 캔버스', 
             path: '/palette',
-            color: 'from-purple-400 to-pink-500',
-            hoverColor: 'hover:from-purple-500 hover:to-pink-600',
+            color: 'from-red-400 to-white-500',
+            hoverColor: 'hover:from-red-500 hover:to-pink-600',
             requireAuth: true
         },
         { 
             icon: '⭐', 
             label: '즐겨찾기', 
             path: '/favorites',
-            color: 'from-yellow-400 to-orange-500',
-            hoverColor: 'hover:from-yellow-500 hover:to-orange-600',
+            color: 'from-red-400 to-white-500',
+            hoverColor: 'hover:from-red-500 hover:to-orange-600',
             requireAuth: true
         },
         { 
             icon: '👤', 
             label: '내 정보', 
             path: '/mypage',
-            color: 'from-blue-400 to-indigo-500',
-            hoverColor: 'hover:from-blue-500 hover:to-indigo-600',
+            color: 'from-red-400 to-white-500',
+            hoverColor: 'hover:from-red-500 hover:to-indigo-600',
             requireAuth: true,
             hasNotification: notifications > 0
         },
@@ -110,8 +110,8 @@ export default function FloatingMenu() {
                     icon: '🔑',
                     label: '로그인',
                     path: '/login',
-                    color: 'from-gray-400 to-gray-600',
-                    hoverColor: 'hover:from-gray-500 hover:to-gray-700',
+                    color: 'from-red-400 to-white-600',
+                    hoverColor: 'hover:from-red-500 hover:to-white-700',
                     onClick: () => navigate('/login')
                 }
             ])
@@ -145,11 +145,11 @@ export default function FloatingMenu() {
                         >
                             {/* 라벨 */}
                             <div className={`
-                                mr-4 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/50
+                                mr-4 px-3 py-2 bg-black/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/50
                                 transition-all duration-300 transform
                                 ${isExpanded ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
                             `}>
-                                <span className="text-sm font-medium text-gray-800 whitespace-nowrap">
+                                <span className="text-sm font-medium text-white-800 whitespace-nowrap">
                                     {item.label}
                                 </span>
                             </div>
@@ -181,13 +181,13 @@ export default function FloatingMenu() {
                     className={`
                         relative w-16 h-16 rounded-2xl transition-all duration-500 transform
                         ${isExpanded ? 'rotate-45 scale-110' : 'rotate-0 scale-100 hover:scale-105'}
-                        bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700
+                        bg-gradient-to-r from-red-500 to-white-600 hover:from-red-600 hover:to-purple-700
                         shadow-xl hover:shadow-2xl text-white
                         flex items-center justify-center group
                     `}
                 >
                     {/* 배경 애니메이션 */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-400 to-white-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     
                     {/* 아이콘 */}
                     <div className={`
@@ -209,7 +209,7 @@ export default function FloatingMenu() {
                     {/* 호버 시 리플 효과 */}
                     <div className="absolute inset-0 rounded-2xl overflow-hidden">
                         <div className={`
-                            absolute inset-0 bg-white/20 rounded-full transition-all duration-700 transform
+                            absolute inset-0 bg-black/20 rounded-full transition-all duration-700 transform
                             ${isExpanded ? 'scale-150 opacity-0' : 'scale-0 opacity-100'}
                         `}></div>
                     </div>
@@ -218,19 +218,19 @@ export default function FloatingMenu() {
                 {/* 사용자 정보 표시 (인증된 경우) */}
                 {isAuthenticated && currentUser && isExpanded && (
                     <div className={`
-                        absolute bottom-20 right-0 p-4 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50
+                        absolute bottom-20 right-0 p-4 bg-black/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50
                         transition-all duration-500 transform
                         ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
                     `}>
                         <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold">
+                            <div className="w-10 h-10 bg-gradient-to-r from-red-400 to-white-500 rounded-xl flex items-center justify-center text-white font-bold">
                                 {currentUser.nickname?.charAt(0)?.toUpperCase() || 'U'}
                             </div>
                             <div>
-                                <div className="text-sm font-semibold text-gray-800">
+                                <div className="text-sm font-semibold text-white-800">
                                     {currentUser.nickname?.split('@')[0] || '사용자'}
                                 </div>
-                                <div className="text-xs text-gray-600">
+                                <div className="text-xs text-white-600">
                                     {currentUser.role === 'ADMIN' ? '관리자' : '작가'}
                                 </div>
                             </div>
@@ -251,10 +251,10 @@ export default function FloatingMenu() {
             {/* 도움말 툴팁 (처음 방문자용) */}
             {!isExpanded && (
                 <div className="absolute -top-2 -left-32 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                    <div className="bg-gray-800 text-white text-xs py-2 px-3 rounded-lg relative">
+                    <div className="bg-black-800 text-white text-xs py-2 px-3 rounded-lg relative">
                         빠른 메뉴
                         <div className="absolute top-1/2 right-0 transform translate-x-full -translate-y-1/2">
-                            <div className="w-0 h-0 border-l-4 border-l-gray-800 border-t-2 border-t-transparent border-b-2 border-b-transparent"></div>
+                            <div className="w-0 h-0 border-l-4 border-l-white-800 border-t-2 border-t-transparent border-b-2 border-b-transparent"></div>
                         </div>
                     </div>
                 </div>

@@ -40,16 +40,16 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-3xl shadow-2xl border border-white/50">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-white-100 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 p-10 bg-black rounded-3xl shadow-2xl border border-white/50">
                 <div className="text-center">
-                    <div className="mx-auto h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+                    <div className="mx-auto h-12 w-12 bg-gradient-to-r from-red-500 to-white-500 rounded-xl flex items-center justify-center">
                         <span className="text-white text-2xl">🔐</span>
                     </div>
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+                    <h2 className="mt-6 text-3xl font-extrabold text-white-900">
                         Live Canvas 로그인
                     </h2>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-white-600">
                         함께 만드는 이야기의 세계로 들어오세요
                     </p>
                 </div>
@@ -57,7 +57,7 @@ export default function LoginPage() {
                 <div className="mt-8 space-y-6">
                     <button
                         onClick={handleGoogleLogin}
-                        className="group relative w-full flex justify-center items-center py-4 px-4 border border-transparent text-sm font-medium rounded-2xl text-gray-700 bg-white border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                        className="group relative w-full flex justify-center items-center py-4 px-4 border border-transparent text-sm font-medium rounded-2xl text-white-700 bg-black border-white-300 hover:bg-black-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                     >
                         <img 
                             className="w-6 h-6 mr-3" 
@@ -68,9 +68,9 @@ export default function LoginPage() {
                     </button>
                     
                     {/* 개발자 정보 */}
-                    <div className="mt-4 p-4 bg-blue-50 rounded-2xl text-xs space-y-2">
+                    <div className="mt-4 p-4 bg-red-50 rounded-2xl text-xs space-y-2">
                         <p><strong>🔧 개발자 정보:</strong></p>
-                        <div className="space-y-1 text-gray-600">
+                        <div className="space-y-1 text-white-600">
                             <p>• 현재 포트: {currentPort}</p>
                             <p>• 리다이렉트 URI: {redirectUri}</p>
                             <p>• 백엔드 서버: http://localhost:8080</p>
@@ -82,7 +82,7 @@ export default function LoginPage() {
                     </div>
                 </div>
                 
-                <div className="text-center text-sm text-gray-500">
+                <div className="text-center text-sm text-white-500">
                     새로운 캔버스를 만들고 다른 작가들과 함께<br/>
                     멋진 이야기를 완성해보세요! ✨
                 </div>

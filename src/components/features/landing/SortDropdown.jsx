@@ -7,7 +7,7 @@ export default function SortDropdown({ options, selected, onSelect }) {
             <select
                 value={selected}
                 onChange={e => onSelect(e.target.value)}
-                className="bg-white px-2 py-1 rounded text-base"
+                className="bg-black px-2 py-1 rounded text-base"
             >
                 {options.map(opt => (
                     <option key={opt} value={opt}>

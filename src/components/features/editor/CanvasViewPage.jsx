@@ -73,30 +73,30 @@ export default function CanvasViewPage() {
     if (error) return <div className="text-red-500">오류: {error}</div>
 
     return (
-        <div className="min-h-screen bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="min-h-screen bg-black rounded-2xl shadow-lg overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b">
                 <button onClick={()=>navigate(-1)} className="text-zinc-700">← 나가기</button>
                 <div className="text-center">
                     <div className="text-xl font-semibold">{coverData.title}</div>
-                    <div className="text-sm text-gray-500">RoomType: {coverData.roomType}</div>
+                    <div className="text-sm text-white-500">RoomType: {coverData.roomType}</div>
                 </div>
                 <div className="flex items-center space-x-3">
-                    <button onClick={()=>setShowVersions(!showVersions)} className="px-4 py-2 bg-gray-100 rounded">📊 버전 기록</button>
+                    <button onClick={()=>setShowVersions(!showVersions)} className="px-4 py-2 bg-black-100 rounded">📊 버전 기록</button>
                 </div>
             </div>
             <div className="p-6">
                 <EditorSection content={writings[0].body} readOnly className="min-h-[300px] prose" />
-                {!coverData.contentId && <button onClick={handleStartEditing} disabled={isJoiningRoom} className="mt-4 px-6 py-3 bg-blue-500 text-white rounded">✏️ 편집하기</button>}
+                {!coverData.contentId && <button onClick={handleStartEditing} disabled={isJoiningRoom} className="mt-4 px-6 py-3 bg-red-500 text-white rounded">✏️ 편집하기</button>}
                 {coverData.contentId && <button onClick={handleViewCompleted} className="mt-4 px-6 py-3 bg-green-500 text-white rounded">🎨 완성작 보기</button>}
             </div>
             {showVersions && (
-                <div className="fixed right-0 top-0 w-80 h-full bg-white shadow-2xl z-40">
+                <div className="fixed right-0 top-0 w-80 h-full bg-black shadow-2xl z-40">
                     <div className="p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold">버전 기록</h3>
                             <button onClick={()=>setShowVersions(false)} className="w-6 h-6">✕</button>
                         </div>
-                        {savedWritings.length>0 ? <VersionTree writings={savedWritings} onNodeClick={() => {}} currentVersion={null}/> : <p className="text-gray-500">버전 기록이 없습니다.</p>}
+                        {savedWritings.length>0 ? <VersionTree writings={savedWritings} onNodeClick={() => {}} currentVersion={null}/> : <p className="text-white-500">버전 기록이 없습니다.</p>}
                     </div>
                 </div>
             )}

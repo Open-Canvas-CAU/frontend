@@ -77,19 +77,16 @@ class WebSocketService {
   initializeStompConnection(accessToken, callbacks) {
     try {
       // SockJS 소켓 생성
-      const socket = new SockJS("http://localhost:8080/ws-stomp")
+      const socket = new SockJS(`http://localhost:8080/ws-stomp?access_token=${accessToken}`)
       
       // STOMP 클라이언트 생성
       this.stompClient = Stomp.over(socket)
-      
-      // STOMP 디버그 비활성화 (프로덕션에서는)
-      // this.stompClient.debug = null
 
       console.log('🚀 STOMP 연결 시작...')
 
       // 연결 시도 (문서 명세에 따라 token 헤더 사용, Bearer 없이)
       this.stompClient.connect(
-        { token: accessToken }, // ⬅️ 문서 명세대로 Bearer 없이 토큰만
+        {},
         (frame) => {
           console.log('✅ STOMP 연결 성공:', frame)
           this.isConnected = true

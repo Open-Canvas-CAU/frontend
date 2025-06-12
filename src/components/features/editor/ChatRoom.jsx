@@ -69,10 +69,10 @@ export default function ChatRoom({ roomId }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 overflow-hidden">
+    <div className="flex flex-col h-full bg-black/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 overflow-hidden">
       {/* 헤더 */}
-      <div className="p-4 border-b bg-gray-50/50">
-        <h3 className="text-lg font-semibold text-gray-800 text-center">
+      <div className="p-4 border-b bg-black-50/50">
+        <h3 className="text-lg font-semibold text-white-800 text-center">
           {isConnected ? '⚡ 실시간 채팅' : '🔌 연결 중...'}
         </h3>
         {error && <div className="text-center text-xs text-red-500 mt-1">{error}</div>}
@@ -101,8 +101,8 @@ export default function ChatRoom({ roomId }) {
             <div
               className={`max-w-xs md:max-w-md p-3 rounded-2xl ${
                 msg.username === currentUser?.email
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-800'
+                  ? 'bg-red-500 text-white'
+                  : 'bg-black-200 text-white-800'
               }`}
             >
               <p className="text-sm">{msg.message}</p>
@@ -125,7 +125,7 @@ export default function ChatRoom({ roomId }) {
       </div>
 
       {/* 메시지 입력 폼 */}
-      <div className="p-4 border-t bg-gray-50/50">
+      <div className="p-4 border-t bg-black-50/50">
         <form onSubmit={handleSendMessage} className="flex gap-3">
           <input
             type="text"
@@ -133,12 +133,12 @@ export default function ChatRoom({ roomId }) {
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={isConnected ? '메시지를 입력하세요...' : '연결을 기다리는 중...'}
             disabled={!isConnected}
-            className="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 bg-black border border-white-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500"
           />
           <button
             type="submit"
             disabled={!isConnected || !newMessage.trim()}
-            className="px-6 py-2 bg-blue-500 text-white font-semibold rounded-xl hover:bg-blue-600 disabled:bg-gray-400 transition-colors"
+            className="px-6 py-2 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 disabled:bg-black-400 transition-colors"
           >
             전송
           </button>

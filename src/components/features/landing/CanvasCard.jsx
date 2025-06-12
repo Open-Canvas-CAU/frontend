@@ -78,7 +78,7 @@ export default function CanvasCard({
 
     const getInfoCardClasses = () => {
         const baseClasses = `
-            mt-3 ml-auto mr-0 bg-white p-4 rounded-lg shadow-md backdrop-blur-sm
+            mt-3 ml-auto mr-0 bg-black p-4 rounded-lg shadow-md backdrop-blur-sm
             transition-all duration-500 transform
         `
         
@@ -86,14 +86,14 @@ export default function CanvasCard({
             return `${baseClasses} 
                 opacity-0 group-hover:opacity-100 
                 translate-y-4 group-hover:translate-y-0
-                bg-white/95 border border-orange-200/50
+                bg-black/95 border border-orange-200/50
                 group-hover:shadow-xl group-hover:scale-105
             `
         } else {
             return `${baseClasses} 
                 opacity-0 group-hover:opacity-100 
                 translate-y-2 group-hover:translate-y-0
-                bg-white/95 border border-blue-200/50
+                bg-black/95 border border-red-200/50
                 group-hover:shadow-lg
             `
         }
@@ -121,8 +121,8 @@ export default function CanvasCard({
                     absolute inset-0 rounded-lg
                     transition-all duration-500
                     ${cardType === 'workspace' 
-                        ? 'bg-gradient-to-t from-orange-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100' 
-                        : 'bg-gradient-to-t from-blue-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100'
+                        ? 'bg-gradient-to-t from-red-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100' 
+                        : 'bg-gradient-to-t from-red-500/20 via-transparent to-transparent opacity-0 group-hover:opacity-100'
                     }
                 `}></div>
                 
@@ -132,7 +132,7 @@ export default function CanvasCard({
                     backdrop-blur-sm transition-all duration-300
                     ${cardType === 'workspace' 
                         ? 'bg-orange-500/80 text-white opacity-0 group-hover:opacity-100' 
-                        : 'bg-blue-500/80 text-white opacity-0 group-hover:opacity-100'
+                        : 'bg-red-500/80 text-white opacity-0 group-hover:opacity-100'
                     }
                 `}>
                     {cardType === 'workspace' ? '작업 중' : '완성작'}
@@ -143,15 +143,15 @@ export default function CanvasCard({
             <div className={getInfoCardClasses()}>
                 <div className="space-y-2">
                     <h3 className={`
-                        text-lg font-semibold text-gray-900 
+                        text-lg font-semibold text-white-900 
                         transition-colors duration-300
-                        ${cardType === 'workspace' ? 'group-hover:text-orange-600' : 'group-hover:text-blue-600'}
+                        ${cardType === 'workspace' ? 'group-hover:text-orange-600' : 'group-hover:text-red-600'}
                     `}>
                         {title}
                     </h3>
                     
                     <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 flex items-center space-x-1">
+                        <span className="text-white-600 flex items-center space-x-1">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -160,24 +160,24 @@ export default function CanvasCard({
                         
                         <span className={`
                             font-medium transition-colors duration-300
-                            ${cardType === 'workspace' ? 'text-orange-500' : 'text-blue-500'}
+                            ${cardType === 'workspace' ? 'text-orange-500' : 'text-red-500'}
                         `}>
                             {cardType === 'workspace' ? '편집하기' : '보기'}
                         </span>
                     </div>
                     
-                    <p className="text-sm text-gray-500">{description}</p>
+                    <p className="text-sm text-white-500">{description}</p>
                     
                     {/* 진행률 바 (작업실용) */}
                     {cardType === 'workspace' && (
                         <div className="mt-2">
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                            <div className="flex items-center justify-between text-xs text-white-500 mb-1">
                                 <span>진행률</span>
                                 <span>75%</span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div className="w-full bg-black-200 rounded-full h-1.5">
                                 <div 
-                                    className="bg-gradient-to-r from-orange-400 to-red-400 h-1.5 rounded-full transition-all duration-1000 ease-out"
+                                    className="bg-gradient-to-r from-red-400 to-white-400 h-1.5 rounded-full transition-all duration-1000 ease-out"
                                     style={{ width: '75%' }}
                                 ></div>
                             </div>
@@ -185,13 +185,13 @@ export default function CanvasCard({
                     )}
                     
                     {/* 액션 버튼 */}
-                    <div className="mt-3 pt-2 border-t border-gray-200">
+                    <div className="mt-3 pt-2 border-t border-white-200">
                         <button className={`
                             w-full py-2 px-4 rounded-md text-sm font-medium
                             transition-all duration-300 transform hover:scale-105
                             ${cardType === 'workspace' 
-                                ? 'bg-gradient-to-r from-orange-400 to-red-400 hover:from-orange-500 hover:to-red-500 text-white shadow-md hover:shadow-lg' 
-                                : 'bg-gradient-to-r from-blue-400 to-purple-400 hover:from-blue-500 hover:to-purple-500 text-white shadow-md hover:shadow-lg'
+                                ? 'bg-gradient-to-r from-red-400 to-white-400 hover:from-red-500 hover:to-red-500 text-white shadow-md hover:shadow-lg' 
+                                : 'bg-gradient-to-r from-red-400 to-white-400 hover:from-red-500 hover:to-purple-500 text-white shadow-md hover:shadow-lg'
                             }
                         `}>
                             {cardType === 'workspace' ? '계속 편집하기' : '작품 보기'}

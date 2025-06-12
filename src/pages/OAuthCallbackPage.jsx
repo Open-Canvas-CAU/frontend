@@ -144,7 +144,7 @@ export default function OAuthCallbackPage() {
     const statusDisplay = getStatusDisplay();
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-purple-50 to-white-50">
             <div className="text-center space-y-8 max-w-md mx-4">
                 {/* 상태 아이콘 */}
                 <div className={`
@@ -154,7 +154,7 @@ export default function OAuthCallbackPage() {
                     {statusDisplay.icon}
                     
                     {status === 'processing' && (
-                        <div className="absolute inset-0 w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
+                        <div className="absolute inset-0 w-16 h-16 border-4 border-red-200 border-t-red-500 rounded-full animate-spin mx-auto"></div>
                     )}
                 </div>
 
@@ -162,11 +162,11 @@ export default function OAuthCallbackPage() {
                 <div className="space-y-3">
                     <h2 className={`
                         text-2xl font-bold transition-colors duration-500
-                        ${status === 'redirecting' ? 'text-green-600' : status === 'error' ? 'text-red-600' : 'text-gray-800'}
+                        ${status === 'redirecting' ? 'text-green-600' : status === 'error' ? 'text-red-600' : 'text-white-800'}
                     `}>
                         {statusDisplay.title}
                     </h2>
-                    <p className="text-gray-600">{statusDisplay.subtitle}</p>
+                    <p className="text-white-600">{statusDisplay.subtitle}</p>
                     
                     {status === 'redirecting' && (
                         <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
@@ -178,12 +178,12 @@ export default function OAuthCallbackPage() {
                 
                 {/* 디버깅 정보 */}
                 {debugInfo && (
-                    <details className="mt-8 p-4 bg-white rounded-xl shadow-lg text-left max-w-lg">
+                    <details className="mt-8 p-4 bg-black rounded-xl shadow-lg text-left max-w-lg">
                         <summary className="cursor-pointer font-bold mb-2">🔧 개발자 정보</summary>
                         <div className="text-xs space-y-2">
                             <div><strong>URL:</strong> {debugInfo.url}</div>
                             <div><strong>모든 파라미터:</strong></div>
-                            <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto">
+                            <pre className="bg-black-100 p-2 rounded text-xs overflow-auto">
                                 {debugInfo.allParams.map(([key, value]) => 
                                     `${key}: ${key.includes('token') ? value.substring(0, 30) + '...' : value}`
                                 ).join('\n') || '파라미터 없음'}
@@ -210,11 +210,11 @@ export default function OAuthCallbackPage() {
                     <div className="mt-6 space-y-3">
                         <button
                             onClick={() => navigate('/login')}
-                            className="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+                            className="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
                         >
                             다시 로그인 시도
                         </button>
-                        <p className="text-sm text-gray-500">3초 후 자동으로 로그인 페이지로 이동합니다</p>
+                        <p className="text-sm text-white-500">3초 후 자동으로 로그인 페이지로 이동합니다</p>
                     </div>
                 )}
             </div>

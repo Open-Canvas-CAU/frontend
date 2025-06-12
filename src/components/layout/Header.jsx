@@ -111,8 +111,8 @@ export default function Header() {
     const getHeaderStyle = () => {
         const isWorkspace = location.pathname === '/workingon';
         return isWorkspace
-            ? 'bg-gradient-to-r from-orange-400/10 via-red-400/10 to-pink-400/10 border-orange-200/50'
-            : 'bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-pink-400/10 border-blue-200/50';
+            ? 'bg-gradient-to-r from-red-400/10 via-red-400/10 to-white-400/10 border-orange-200/50'
+            : 'bg-gradient-to-r from-red-400/10 via-purple-400/10 to-white-400/10 border-red-200/50';
     };
 
     // 네비게이션 버튼 스타일
@@ -122,10 +122,10 @@ export default function Header() {
         if (isActive) {
             return navType === 'workingon'
                 ? `${baseStyle} text-orange-600 bg-orange-100/80 shadow-lg scale-105`
-                : `${baseStyle} text-blue-600 bg-blue-100/80 shadow-lg scale-105`;
+                : `${baseStyle} text-red-600 bg-red-100/80 shadow-lg scale-105`;
         }
         
-        return `${baseStyle} text-solarized-base00 hover:text-red-400 hover:bg-white/50 hover:scale-105 hover:shadow-md`;
+        return `${baseStyle} text-white hover:text-red-400 hover:bg-black/50 hover:scale-105 hover:shadow-md`;
     };
 
     return (
@@ -151,7 +151,7 @@ export default function Header() {
                         <span className="relative z-10 flex items-center space-x-2">
                             <span>갤러리</span>
                             {activeNav === 'gallery' && (
-                                <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                                <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></span>
                             )}
                         </span>
                     </button>
@@ -177,19 +177,19 @@ export default function Header() {
                     {isSearchExpanded ? (
                         <form 
                             onSubmit={handleSearch} 
-                            className="flex items-center bg-white/90 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg transform scale-100 transition-all duration-300"
+                            className="flex items-center bg-black/90 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg transform scale-100 transition-all duration-300"
                         >
                             <input
                                 type="text"
                                 value={searchValue}
                                 onChange={(e) => setSearchValue(e.target.value)}
                                 placeholder="검색어를 입력하세요"
-                                className="px-4 py-3 w-48 focus:outline-none text-gray-900 bg-transparent"
+                                className="px-4 py-3 w-48 focus:outline-none text-white-900 bg-transparent"
                                 autoFocus
                             />
                             <button 
                                 type="submit" 
-                                className="px-4 py-3 bg-yellow-300 text-gray-800 hover:bg-yellow-400 transition-colors duration-200 font-medium"
+                                className="px-4 py-3 bg-yellow-300 text-white-800 hover:bg-yellow-400 transition-colors duration-200 font-medium"
                             >
                                 검색
                             </button>
@@ -197,7 +197,7 @@ export default function Header() {
                     ) : (
                         <button 
                             onClick={() => setIsSearchExpanded(true)} 
-                            className="p-3 text-solarized-base00 hover:text-red-400 hover:bg-white/20 rounded-xl transition-all duration-300 transform hover:scale-110"
+                            className="p-3 text-white hover:text-red-400 hover:bg-black/20 rounded-xl transition-all duration-300 transform hover:scale-110"
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -210,8 +210,8 @@ export default function Header() {
                 <div className="flex items-center space-x-4">
                     {isAuthenticated ? (
                         <>
-                            <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
-                                <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            <div className="flex items-center space-x-3 bg-black/10 backdrop-blur-sm rounded-xl px-4 py-2">
+                                <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-white-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
                                     {currentUser?.nickname?.charAt(0)?.toUpperCase() || 'U'}
                                 </div>
                                 <span className="text-sm text-white font-medium">
@@ -230,7 +230,7 @@ export default function Header() {
                             {/* 🔧 수정된 로그인 버튼 - OAuth2 직접 연결 */}
                             <button
                                 onClick={handleLogin}
-                                className="px-6 py-3 text-sm font-medium text-gray-800 bg-yellow-300/90 hover:bg-yellow-300 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg backdrop-blur-sm flex items-center space-x-2"
+                                className="px-6 py-3 text-sm font-medium text-white-800 bg-yellow-300/90 hover:bg-yellow-300 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg backdrop-blur-sm flex items-center space-x-2"
                             >
                                 <img 
                                     className="w-5 h-5" 

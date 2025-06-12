@@ -13,7 +13,7 @@ export default function CoverAccessPage() {
     const [processingStep, setProcessingStep] = useState('checking');
 
     const steps = {
-        checking: { icon: '🔍', text: '캔버스 정보 확인 중...', color: 'text-blue-500' },
+        checking: { icon: '🔍', text: '캔버스 정보 확인 중...', color: 'text-red-500' },
         redirecting: { icon: '🚀', text: '페이지로 이동 중...', color: 'text-purple-500' },
         creating: { icon: '⚡', text: '새 편집 세션 생성 중...', color: 'text-green-500' },
         error: { icon: '⚠️', text: '오류 발생', color: 'text-red-500' }
@@ -139,7 +139,7 @@ export default function CoverAccessPage() {
     
     // UI 부분은 기존과 유사하게 유지됩니다 (로딩/에러 화면 표시)
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="min-h-screen flex items-center justify-center bg-black-100">
             {loading && <div>{steps[processingStep].icon} {steps[processingStep].text}</div>}
             {error && <div className="text-red-500">{steps.error.icon} {error}</div>}
         </div>

@@ -171,7 +171,7 @@ export default function LandingPage() {
                 description: '현재 작업 중인 캔버스들입니다. 클릭하여 내용을 확인하고 편집을 계속하세요.',
                 emptyIcon: '✏️',
                 emptyMessage: '작업 중인 캔버스가 없습니다.',
-                bgGradient: 'from-orange-400/20 via-red-400/20 to-pink-400/20',
+                bgGradient: 'from-red-400/20 via-red-400/20 to-white-400/20',
                 containerStyle: 'workspace'
             }
         }
@@ -180,7 +180,7 @@ export default function LandingPage() {
             description: '완성된 작품들을 감상해보세요.',
             emptyIcon: '🎨',
             emptyMessage: '완성된 작품이 없습니다.',
-            bgGradient: 'from-blue-400/20 via-purple-400/20 to-pink-400/20',
+            bgGradient: 'from-red-400/20 via-purple-400/20 to-white-400/20',
             containerStyle: 'gallery'
         }
     }
@@ -215,7 +215,7 @@ export default function LandingPage() {
                 <div className="container mx-auto px-8 py-8">
                     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
                         <div className="w-12 h-12 border-4 border-yellow-300/20 border-t-yellow-300/80 rounded-full animate-spin"></div>
-                        <div className="text-xl text-solarized-base00">
+                        <div className="text-xl text-white">
                             {isWorkspace ? '작업 중인 캔버스를 불러오는 중...' : '갤러리를 불러오는 중...'}
                         </div>
                     </div>
@@ -232,17 +232,17 @@ export default function LandingPage() {
                     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
                         <div className="text-6xl">❌</div>
                         <div className="text-xl text-red-600">데이터를 불러오는 중 오류가 발생했습니다</div>
-                        <div className="text-sm text-gray-600">{error}</div>
+                        <div className="text-sm text-white-600">{error}</div>
                         <button 
                             onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                         >
                             다시 시도
                         </button>
                         
                         {/* 디버깅 정보 (개발 환경에서만) */}
                         {process.env.NODE_ENV === 'development' && debugInfo && (
-                            <details className="mt-4 p-4 bg-gray-100 rounded-lg max-w-2xl">
+                            <details className="mt-4 p-4 bg-black-100 rounded-lg max-w-2xl">
                                 <summary className="cursor-pointer font-bold">디버깅 정보</summary>
                                 <pre className="mt-2 text-xs overflow-auto">
                                     {JSON.stringify(debugInfo, null, 2)}
@@ -292,14 +292,14 @@ export default function LandingPage() {
                                     transition-all duration-500
                                     ${isWorkspace 
                                         ? 'bg-orange-100 text-orange-600 rotate-12' 
-                                        : 'bg-blue-100 text-blue-600 rotate-0'
+                                        : 'bg-red-100 text-red-600 rotate-0'
                                     }
                                 `}>
                                     {isWorkspace ? '⚡' : '🎨'}
                                 </div>
                                 
                                 <div>
-                                    <h1 className="text-3xl font-bold text-solarized-base00 mb-2">
+                                    <h1 className="text-3xl font-bold text-white mb-2">
                                         {pageInfo.title}
                                     </h1>
                                     <p className="text-solarized-base01">
@@ -310,7 +310,7 @@ export default function LandingPage() {
                             
                             {/* 디버깅 정보 (개발 환경에서만) */}
                             {process.env.NODE_ENV === 'development' && debugInfo && (
-                                <details className="text-xs bg-gray-100 p-2 rounded">
+                                <details className="text-xs bg-black-100 p-2 rounded">
                                     <summary className="cursor-pointer">Debug ({covers.length})</summary>
                                     <pre className="mt-1 text-xs overflow-auto max-h-32">
                                         {JSON.stringify(debugInfo, null, 2)}
@@ -349,7 +349,7 @@ export default function LandingPage() {
                     {/* 빈 상태 */}
                     {covers.length === 0 && (
                         <div className={`
-                            flex flex-col items-center justify-center min-h-[40vh] text-solarized-base00
+                            flex flex-col items-center justify-center min-h-[40vh] text-white
                             transition-all duration-700 delay-300
                             ${isTransitioning ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}
                         `}>
@@ -363,7 +363,7 @@ export default function LandingPage() {
                             {isWorkspace && (
                                 <button
                                     onClick={() => navigate('/editor/new')}
-                                    className="px-8 py-4 bg-gradient-to-r from-orange-400 to-red-400 hover:from-orange-500 hover:to-red-500 text-white rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                                    className="px-8 py-4 bg-gradient-to-r from-red-400 to-white-400 hover:from-red-500 hover:to-red-500 text-white rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                                 >
                                     새 캔버스 만들기
                                 </button>
@@ -425,7 +425,7 @@ export default function LandingPage() {
                                 <div className="mt-8 text-center">
                                     <button
                                         onClick={() => navigate('/editor/new')}
-                                        className="px-8 py-4 bg-gradient-to-r from-orange-400 to-red-400 hover:from-orange-500 hover:to-red-500 text-white rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                                        className="px-8 py-4 bg-gradient-to-r from-red-400 to-white-400 hover:from-red-500 hover:to-red-500 text-white rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                                     >
                                         새 캔버스 추가하기
                                     </button>

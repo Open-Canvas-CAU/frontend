@@ -176,12 +176,12 @@ export default function LoginDebugPanel() {
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto">
-                <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+            <div className="bg-black rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+                <div className="p-6 border-b border-white-200 flex justify-between items-center">
                     <h2 className="text-xl font-bold">🔧 로그인 디버깅 패널</h2>
                     <button
                         onClick={() => setIsVisible(false)}
-                        className="text-gray-500 hover:text-gray-700 text-2xl"
+                        className="text-white-500 hover:text-white-700 text-2xl"
                     >
                         ✕
                     </button>
@@ -192,7 +192,7 @@ export default function LoginDebugPanel() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <button
                             onClick={forceLogin}
-                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
                         >
                             🔑 강제 로그인
                         </button>
@@ -218,14 +218,14 @@ export default function LoginDebugPanel() {
 
                     {/* 테스트 결과 */}
                     {Object.keys(testResults).length > 0 && (
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="bg-black-50 p-4 rounded-lg">
                             <h3 className="font-bold mb-3">📊 테스트 결과</h3>
                             <div className="space-y-2 text-sm">
                                 {Object.entries(testResults).map(([key, result]) => (
                                     <div key={key} className="flex items-center space-x-2">
                                         <span className="font-medium capitalize">{key}:</span>
                                         {result.testing ? (
-                                            <span className="text-blue-600">테스트 중...</span>
+                                            <span className="text-red-600">테스트 중...</span>
                                         ) : result.success ? (
                                             <span className="text-green-600">✅ 성공</span>
                                         ) : (
@@ -238,7 +238,7 @@ export default function LoginDebugPanel() {
                     )}
 
                     {/* 현재 상태 요약 */}
-                    <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="bg-red-50 p-4 rounded-lg">
                         <h3 className="font-bold mb-3">📋 현재 상태</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
@@ -263,19 +263,19 @@ export default function LoginDebugPanel() {
                         <div className="space-y-2 text-xs">
                             <div>
                                 <strong>로그인 URL:</strong>
-                                <div className="bg-white p-2 rounded border mt-1 break-all">
+                                <div className="bg-black p-2 rounded border mt-1 break-all">
                                     {debugInfo.urls?.loginUrl}
                                 </div>
                             </div>
                             <div>
                                 <strong>콜백 URL:</strong>
-                                <div className="bg-white p-2 rounded border mt-1 break-all">
+                                <div className="bg-black p-2 rounded border mt-1 break-all">
                                     {debugInfo.urls?.callbackUrl}
                                 </div>
                             </div>
                             <div>
                                 <strong>백엔드 서버:</strong>
-                                <div className="bg-white p-2 rounded border mt-1">
+                                <div className="bg-black p-2 rounded border mt-1">
                                     {debugInfo.urls?.backendBase}
                                 </div>
                             </div>
@@ -283,9 +283,9 @@ export default function LoginDebugPanel() {
                     </div>
 
                     {/* 상세 디버그 정보 */}
-                    <details className="bg-gray-50 p-4 rounded-lg">
+                    <details className="bg-black-50 p-4 rounded-lg">
                         <summary className="font-bold cursor-pointer">🔍 상세 디버그 정보</summary>
-                        <pre className="mt-3 text-xs overflow-auto bg-white p-3 rounded border">
+                        <pre className="mt-3 text-xs overflow-auto bg-black p-3 rounded border">
                             {JSON.stringify(debugInfo, null, 2)}
                         </pre>
                     </details>

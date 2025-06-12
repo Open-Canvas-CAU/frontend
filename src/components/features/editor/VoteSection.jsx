@@ -9,7 +9,7 @@ const VoteSection = ({
   isDeadlinePassed,
   winnerVersion,
 }) => (
-  <section className="mt-8 p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
+  <section className="mt-8 p-6 border border-white-200 rounded-lg bg-black shadow-sm">
     <h3 className="font-bold mb-3 text-lg">투표</h3>
     <div className="mb-2">
       {isDeadlinePassed
@@ -19,7 +19,7 @@ const VoteSection = ({
     </div>
     {!isDeadlinePassed && !hasVoted && (
       <div className="flex gap-4">
-        <VoteButton onClick={() => onVote('version1')} disabled={loading} color="blue">
+        <VoteButton onClick={() => onVote('version1')} disabled={loading} color="red">
           버전 1에 투표
         </VoteButton>
         <VoteButton onClick={() => onVote('version2')} disabled={loading} color="green">
@@ -32,7 +32,7 @@ const VoteSection = ({
     )}
     {isDeadlinePassed && (
       <div className="mt-2">
-        <VoteButton color="gray" disabled>
+        <VoteButton color="white" disabled>
           {winnerVersion ? `승리: ${winnerVersion === 'version1' ? '버전 1' : '버전 2'}` : '결과 집계 중'}
         </VoteButton>
       </div>

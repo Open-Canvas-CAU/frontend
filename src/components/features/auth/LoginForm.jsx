@@ -63,7 +63,7 @@ export default function LoginForm() {
                 <button
                     type="button"
                     onClick={() => navigate('/signup')}
-                    className="text-blue-800 font-semibold"
+                    className="text-red-800 font-semibold"
                 >
                     회원가입
                 </button>

@@ -20,7 +20,7 @@ export default function ImageTextSection({
                 <div className="flex gap-8">
                     <button
                         onClick={onEdit}
-                        className="w-52 h-14 p-3 bg-solarized-blue/70 rounded-full flex items-center gap-2"
+                        className="w-52 h-14 p-3 bg-solarized-red/70 rounded-full flex items-center gap-2"
                     >
                         {/* 여기에 아이콘 img 태그 삽입 가능 */}
                         <span className="text-solarized-base03 text-xl font-semibold">

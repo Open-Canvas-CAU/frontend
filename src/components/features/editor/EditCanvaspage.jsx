@@ -26,7 +26,7 @@
 //
 //     return (
 //         <div className="min-h-screen py-3">
-//             <div className="container mx-auto bg-white rounded-tl-3xl shadow overflow-hidden">
+//             <div className="container mx-auto bg-black rounded-tl-3xl shadow overflow-hidden">
 //                 {/* 헤더: 뒤로가기 + 제목 자리(없으면 공간 유지) + 수정 시간 */}
 //                 <div className="flex items-center justify-between px-6 py-4 border-b">
 //                     <button
@@ -54,14 +54,14 @@
 //                         content={body}
 //                         onChange={setBody}
 //                         readOnly={!isEditing}
-//                         className="min-h-[300px] border border-gray-200 rounded-lg p-4"
+//                         className="min-h-[300px] border border-white-200 rounded-lg p-4"
 //                     />
 //
 //                     {/* 3) 저장 버튼 */}
 //                     <div className="flex justify-end">
 //                         <button
 //                             onClick={handleSave}
-//                             className="px-6 py-3 bg-blue-500 hover:bg-blue-600 transition rounded-full text-white font-semibold"
+//                             className="px-6 py-3 bg-red-500 hover:bg-red-600 transition rounded-full text-white font-semibold"
 //                         >
 //                             저장하기
 //                         </button>

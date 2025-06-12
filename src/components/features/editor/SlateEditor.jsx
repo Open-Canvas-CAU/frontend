@@ -90,7 +90,7 @@ const ToolbarButton = ({ format, icon, type = 'mark' }) => {
   return (
     <button
       className={`px-3 py-1 rounded ${
-        isActive ? 'bg-gray-300' : 'hover:bg-gray-100'
+        isActive ? 'bg-black-300' : 'hover:bg-black-100'
       }`}
       onMouseDown={handleClick}
     >
@@ -102,11 +102,11 @@ const ToolbarButton = ({ format, icon, type = 'mark' }) => {
 // 툴바 컴포넌트
 const Toolbar = () => {
   return (
-    <div className="flex gap-1 p-2 border-b border-gray-300 bg-gray-50">
+    <div className="flex gap-1 p-2 border-b border-white-300 bg-black-50">
       <ToolbarButton format="bold" icon="B" />
       <ToolbarButton format="italic" icon="I" />
       <ToolbarButton format="underline" icon="U" />
-      <div className="w-px bg-gray-300 mx-1" />
+      <div className="w-px bg-black-300 mx-1" />
       <ToolbarButton format="heading-one" icon="H1" type="block" />
       <ToolbarButton format="heading-two" icon="H2" type="block" />
       <ToolbarButton format="block-quote" icon="❝" type="block" />
@@ -120,7 +120,7 @@ const Toolbar = () => {
 const Element = ({ attributes, children, element }) => {
   switch (element.type) {
     case 'block-quote':
-      return <blockquote className="border-l-4 border-gray-300 pl-4 italic" {...attributes}>{children}</blockquote>
+      return <blockquote className="border-l-4 border-white-300 pl-4 italic" {...attributes}>{children}</blockquote>
     case 'bulleted-list':
       return <ul className="list-disc list-inside" {...attributes}>{children}</ul>
     case 'heading-one':
@@ -250,7 +250,7 @@ const SlateEditor = ({
   }
 
   return (
-    <div className={`flex flex-col border border-gray-300 rounded-lg overflow-hidden ${className}`}>
+    <div className={`flex flex-col border border-white-300 rounded-lg overflow-hidden ${className}`}>
       <Slate editor={editor} initialValue={value} onChange={handleChange}>
         {!readOnly && <Toolbar />}
         <div className="p-4 min-h-[300px]">

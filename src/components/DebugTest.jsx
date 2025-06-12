@@ -175,16 +175,16 @@ export default function DebugTest() {
 
     return (
         <div className="max-w-4xl mx-auto p-8">
-            <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="bg-black rounded-xl shadow-lg p-8">
                 <h1 className="text-2xl font-bold mb-6 text-center">
                     🔧 편집방 & 실시간 동기화 테스트
                 </h1>
 
                 {/* 현재 진행 상황 */}
                 {isRunning && (
-                    <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                    <div className="mb-6 p-4 bg-red-50 rounded-lg">
                         <div className="flex items-center space-x-2">
-                            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
                             <span className="font-medium">진행 중: {currentStep}</span>
                         </div>
                     </div>
@@ -203,7 +203,7 @@ export default function DebugTest() {
                     <button
                         onClick={testExistingCanvases}
                         disabled={isRunning}
-                        className="px-6 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold disabled:opacity-50"
+                        className="px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold disabled:opacity-50"
                     >
                         📋 기존 캔버스 조회
                     </button>
@@ -229,7 +229,7 @@ export default function DebugTest() {
                                     {result.success ? '✅ 성공' : '❌ 실패'}
                                 </span>
                             </h3>
-                            <div className="bg-gray-50 p-3 rounded text-xs">
+                            <div className="bg-black-50 p-3 rounded text-xs">
                                 <pre className="whitespace-pre-wrap overflow-auto max-h-32">
                                     {JSON.stringify(result, null, 2)}
                                 </pre>

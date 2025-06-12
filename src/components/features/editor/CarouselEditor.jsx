@@ -26,7 +26,7 @@ export default function CarouselEditor({
     return (
         <div className="relative w-full">
             {/* Slide container */}
-            <div className="overflow-hidden rounded-lg border border-gray-200">
+            <div className="overflow-hidden rounded-lg border border-white-200">
                 <EditorSection
                     content={slides[current]}
                     onChange={(html) => onChange(current, html)}
@@ -38,7 +38,7 @@ export default function CarouselEditor({
             {/* Prev button */}
             <button
                 onClick={prev}
-                className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-gray-100"
+                className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black p-2 rounded-full shadow hover:bg-black-100"
                 aria-label="Previous slide"
             >
                 ‹
@@ -47,7 +47,7 @@ export default function CarouselEditor({
             {/* Next button */}
             <button
                 onClick={next}
-                className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow hover:bg-gray-100"
+                className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black p-2 rounded-full shadow hover:bg-black-100"
                 aria-label="Next slide"
             >
                 ›

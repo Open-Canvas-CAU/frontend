@@ -15,7 +15,7 @@ export default {
         // 텍스트 색상
         'text-solarized-base0',
         'text-solarized-base1',
-        'text-solarized-base3',
+        'text-red',
         'text-solarized-cyan',
         // 호버 상태
         'hover:bg-solarized-base01',

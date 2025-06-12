@@ -189,10 +189,10 @@ export default function DBDataViewer() {
     };
 
     const renderResults = (key, data) => {
-        if (!data) return <div className="text-gray-500">테스트하지 않음</div>;
+        if (!data) return <div className="text-white-500">테스트하지 않음</div>;
         
         return (
-            <div className="bg-gray-50 p-3 rounded text-xs">
+            <div className="bg-black-50 p-3 rounded text-xs">
                 <pre className="whitespace-pre-wrap overflow-auto max-h-48">
                     {JSON.stringify(data, null, 2)}
                 </pre>
@@ -236,7 +236,7 @@ export default function DBDataViewer() {
                     <button 
                         onClick={fetchAllData}
                         disabled={loading || seedingStatus === 'seeding'}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
                     >
                         {loading ? '로딩 중...' : '데이터 다시 로드'}
                     </button>
@@ -265,7 +265,7 @@ export default function DBDataViewer() {
                         <button 
                             onClick={() => createCompletedWorks(3)}
                             disabled={seedingStatus === 'seeding'}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
                         >
                             🎨 완성작 3개 생성
                         </button>
@@ -287,7 +287,7 @@ export default function DBDataViewer() {
                         </button>
                     </div>
 
-                    <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded mb-4">
+                    <div className="text-sm text-white-600 bg-red-50 p-3 rounded mb-4">
                         <p><strong>✨ 완성작 생성 내용:</strong></p>
                         <ul className="list-disc list-inside mt-1 space-y-1">
                             <li>드래곤 헌터, 사이버 탐정, 마법 아카데미 등 다양한 장르</li>
@@ -319,7 +319,7 @@ export default function DBDataViewer() {
                         </button>
                     </div>
 
-                    <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                    <div className="text-sm text-white-600 bg-black-50 p-3 rounded">
                         <p><strong>💡 전체 Mock 데이터 삽입 내용:</strong></p>
                         <ul className="list-disc list-inside mt-1 space-y-1">
                             <li>완성된 작품 5개 (판타지, SF, 마법학교 등)</li>
@@ -356,7 +356,7 @@ export default function DBDataViewer() {
                         {seedResult && (
                             <details className="mt-2">
                                 <summary className="cursor-pointer text-sm">결과 상세 보기</summary>
-                                <pre className="mt-2 p-2 bg-white rounded text-xs overflow-auto max-h-48">
+                                <pre className="mt-2 p-2 bg-black rounded text-xs overflow-auto max-h-48">
                                     {JSON.stringify(seedResult, null, 2)}
                                 </pre>
                             </details>
@@ -390,7 +390,7 @@ export default function DBDataViewer() {
                                 <div className="mt-2">
                                     <a 
                                         href={`/completed/${cover.id}`}
-                                        className="text-blue-500 hover:underline text-sm"
+                                        className="text-red-500 hover:underline text-sm"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
@@ -427,8 +427,8 @@ export default function DBDataViewer() {
                             )}
                             {item.content && (
                                 <details className="mt-2">
-                                    <summary className="cursor-pointer text-blue-600 text-sm">컨텐츠 상세 정보</summary>
-                                    <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                                    <summary className="cursor-pointer text-red-600 text-sm">컨텐츠 상세 정보</summary>
+                                    <pre className="mt-2 p-2 bg-black-100 rounded text-xs overflow-auto">
                                         {JSON.stringify(item.content, null, 2)}
                                     </pre>
                                 </details>

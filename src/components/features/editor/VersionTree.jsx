@@ -113,7 +113,7 @@ const VersionTree = ({ writings = [], onNodeClick, currentVersion = null }) => {
     );
 
     if (!treeData) {
-        return <div className="text-center text-gray-500">버전 내역이 없습니다.</div>;
+        return <div className="text-center text-white-500">버전 내역이 없습니다.</div>;
     }
 
     return (

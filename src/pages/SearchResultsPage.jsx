@@ -95,19 +95,19 @@ export default function SearchResultsPage() {
     const getStatusInfo = (cover) => {
         switch (cover.roomType) {
             case 'EDITING':
-                return { icon: '⚡', text: '편집 중', color: 'text-blue-500', bgColor: 'bg-blue-50' }
+                return { icon: '⚡', text: '편집 중', color: 'text-red-500', bgColor: 'bg-red-50' }
             case 'AVAILABLE':
                 return { icon: '🎨', text: '편집 가능', color: 'text-green-500', bgColor: 'bg-green-50' }
             case 'COMPLETE':
                 return { icon: '✨', text: '완성', color: 'text-purple-500', bgColor: 'bg-purple-50' }
             default:
-                return { icon: '❓', text: '알 수 없음', color: 'text-gray-500', bgColor: 'bg-gray-50' }
+                return { icon: '❓', text: '알 수 없음', color: 'text-white-500', bgColor: 'bg-black-50' }
         }
     }
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+            <div className="min-h-screen bg-gradient-to-br from-red-50 to-white-50">
                 <div className="container mx-auto px-8 py-8">
                     {/* 검색바 */}
                     <div className="mb-8">
@@ -123,12 +123,12 @@ export default function SearchResultsPage() {
                     {/* 로딩 상태 */}
                     <div className="flex flex-col items-center justify-center h-64 space-y-6">
                         <div className="relative">
-                            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+                            <div className="w-16 h-16 border-4 border-red-200 border-t-red-500 rounded-full animate-spin"></div>
                             <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-400 rounded-full animate-spin animation-delay-150"></div>
                         </div>
                         <div className="text-center space-y-2">
-                            <div className="text-xl text-gray-700 font-medium">"{query}" 검색 중...</div>
-                            <div className="text-sm text-gray-500">최고의 결과를 찾고 있습니다</div>
+                            <div className="text-xl text-white-700 font-medium">"{query}" 검색 중...</div>
+                            <div className="text-sm text-white-500">최고의 결과를 찾고 있습니다</div>
                         </div>
                     </div>
                 </div>
@@ -138,7 +138,7 @@ export default function SearchResultsPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50">
+            <div className="min-h-screen bg-gradient-to-br from-red-50 to-white-50">
                 <div className="container mx-auto px-8 py-8">
                     <SearchBar
                         value={searchInput}
@@ -151,7 +151,7 @@ export default function SearchResultsPage() {
                         <div className="text-center space-y-4">
                             <div className="text-6xl">⚠️</div>
                             <div className="text-xl text-red-600">검색 중 오류가 발생했습니다</div>
-                            <div className="text-gray-600">{error}</div>
+                            <div className="text-white-600">{error}</div>
                             <button
                                 onClick={() => fetchSearchResults(query)}
                                 className="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
@@ -166,10 +166,10 @@ export default function SearchResultsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+        <div className="min-h-screen bg-gradient-to-br from-red-50 via-red-50 to-white-50">
             {/* 배경 장식 */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-20 left-10 w-64 h-64 bg-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute top-20 left-10 w-64 h-64 bg-red-200/20 rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute bottom-20 right-10 w-80 h-80 bg-purple-200/20 rounded-full blur-3xl animate-pulse animation-delay-700"></div>
             </div>
 
@@ -188,21 +188,21 @@ export default function SearchResultsPage() {
                 {!hasSearched ? (
                     <div className="text-center py-20">
                         <div className="text-8xl mb-8 opacity-60">🔍</div>
-                        <h2 className="text-3xl font-bold text-gray-800 mb-4">무엇을 찾고 계신가요?</h2>
-                        <p className="text-gray-600 text-lg max-w-md mx-auto">
+                        <h2 className="text-3xl font-bold text-white-800 mb-4">무엇을 찾고 계신가요?</h2>
+                        <p className="text-white-600 text-lg max-w-md mx-auto">
                             검색어를 입력하고 엔터키를 누르거나 검색 버튼을 클릭하세요.
                         </p>
                     </div>
                 ) : covers.length === 0 ? (
                     <div className="text-center py-20">
                         <div className="text-8xl mb-8 opacity-60">📭</div>
-                        <h2 className="text-3xl font-bold text-gray-800 mb-4">검색 결과가 없습니다</h2>
-                        <p className="text-gray-600 text-lg mb-8">
+                        <h2 className="text-3xl font-bold text-white-800 mb-4">검색 결과가 없습니다</h2>
+                        <p className="text-white-600 text-lg mb-8">
                             "{query}"에 대한 검색 결과를 찾을 수 없습니다.
                         </p>
                         <div className="space-y-4 max-w-md mx-auto">
-                            <p className="text-sm text-gray-500">검색 팁:</p>
-                            <ul className="text-sm text-gray-600 space-y-1">
+                            <p className="text-sm text-white-500">검색 팁:</p>
+                            <ul className="text-sm text-white-600 space-y-1">
                                 <li>• 다른 키워드로 시도해보세요</li>
                                 <li>• 좀 더 일반적인 용어를 사용해보세요</li>
                                 <li>• 맞춤법을 확인해보세요</li>
@@ -213,14 +213,14 @@ export default function SearchResultsPage() {
                     <>
                         {/* 검색 결과 헤더 */}
                         <div className="mb-8">
-                            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 p-6">
+                            <div className="bg-black/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 p-6">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
                                     <div>
-                                        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                                        <h1 className="text-2xl font-bold text-white-800 mb-2">
                                             "{query}" 검색 결과
                                         </h1>
-                                        <p className="text-gray-600">
-                                            총 <span className="font-semibold text-blue-600">{searchStats.total}</span>개 결과 
+                                        <p className="text-white-600">
+                                            총 <span className="font-semibold text-red-600">{searchStats.total}</span>개 결과 
                                             ({searchStats.time.toFixed(2)}초)
                                         </p>
                                     </div>
@@ -228,11 +228,11 @@ export default function SearchResultsPage() {
                                     {/* 필터 및 정렬 */}
                                     <div className="flex items-center space-x-4">
                                         <div className="flex items-center space-x-2">
-                                            <label className="text-sm font-medium text-gray-600">유형:</label>
+                                            <label className="text-sm font-medium text-white-600">유형:</label>
                                             <select
                                                 value={filters.type}
                                                 onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
-                                                className="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                className="px-3 py-1 bg-black border border-white-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                             >
                                                 <option value="all">전체</option>
                                                 <option value="completed">완성작</option>
@@ -241,11 +241,11 @@ export default function SearchResultsPage() {
                                         </div>
                                         
                                         <div className="flex items-center space-x-2">
-                                            <label className="text-sm font-medium text-gray-600">정렬:</label>
+                                            <label className="text-sm font-medium text-white-600">정렬:</label>
                                             <select
                                                 value={filters.sortBy}
                                                 onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
-                                                className="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                className="px-3 py-1 bg-black border border-white-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
                                             >
                                                 <option value="relevance">관련도순</option>
                                                 <option value="latest">최신순</option>
@@ -282,7 +282,7 @@ export default function SearchResultsPage() {
                                                             {statusInfo.text}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                                    <div className="flex items-center space-x-4 text-xs text-white-500">
                                                         <span className="flex items-center space-x-1">
                                                             <span>👁️</span>
                                                             <span>{cover.view || 0}</span>
@@ -292,7 +292,7 @@ export default function SearchResultsPage() {
                                                             <span>{cover.likeNum || 0}</span>
                                                         </span>
                                                         {cover.limit && (
-                                                            <span className="text-xs text-gray-400">
+                                                            <span className="text-xs text-white-400">
                                                                 최대 {cover.limit}명
                                                             </span>
                                                         )}
@@ -316,14 +316,14 @@ export default function SearchResultsPage() {
 
                         {/* 추가 액션 */}
                         <div className="mt-16 text-center">
-                            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 p-8 max-w-2xl mx-auto">
-                                <h3 className="text-xl font-bold text-gray-800 mb-4">원하는 결과를 찾지 못하셨나요?</h3>
-                                <p className="text-gray-600 mb-6">
+                            <div className="bg-black/80 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 p-8 max-w-2xl mx-auto">
+                                <h3 className="text-xl font-bold text-white-800 mb-4">원하는 결과를 찾지 못하셨나요?</h3>
+                                <p className="text-white-600 mb-6">
                                     직접 새로운 캔버스를 만들어 여러분만의 이야기를 시작해보세요!
                                 </p>
                                 <button
                                     onClick={() => navigate('/editor/new')}
-                                    className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                                    className="px-8 py-4 bg-gradient-to-r from-red-500 to-white-500 hover:from-red-600 hover:to-purple-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                                 >
                                     ✨ 새 캔버스 만들기
                                 </button>

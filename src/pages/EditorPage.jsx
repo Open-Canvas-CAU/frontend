@@ -24,7 +24,7 @@ export default function EditorPage({ isEditing = false }) {
                 <div className="text-center space-y-4 max-w-md">
                     <div className="text-6xl">⚠️</div>
                     <h2 className="text-xl font-semibold text-red-600">잘못된 접근입니다</h2>
-                    <p className="text-gray-600">Room ID가 제공되지 않았습니다.</p>
+                    <p className="text-white-600">Room ID가 제공되지 않았습니다.</p>
                 </div>
             </div>
         )
@@ -32,12 +32,12 @@ export default function EditorPage({ isEditing = false }) {
 
     if (!isEditing) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-blue-50">
+            <div className="min-h-screen flex items-center justify-center bg-red-50">
                 <div className="text-center space-y-4 max-w-md">
                     <div className="text-6xl">📖</div>
-                    <h2 className="text-xl font-semibold text-blue-600">문서방 보기 모드</h2>
-                    <p className="text-gray-600">Room ID: {roomId}</p>
-                    <button onClick={handleEdit} className="px-4 py-2 bg-blue-500 text-white rounded">
+                    <h2 className="text-xl font-semibold text-red-600">문서방 보기 모드</h2>
+                    <p className="text-white-600">Room ID: {roomId}</p>
+                    <button onClick={handleEdit} className="px-4 py-2 bg-red-500 text-white rounded">
                         편집하기
                     </button>
                 </div>

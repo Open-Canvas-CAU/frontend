@@ -111,34 +111,34 @@ export default function NewCanvasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 p-8">
-      <div className="container mx-auto max-w-4xl bg-white rounded-xl shadow-lg p-8 space-y-6">
-        <h1 className="text-2xl font-bold text-gray-800">새 캔버스 만들기</h1>
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white-100 p-8">
+      <div className="container mx-auto max-w-4xl bg-black rounded-xl shadow-lg p-8 space-y-6">
+        <h1 className="text-2xl font-bold text-white-800">새 캔버스 만들기</h1>
         {/* 1. 제목 */}
         <div>
-          <label className="block text-gray-700">제목<span className="text-red-500">*</span></label>
+          <label className="block text-white-700">제목<span className="text-red-500">*</span></label>
           <ThemeInput value={title} onChange={setTitle} placeholder="캔버스 제목" />
         </div>
         {/* 2. 제한 */}
         <div>
-          <label className="block text-gray-700">최대 작가 수</label>
+          <label className="block text-white-700">최대 작가 수</label>
           <input type="number" min={1} max={10} value={limit} onChange={e => setLimit(Number(e.target.value))} className="border rounded p-2 w-20" />
         </div>
         {/* 3. 장르 */}
         <div>
-          <label className="block text-gray-700">장르 (쉼표 구분)</label>
+          <label className="block text-white-700">장르 (쉼표 구분)</label>
           <ThemeInput value={genres} onChange={setGenres} placeholder="예: 판타지, SF" />
         </div>
         {/* 4. 초기 본문 */}
         <div>
-          <label className="block text-gray-700">시작 이야기 (선택)</label>
+          <label className="block text-white-700">시작 이야기 (선택)</label>
           <EditorSection content={body} onChange={setBody} readOnly={false} className="border rounded p-2 min-h-[150px]" />
         </div>
         {/* 버튼 */}
         <div className="flex justify-end space-x-4">
           <button onClick={() => navigate(-1)} className="px-6 py-2 border rounded">취소</button>
           <button onClick={handleCreateAsCompleted} disabled={isLoading || !title.trim()} className="px-6 py-2 bg-green-500 text-white rounded disabled:opacity-50">완성작으로 생성</button>
-          <button onClick={handleCreate} disabled={isLoading || !title.trim()} className="px-6 py-2 bg-blue-500 text-white rounded disabled:opacity-50">작업용 캔버스 생성</button>
+          <button onClick={handleCreate} disabled={isLoading || !title.trim()} className="px-6 py-2 bg-red-500 text-white rounded disabled:opacity-50">작업용 캔버스 생성</button>
         </div>
       </div>
     </div>

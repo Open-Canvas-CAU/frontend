@@ -131,7 +131,7 @@ export default function CanvasPage() {
       오류: {error}<br/>
       <button
         onClick={() => navigate(-1)}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+        className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
       >
         뒤로
       </button>
@@ -139,7 +139,7 @@ export default function CanvasPage() {
   )
 
   return (
-    <div className="min-h-screen bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div className="min-h-screen bg-black rounded-2xl shadow-lg overflow-hidden">
       <div className="flex items-center justify-between px-6 py-4 border-b">
         <button
           onClick={() => navigate(-1)}
@@ -149,7 +149,7 @@ export default function CanvasPage() {
         </button>
         <div className="text-center">
           <div className="text-xl font-semibold">{roomData.title}</div>
-          <div className="text-sm text-gray-500">Room: {roomId}</div>
+          <div className="text-sm text-white-500">Room: {roomId}</div>
         </div>
         <div className="text-sm">
           {wsConnected
@@ -168,7 +168,7 @@ export default function CanvasPage() {
         <div className="flex justify-end">
           <button
             onClick={handleSave}
-            className="px-6 py-3 bg-gray-500 text-white rounded-full"
+            className="px-6 py-3 bg-black-500 text-white rounded-full"
           >
             임시저장
           </button>

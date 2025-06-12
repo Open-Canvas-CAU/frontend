@@ -152,10 +152,10 @@ export default function DebugPage() {
     }, [])
 
     const renderResults = (key, data) => {
-        if (!data) return <div className="text-gray-500">테스트하지 않음</div>
+        if (!data) return <div className="text-white-500">테스트하지 않음</div>
         
         return (
-            <div className="bg-gray-50 p-3 rounded text-xs">
+            <div className="bg-black-50 p-3 rounded text-xs">
                 <pre className="whitespace-pre-wrap overflow-auto max-h-48">
                     {JSON.stringify(data, null, 2)}
                 </pre>
@@ -179,14 +179,14 @@ export default function DebugPage() {
                     <button
                         onClick={runAllTests}
                         disabled={loading}
-                        className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold disabled:opacity-50"
+                        className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold disabled:opacity-50"
                     >
                         {loading ? '테스트 중...' : '전체 테스트 실행'}
                     </button>
                     
                     <button
                         onClick={() => setResults({})}
-                        className="px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+                        className="px-4 py-3 bg-black-500 hover:bg-black-600 text-white rounded-lg"
                     >
                         결과 초기화
                     </button>
@@ -223,7 +223,7 @@ export default function DebugPage() {
                                 </span>
                                 <button
                                     onClick={testAPI}
-                                    className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm"
+                                    className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm"
                                 >
                                     테스트
                                 </button>
@@ -241,7 +241,7 @@ export default function DebugPage() {
                                     websocketStatus === 'connected' ? 'text-green-600' :
                                     websocketStatus === 'error' ? 'text-red-600' :
                                     websocketStatus === 'connecting' ? 'text-yellow-600' :
-                                    'text-gray-600'
+                                    'text-white-600'
                                 }`}>
                                     {websocketStatus === 'connected' && '✅ 연결됨'}
                                     {websocketStatus === 'connecting' && '🔄 연결 중'}
@@ -263,7 +263,7 @@ export default function DebugPage() {
                     {/* 환경 정보 */}
                     <div className="border rounded-lg p-6">
                         <h2 className="text-xl font-semibold mb-4">환경 정보</h2>
-                        <div className="bg-gray-50 p-3 rounded text-xs">
+                        <div className="bg-black-50 p-3 rounded text-xs">
                             <pre>
 {`현재 URL: ${window.location.href}
 Node ENV: ${process.env.NODE_ENV}

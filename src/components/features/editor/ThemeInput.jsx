@@ -21,7 +21,7 @@ export default function ThemeInput({ value, onChange }) {
       className={
         `w-full min-w-0 resize-none overflow-hidden
          p-2 text-3xl font-semibold text-black
-         border-b border-gray-300 focus:outline-none
+         border-b border-white-300 focus:outline-none
          whitespace-pre-wrap break-words`
       }
     />

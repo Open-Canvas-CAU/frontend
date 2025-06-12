@@ -123,11 +123,11 @@ class CompletedDataSeeder {
         await this.delay(500)
       }
       
-      console.log(`✅ 완성된 작품 생성 완료: ${this.createdWorks.length}개`)
+      console.log(`완성된 작품 생성 완료: ${this.createdWorks.length}개`)
       return this.createdWorks
       
     } catch (error) {
-      console.error('❌ 완성된 작품 생성 실패:', error)
+      console.error(' 완성된 작품 생성 실패:', error)
       throw error
     }
   }

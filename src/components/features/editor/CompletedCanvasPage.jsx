@@ -201,7 +201,7 @@ export default function CompletedCanvasPage() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-red-50 to-white-100 flex items-center justify-center">
                 <div className="text-center space-y-4 max-w-md">
-                    <div className="text-6xl">⚠️</div>
+                    <div className="text-6xl"></div>
                     <div className="text-xl text-red-600">{error}</div>
                     <div className="text-sm text-white-600">Cover ID: {coverId}</div>
                     <button
@@ -241,7 +241,7 @@ export default function CompletedCanvasPage() {
                     style={{ top: `${reportPopover.y}px`, left: `${reportPopover.x}px` }}
                     className="fixed z-50 bg-red-500 text-white px-3 py-1 rounded-lg shadow-lg text-sm flex items-center gap-1 hover:bg-red-600 transition-colors"
                 >
-                    <span>⚠️</span>
+                    <span></span>
                     <span>신고하기</span>
                 </button>
             )}
@@ -252,7 +252,7 @@ export default function CompletedCanvasPage() {
                     <div className="bg-black rounded-3xl p-8 w-full max-w-md mx-4">
                         <form onSubmit={handleReportSubmit} className="space-y-6">
                             <div className="text-center">
-                                <div className="text-4xl mb-4">⚠️</div>
+                                <div className="text-4xl mb-4"></div>
                                 <h3 className="text-xl font-bold text-white-800">내용 신고</h3>
                             </div>
                             <div>

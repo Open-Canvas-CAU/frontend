@@ -88,7 +88,7 @@ class MockDataSeeder {
       // 3. 작업 중인 캔버스용 룸 생성
       await this.createWorkingRooms();
       
-      console.log('✅ Mock 데이터 삽입 완료!');
+      console.log(' Mock 데이터 삽입 완료!');
       console.log(`📊 생성된 데이터:`);
       console.log(`   - 커버: ${this.createdCovers.length}개`);
       console.log(`   - 완성작: ${this.createdContents.length}개`);
@@ -99,13 +99,13 @@ class MockDataSeeder {
       };
       
     } catch (error) {
-      console.error('❌ Mock 데이터 삽입 실패:', error);
+      console.error(' Mock 데이터 삽입 실패:', error);
       throw error;
     }
   }
 
   async createCovers() {
-    console.log('📝 커버 생성 중...');
+    console.log(' 커버 생성 중...');
     
     for (let i = 0; i < mockCovers.length; i++) {
       const coverData = mockCovers[i];
@@ -127,7 +127,7 @@ class MockDataSeeder {
       }
     }
     
-    console.log(`✅ 커버 생성 완료: ${this.createdCovers.length}개`);
+    console.log(`커버 생성 완료: ${this.createdCovers.length}개`);
   }
 
   async createCompletedContents() {
@@ -169,11 +169,11 @@ class MockDataSeeder {
       }
     }
     
-    console.log(`✅ 완성작 생성 완료: ${this.createdContents.length}개`);
+    console.log(`완성작 생성 완료: ${this.createdContents.length}개`);
   }
 
   async createWorkingRooms() {
-    console.log('⚡ 작업 중인 룸 생성 중...');
+    console.log(' 작업 중인 룸 생성 중...');
     
     const workingCovers = this.createdCovers.filter(cover => !cover.isCompleted);
     
@@ -201,7 +201,7 @@ class MockDataSeeder {
       }
     }
     
-    console.log(`✅ 작업 중인 룸 생성 완료`);
+    console.log(`작업 중인 룸 생성 완료`);
   }
 
   async clearTestData() {
@@ -231,10 +231,10 @@ class MockDataSeeder {
         }
       }
       
-      console.log('✅ 테스트 데이터 정리 완료');
+      console.log('테스트 데이터 정리 완료');
       
     } catch (error) {
-      console.error('❌ 테스트 데이터 정리 실패:', error);
+      console.error(' 테스트 데이터 정리 실패:', error);
     }
   }
 

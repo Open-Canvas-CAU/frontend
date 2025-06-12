@@ -207,10 +207,10 @@ export default function DBDataViewer() {
         try {
             // DELETE 메서드로 /api/writings/delete/root 호출
             await api.delete('/api/writings/delete/root');
-            alert('✅ 모든 글을 성공적으로 삭제했습니다.');
+            alert(' 모든 글을 성공적으로 삭제했습니다.');
             await fetchAllData();
         } catch (err) {
-            console.error('❌ 전체 글 삭제 실패:', err);
+            console.error(' 전체 글 삭제 실패:', err);
             setError(err.message);
             alert(`삭제 실패: ${err.message}`);
         } finally {
@@ -259,7 +259,7 @@ export default function DBDataViewer() {
                             disabled={seedingStatus === 'seeding'}
                             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
                         >
-                            ⚡ 빠른 완성작 1개 생성
+                             빠른 완성작 1개 생성
                         </button>
                         
                         <button 
@@ -275,7 +275,7 @@ export default function DBDataViewer() {
                             disabled={seedingStatus === 'seeding'}
                             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
                         >
-                            🚀 완성작 5개 생성
+                             완성작 5개 생성
                         </button>
                         
                         <button 
@@ -307,7 +307,7 @@ export default function DBDataViewer() {
                             disabled={seedingStatus === 'seeding'}
                             className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-semibold"
                         >
-                            {seedingStatus === 'seeding' ? '🌱 전체 데이터 삽입 중...' : '🚀 전체 Mock 데이터 삽입'}
+                            {seedingStatus === 'seeding' ? '🌱 전체 데이터 삽입 중...' : ' 전체 Mock 데이터 삽입'}
                         </button>
                         
                         <button 
@@ -339,8 +339,8 @@ export default function DBDataViewer() {
                     }`}>
                         <div className="flex items-center space-x-2">
                             {seedingStatus === 'seeding' && <div className="animate-spin text-red-600">🌀</div>}
-                            {seedingStatus === 'success' && <div className="text-red-600">✅</div>}
-                            {seedingStatus === 'error' && <div className="text-red-600">❌</div>}
+                            {seedingStatus === 'success' && <div className="text-red-600"></div>}
+                            {seedingStatus === 'error' && <div className="text-red-600"></div>}
                             
                             <span className={`font-medium ${
                                 seedingStatus === 'seeding' ? 'text-red-800' :

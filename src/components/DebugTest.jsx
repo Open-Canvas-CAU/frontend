@@ -93,7 +93,7 @@ export default function DebugTest() {
             }))
 
         } catch (error) {
-            console.error('❌ Test failed at step:', currentStep, error)
+            console.error(' Test failed at step:', currentStep, error)
             setTestResults(prev => ({ 
                 ...prev, 
                 error: { 
@@ -177,7 +177,7 @@ export default function DebugTest() {
         <div className="max-w-4xl mx-auto p-8">
             <div className="bg-black rounded-xl shadow-lg p-8">
                 <h1 className="text-2xl font-bold mb-6 text-center">
-                    🔧 편집방 & 실시간 동기화 테스트
+                     편집방 & 실시간 동기화 테스트
                 </h1>
 
                 {/* 현재 진행 상황 */}
@@ -197,7 +197,7 @@ export default function DebugTest() {
                         disabled={isRunning}
                         className="px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold disabled:opacity-50"
                     >
-                        🚀 전체 플로우 테스트
+                         전체 플로우 테스트
                     </button>
                     
                     <button
@@ -205,7 +205,7 @@ export default function DebugTest() {
                         disabled={isRunning}
                         className="px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold disabled:opacity-50"
                     >
-                        📋 기존 캔버스 조회
+                         기존 캔버스 조회
                     </button>
                     
                     {testResults.overall?.success && (
@@ -213,7 +213,7 @@ export default function DebugTest() {
                             onClick={goToEditor}
                             className="px-6 py-4 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold"
                         >
-                            ✏️ 생성된 에디터로 이동
+                             생성된 에디터로 이동
                         </button>
                     )}
                 </div>
@@ -226,7 +226,7 @@ export default function DebugTest() {
                                 <span>{getStepIcon(key, result)}</span>
                                 <span>{getStepTitle(key)}</span>
                                 <span className={`text-sm ${result.success ? 'text-red-600' : 'text-red-600'}`}>
-                                    {result.success ? '✅ 성공' : '❌ 실패'}
+                                    {result.success ? ' 성공' : ' 실패'}
                                 </span>
                             </h3>
                             <div className="bg-black-50 p-3 rounded text-xs">
@@ -256,15 +256,15 @@ export default function DebugTest() {
 // 헬퍼 함수들
 const getStepIcon = (key, result) => {
     const icons = {
-        auth: '🔐',
-        coverCreation: '📝',
-        roomCreation: '🏠',
-        websocket: '⚡',
-        existingCanvases: '📋',
-        overall: '🎉',
-        error: '❌'
+        auth: '',
+        coverCreation: '',
+        roomCreation: '',
+        websocket: '',
+        existingCanvases: '',
+        overall: '',
+        error: ''
     }
-    return icons[key] || '🔧'
+    return icons[key] || ''
 }
 
 const getStepTitle = (key) => {

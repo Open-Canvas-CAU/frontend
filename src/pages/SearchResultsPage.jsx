@@ -95,7 +95,7 @@ export default function SearchResultsPage() {
     const getStatusInfo = (cover) => {
         switch (cover.roomType) {
             case 'EDITING':
-                return { icon: '⚡', text: '편집 중', color: 'text-red-400', bgColor: 'bg-red-500/20' }
+                return { icon: '', text: '편집 중', color: 'text-red-400', bgColor: 'bg-red-500/20' }
             case 'AVAILABLE':
                 return { icon: '🎨', text: '편집 가능', color: 'text-red-400', bgColor: 'bg-red-500/20' }
             case 'COMPLETE':
@@ -149,7 +149,7 @@ export default function SearchResultsPage() {
                     />
                     <div className="flex items-center justify-center h-64">
                         <div className="text-center space-y-4">
-                            <div className="text-6xl">⚠️</div>
+                            <div className="text-6xl"></div>
                             <div className="text-xl text-red-500">검색 중 오류가 발생했습니다</div>
                             <div className="text-white/60">{error}</div>
                             <button

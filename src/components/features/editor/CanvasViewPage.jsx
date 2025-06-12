@@ -86,7 +86,7 @@ export default function CanvasViewPage() {
             </div>
             <div className="p-6">
                 <EditorSection content={writings[0].body} readOnly className="min-h-[300px] prose" />
-                {!coverData.contentId && <button onClick={handleStartEditing} disabled={isJoiningRoom} className="mt-4 px-6 py-3 bg-red-500 text-white rounded">✏️ 편집하기</button>}
+                {!coverData.contentId && <button onClick={handleStartEditing} disabled={isJoiningRoom} className="mt-4 px-6 py-3 bg-red-500 text-white rounded"> 편집하기</button>}
                 {coverData.contentId && <button onClick={handleViewCompleted} className="mt-4 px-6 py-3 bg-red-500 text-white rounded">🎨 완성작 보기</button>}
             </div>
             {showVersions && (

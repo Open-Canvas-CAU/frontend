@@ -50,7 +50,9 @@ export default function FloatingMenu() {
 
     const menuItems = [
         { 
-            icon: '✨', 
+            icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>, 
             label: '새 캔버스', 
             path: '/editor/new',
             onClick: () => {
@@ -63,19 +65,25 @@ export default function FloatingMenu() {
             requireAuth: true
         },
         { 
-            icon: '🎨', 
+            icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>, 
             label: '내 캔버스', 
             path: '/palette',
             requireAuth: true
         },
         { 
-            icon: '⭐', 
+            icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>, 
             label: '즐겨찾기', 
             path: '/favorites',
             requireAuth: true
         },
         { 
-            icon: '👤', 
+            icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>, 
             label: '내 정보', 
             path: '/mypage',
             requireAuth: true,
@@ -108,6 +116,10 @@ export default function FloatingMenu() {
     }
 
     const activeItems = getActiveItems()
+
+    // 메뉴 아이템 스타일 수정
+    const menuItemStyle = "flex items-center space-x-2 p-2 hover:bg-white/10 rounded-lg transition-colors text-white";
+    const iconStyle = "text-white";
 
     return (
         <div className="fixed bottom-8 right-8 z-50">
@@ -146,19 +158,14 @@ export default function FloatingMenu() {
                             
                             {/* 버튼 */}
                             <button
-                                onClick={() => handleItemClick(item)}
-                                className={`
-                                    relative w-12 h-12 rounded-2xl transition-all duration-300 transform hover:scale-110
-                                    bg-red-500 hover:bg-red-600 text-white font-bold text-lg
-                                    flex items-center justify-center shadow-lg hover:shadow-xl 
-                                `}
+                                key={item.path}
+                                onClick={item.onClick || (() => navigate(item.path))}
+                                className={menuItemStyle}
                             >
-                                <span className="relative">
-                                    {item.icon}
-                                    {item.hasNotification && (
-                                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full animate-pulse"></span>
-                                    )}
-                                </span>
+                                <span className={iconStyle}>{item.icon}</span>
+                                {item.hasNotification && (
+                                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                                )}
                             </button>
                         </div>
                     ))}
@@ -183,7 +190,7 @@ export default function FloatingMenu() {
                         ${isExpanded ? 'rotate-180' : 'rotate-0'}
                     `}>
                         <span className="text-2xl font-bold">
-                            {isExpanded ? '✕' : '⚡'}
+                            {isExpanded ? '✕' : ''}
                         </span>
                     </div>
 

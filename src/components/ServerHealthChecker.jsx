@@ -8,14 +8,14 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
     const [connectionResults, setConnectionResults] = useState(null)
     const [diagnosis, setDiagnosis] = useState(null)
 
-    // 🔧 개선된 서버 상태 확인
+    //  개선된 서버 상태 확인
     const checkServerHealth = async () => {
         try {
             setServerStatus('checking')
             setConnectionResults(null)
             setDiagnosis(null)
             
-            console.log('🔍 Starting comprehensive server check...')
+            console.log('Starting comprehensive server check...')
             const results = await ServerChecker.checkConnection()
             const diagnosisResult = ServerChecker.diagnoseIssue(results)
             
@@ -26,15 +26,15 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
             if (results.isConnected) {
                 setServerStatus('connected')
                 onStatusChange?.('connected')
-                console.log('✅ Server connection successful')
+                console.log('Server connection successful')
             } else {
                 setServerStatus('disconnected')
                 onStatusChange?.('disconnected')
-                console.log('❌ Server connection failed:', results)
+                console.log(' Server connection failed:', results)
             }
             
         } catch (error) {
-            console.error('❌ Server health check failed:', error)
+            console.error(' Server health check failed:', error)
             setServerStatus('error')
             setLastChecked(new Date())
             onStatusChange?.('error')
@@ -59,11 +59,26 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
 
     const getStatusIcon = () => {
         switch (serverStatus) {
-            case 'connected': return '✅'
-            case 'disconnected': return '❌'
-            case 'checking': return '🔄'
-            case 'error': return '⚠️'
-            default: return '❓'
+            case 'connected': 
+                return <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                       </svg>;
+            case 'disconnected': 
+                return <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                       </svg>;
+            case 'checking': 
+                return <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                       </svg>;
+            case 'error': 
+                return <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                       </svg>;
+            default: 
+                return <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                       </svg>;
         }
     }
 
@@ -122,11 +137,11 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
                     )}
                 </div>
                 
-                {/* 🔧 상세 진단 정보 */}
+                {/*  상세 진단 정보 */}
                 {diagnosis && !connectionResults?.isConnected && (
                     <div className={`p-4 border rounded-lg ${getSeverityColor(diagnosis.severity)}`}>
                         <h4 className="font-semibold text-white-800 mb-2 flex items-center space-x-2">
-                            <span>{diagnosis.severity === 'critical' ? '🚨' : diagnosis.severity === 'high' ? '⚠️' : '💡'}</span>
+                            <span>{diagnosis.severity === 'critical' ? '🚨' : diagnosis.severity === 'high' ? '' : '💡'}</span>
                             <span>진단: {diagnosis.primaryIssue}</span>
                         </h4>
                         
@@ -144,7 +159,7 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
                     </div>
                 )}
                 
-                {/* 🔧 연결 시도 결과 상세 정보 (개발 모드에서만) */}
+                {/*  연결 시도 결과 상세 정보 (개발 모드에서만) */}
                 {process.env.NODE_ENV === 'development' && connectionResults && (
                     <details className="text-xs">
                         <summary className="cursor-pointer text-white-500 hover:text-white-700">
@@ -161,7 +176,9 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
                 {serverStatus === 'connected' && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded text-sm">
                         <div className="text-red-700 flex items-center space-x-2">
-                            <span>🎉</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                             <span>서버가 정상적으로 연결되었습니다! 모든 기능을 사용할 수 있습니다.</span>
                         </div>
                     </div>

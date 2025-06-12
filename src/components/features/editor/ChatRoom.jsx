@@ -23,22 +23,22 @@ export default function ChatRoom({ roomId }) {
       return
     }
 
-    console.log(`🔌 ChatRoom: ${roomId}에 연결 시도...`)
+    console.log(` ChatRoom: ${roomId}에 연결 시도...`)
 
     websocketService.connect(roomId, {
       onConnect: (frame) => {
-        console.log('✅ ChatRoom: WebSocket 연결 성공', frame)
+        console.log(' ChatRoom: WebSocket 연결 성공', frame)
         setIsConnected(true)
         setError(null)
         // 연결 성공 시, 이전 채팅 내역을 불러오는 로직을 추가할 수 있습니다.
         // 예: api.get(`/api/chat/history/${roomId}`).then(res => setMessages(res.data));
       },
       onMessage: (receivedMessage) => {
-        console.log('📨 ChatRoom: 새 메시지 수신', receivedMessage)
+        console.log(' ChatRoom: 새 메시지 수신', receivedMessage)
         setMessages((prevMessages) => [...prevMessages, receivedMessage])
       },
       onError: (err) => {
-        console.error('❌ ChatRoom: WebSocket 연결 오류', err)
+        console.error(' ChatRoom: WebSocket 연결 오류', err)
         setError('채팅 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.')
         setIsConnected(false)
       },
@@ -73,7 +73,7 @@ export default function ChatRoom({ roomId }) {
       {/* 헤더 */}
       <div className="p-4 border-b bg-black-50/50">
         <h3 className="text-lg font-semibold text-white-800 text-center">
-          {isConnected ? '⚡ 실시간 채팅' : '🔌 연결 중...'}
+          {isConnected ? ' 실시간 채팅' : ' 연결 중...'}
         </h3>
         {error && <div className="text-center text-xs text-red-500 mt-1">{error}</div>}
       </div>

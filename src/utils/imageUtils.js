@@ -5,7 +5,7 @@ export const generateDefaultCoverImage = (title) => {
         <rect x="20" y="20" width="360" height="260" fill="#e5e7eb" stroke="#d1d5db" stroke-width="2"/>
         <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" 
               font-family="Arial, sans-serif" font-size="16" fill="#6b7280">
-          📝 ${title.length > 20 ? title.substring(0, 20) + '...' : title}
+           ${title.length > 20 ? title.substring(0, 20) + '...' : title}
         </text>
         <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" 
               font-family="Arial, sans-serif" font-size="12" fill="#9ca3af">
@@ -45,7 +45,7 @@ export const generateDefaultCoverImage = (title) => {
       try {
           const coverDto = {
               title,
-              coverImageUrl: generateDefaultCoverImage(title), // ✅ 기본 이미지 사용
+              coverImageUrl: generateDefaultCoverImage(title), //  기본 이미지 사용
               time: new Date().toISOString()
           }
           

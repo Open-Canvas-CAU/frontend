@@ -157,7 +157,7 @@ export default function LoginDebugPanel() {
     const forceLogin = () => {
         const loginUrl = debugInfo.urls?.loginUrl
         if (loginUrl) {
-            console.log('🚀 강제 로그인 시도:', loginUrl)
+            console.log('강제 로그인 시도:', loginUrl)
             window.location.href = loginUrl
         }
     }
@@ -169,7 +169,7 @@ export default function LoginDebugPanel() {
                 className="fixed bottom-4 right-4 bg-red-500 text-white p-2 rounded-full shadow-lg z-50 text-xs"
                 title="로그인 디버그 패널 열기"
             >
-                🔧
+                
             </button>
         )
     }
@@ -178,7 +178,7 @@ export default function LoginDebugPanel() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-black rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto">
                 <div className="p-6 border-b border-white-200 flex justify-between items-center">
-                    <h2 className="text-xl font-bold">🔧 로그인 디버깅 패널</h2>
+                    <h2 className="text-xl font-bold"> 로그인 디버깅 패널</h2>
                     <button
                         onClick={() => setIsVisible(false)}
                         className="text-white-500 hover:text-white-700 text-2xl"
@@ -206,7 +206,7 @@ export default function LoginDebugPanel() {
                             onClick={testTokenRefresh}
                             className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 text-sm"
                         >
-                            🔄 토큰 갱신
+                             토큰 갱신
                         </button>
                         <button
                             onClick={clearAllData}
@@ -227,9 +227,9 @@ export default function LoginDebugPanel() {
                                         {result.testing ? (
                                             <span className="text-red-600">테스트 중...</span>
                                         ) : result.success ? (
-                                            <span className="text-red-600">✅ 성공</span>
+                                            <span className="text-red-600"> 성공</span>
                                         ) : (
-                                            <span className="text-red-600">❌ 실패: {result.error}</span>
+                                            <span className="text-red-600"> 실패: {result.error}</span>
                                         )}
                                     </div>
                                 ))}
@@ -239,15 +239,15 @@ export default function LoginDebugPanel() {
 
                     {/* 현재 상태 요약 */}
                     <div className="bg-red-50 p-4 rounded-lg">
-                        <h3 className="font-bold mb-3">📋 현재 상태</h3>
+                        <h3 className="font-bold mb-3"> 현재 상태</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
                                 <div className={`font-medium ${debugInfo.tokens?.isAuthenticated ? 'text-red-600' : 'text-red-600'}`}>
                                     인증 상태: {debugInfo.tokens?.isAuthenticated ? '로그인됨' : '로그인 안됨'}
                                 </div>
-                                <div>액세스 토큰: {debugInfo.tokens?.hasAccessToken ? '✅' : '❌'}</div>
-                                <div>리프레시 토큰: {debugInfo.tokens?.hasRefreshToken ? '✅' : '❌'}</div>
-                                <div>사용자 정보: {debugInfo.user ? '✅' : '❌'}</div>
+                                <div>액세스 토큰: {debugInfo.tokens?.hasAccessToken ? '' : ''}</div>
+                                <div>리프레시 토큰: {debugInfo.tokens?.hasRefreshToken ? '' : ''}</div>
+                                <div>사용자 정보: {debugInfo.user ? '' : ''}</div>
                             </div>
                             <div>
                                 <div>현재 포트: {debugInfo.environment?.currentPort}</div>
@@ -294,11 +294,11 @@ export default function LoginDebugPanel() {
                     <div className="bg-red-50 p-4 rounded-lg">
                         <h3 className="font-bold mb-3 text-red-800">🆘 트러블슈팅 체크리스트</h3>
                         <ul className="text-sm space-y-1 text-red-700">
-                            <li>✅ 백엔드 서버가 http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com에서 실행 중인지 확인</li>
-                            <li>✅ 백엔드에서 현재 프론트엔드 URL을 CORS 허용 목록에 추가했는지 확인</li>
-                            <li>✅ OAuth2 설정에서 리다이렉트 URI가 정확한지 확인</li>
-                            <li>✅ 브라우저 개발자 도구 Network 탭에서 실패한 요청 확인</li>
-                            <li>✅ 브라우저의 쿠키/로컬스토리지가 차단되지 않았는지 확인</li>
+                            <li> 백엔드 서버가 http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com에서 실행 중인지 확인</li>
+                            <li> 백엔드에서 현재 프론트엔드 URL을 CORS 허용 목록에 추가했는지 확인</li>
+                            <li> OAuth2 설정에서 리다이렉트 URI가 정확한지 확인</li>
+                            <li> 브라우저 개발자 도구 Network 탭에서 실패한 요청 확인</li>
+                            <li> 브라우저의 쿠키/로컬스토리지가 차단되지 않았는지 확인</li>
                         </ul>
                     </div>
                 </div>

@@ -88,7 +88,7 @@ export default function DebugPage() {
         try {
             websocketService.connect(testRoomId, {
                 onConnect: (frame) => {
-                    console.log('✅ WebSocket test connection successful')
+                    console.log('WebSocket test connection successful')
                     setWebsocketStatus('connected')
                     setResults(prev => ({
                         ...prev,
@@ -107,7 +107,7 @@ export default function DebugPage() {
                     }, 5000)
                 },
                 onError: (error) => {
-                    console.error('❌ WebSocket test connection failed')
+                    console.error(' WebSocket test connection failed')
                     setWebsocketStatus('error')
                     setResults(prev => ({
                         ...prev,
@@ -122,7 +122,7 @@ export default function DebugPage() {
                     setWebsocketStatus('disconnected')
                 },
                 onMessage: (message) => {
-                    console.log('📨 WebSocket test message:', message)
+                    console.log(' WebSocket test message:', message)
                 }
             })
         } catch (error) {
@@ -169,10 +169,33 @@ export default function DebugPage() {
         return 'text-red-600'
     }
 
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'connected':
+                return <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                       </svg>;
+            case 'connecting':
+                return <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                       </svg>;
+            case 'error':
+                return <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                       </svg>;
+            case 'disconnected':
+                return <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                       </svg>;
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className="container mx-auto px-8 py-8">
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold mb-8">🔧 디버깅 대시보드</h1>
+                <h1 className="text-3xl font-bold mb-8"> 디버깅 대시보드</h1>
                 
                 {/* 전체 테스트 버튼 */}
                 <div className="mb-8 flex space-x-4">
@@ -200,7 +223,14 @@ export default function DebugPage() {
                             <h2 className="text-xl font-semibold">1. 인증 상태</h2>
                             <div className="flex items-center space-x-2">
                                 <span className={`font-medium ${getStatusColor(results.auth?.hasToken)}`}>
-                                    {results.auth?.hasToken ? '✅ 토큰 있음' : '❌ 토큰 없음'}
+                                    {results.auth?.hasToken ? 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg> : 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    } 토큰 {results.auth?.hasToken ? '있음' : '없음'}
                                 </span>
                                 <button
                                     onClick={testAuth}
@@ -219,7 +249,18 @@ export default function DebugPage() {
                             <h2 className="text-xl font-semibold">2. API 연결</h2>
                             <div className="flex items-center space-x-2">
                                 <span className={`font-medium ${getStatusColor(results.api?.success)}`}>
-                                    {results.api?.success ? '✅ API 정상' : results.api?.error ? '❌ API 오류' : '⏳ 미테스트'}
+                                    {results.api?.success ? 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg> : 
+                                        results.api?.error ? 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg> : 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    } API {results.api?.success ? '정상' : results.api?.error ? '오류' : '미테스트'}
                                 </span>
                                 <button
                                     onClick={testAPI}
@@ -238,15 +279,35 @@ export default function DebugPage() {
                             <h2 className="text-xl font-semibold">3. WebSocket 연결</h2>
                             <div className="flex items-center space-x-2">
                                 <span className={`font-medium ${
-                                    websocketStatus === 'connected' ? 'text-red-600' :
-                                    websocketStatus === 'error' ? 'text-red-600' :
-                                    websocketStatus === 'connecting' ? 'text-red-600' :
-                                    'text-white-600'
+                                    websocketStatus === 'connected' ? 'text-green-500' :
+                                    websocketStatus === 'connecting' ? 'text-blue-500' :
+                                    websocketStatus === 'error' ? 'text-red-500' :
+                                    'text-gray-500'
                                 }`}>
-                                    {websocketStatus === 'connected' && '✅ 연결됨'}
-                                    {websocketStatus === 'connecting' && '🔄 연결 중'}
-                                    {websocketStatus === 'error' && '❌ 연결 실패'}
-                                    {websocketStatus === 'disconnected' && '⭕ 연결 안됨'}
+                                    {websocketStatus === 'connected' && 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    }
+                                    {websocketStatus === 'connecting' && 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 animate-spin inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                    }
+                                    {websocketStatus === 'error' && 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    }
+                                    {websocketStatus === 'disconnected' && 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    }
+                                    {websocketStatus === 'connected' && '연결됨'}
+                                    {websocketStatus === 'connecting' && '연결 중'}
+                                    {websocketStatus === 'error' && '연결 실패'}
+                                    {websocketStatus === 'disconnected' && '연결 안됨'}
                                 </span>
                                 <button
                                     onClick={testWebSocket}
@@ -279,12 +340,12 @@ WebSocket URL: ws://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/ws-st
                 <div className="mt-8 p-6 bg-red-50 border border-red-200 rounded-lg">
                     <h3 className="text-lg font-semibold mb-3">🛠️ 문제 해결 체크리스트</h3>
                     <ul className="space-y-2 text-sm">
-                        <li>✅ 백엔드 서버가 http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com에서 실행 중인지 확인</li>
-                        <li>✅ WebSocket 엔드포인트 /ws-stomp가 활성화되어 있는지 확인</li>
-                        <li>✅ 토큰이 유효하고 만료되지 않았는지 확인</li>
-                        <li>✅ CORS 설정이 프론트엔드 도메인을 허용하는지 확인</li>
-                        <li>✅ 방화벽이나 보안 소프트웨어가 연결을 차단하지 않는지 확인</li>
-                        <li>✅ 브라우저 개발자 도구의 Network 탭에서 실패한 요청 확인</li>
+                        <li> 백엔드 서버가 http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com에서 실행 중인지 확인</li>
+                        <li> WebSocket 엔드포인트 /ws-stomp가 활성화되어 있는지 확인</li>
+                        <li> 토큰이 유효하고 만료되지 않았는지 확인</li>
+                        <li> CORS 설정이 프론트엔드 도메인을 허용하는지 확인</li>
+                        <li> 방화벽이나 보안 소프트웨어가 연결을 차단하지 않는지 확인</li>
+                        <li> 브라우저 개발자 도구의 Network 탭에서 실패한 요청 확인</li>
                     </ul>
                 </div>
             </div>

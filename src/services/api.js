@@ -27,12 +27,12 @@ api.interceptors.request.use(
       '/api/covers/search'
     ];
     
-    // ✅ [버그 수정] startsWith로 각 엔드포인트를 명확하게 확인하도록 변경
+    //  [버그 수정] startsWith로 각 엔드포인트를 명확하게 확인하도록 변경
     const isPublicEndpoint = publicEndpoints.some(endpoint => 
       config.url.startsWith(endpoint)
     );
 
-    console.log('📤 API 요청:', {
+    console.log(' API 요청:', {
       url: config.url,
       method: config.method,
       isPublic: isPublicEndpoint, // 이제 정확하게 false가 나옵니다.

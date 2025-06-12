@@ -57,7 +57,7 @@ export default function Header() {
         navigate('/');
     };
 
-    // 🔧 수정된 로그인 처리 - OAuth2 URL로 직접 이동
+    //  수정된 로그인 처리 - OAuth2 URL로 직접 이동
     const handleLogin = () => {
         // 현재 경로 저장
         localStorage.setItem('login_redirect_path', location.pathname);
@@ -69,7 +69,7 @@ export default function Header() {
         // OAuth2 로그인 URL 생성
         const googleLoginUrl = `http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/oauth2/authorization/google?redirect_uri=${encodeURIComponent(redirectUri)}&mode=login`;
         
-        console.log('🔑 Header에서 로그인 시도:', googleLoginUrl);
+        console.log('Header에서 로그인 시도:', googleLoginUrl);
         
         // 페이지 전체를 리다이렉트
         window.location.href = googleLoginUrl;
@@ -227,7 +227,7 @@ export default function Header() {
                         </>
                     ) : (
                         <>
-                            {/* 🔧 수정된 로그인 버튼 - OAuth2 직접 연결 */}
+                            {/*  수정된 로그인 버튼 - OAuth2 직접 연결 */}
                             <button
                                 onClick={handleLogin}
                                 className="px-4 py-3 bg-red-500 text-white hover:bg-red-600 transition-colors duration-200 font-medium"                            >

@@ -1,7 +1,8 @@
-// src/pages/LandingPage.jsx - 검은 테마로 수정
+// src/pages/LandingPage.jsx - MouseFollower 추가된 버전
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import CanvasCard from '@/components/features/landing/CanvasCard'
+import MouseFollower from '@/components/common/MouseFollower'
 import { coverService } from '@/services/coverService'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
@@ -132,7 +133,7 @@ export default function LandingPage() {
         fetchCovers()
     }, [filter, location.pathname])
 
-    // 카드 클릭 핸들러 - 모든 카드는 먼저 보기 모드로
+    // 🔧 카드 클릭 핸들러 - 모든 카드는 먼저 보기 모드로
     const handleCardClick = (doc) => {
         console.log('🖱️ Card clicked:', doc)
         console.log(`📖 Navigating to canvas view: /canvas/${doc.id}`)
@@ -146,6 +147,7 @@ export default function LandingPage() {
                 description: '현재 작업 중인 캔버스들입니다. 클릭하여 내용을 확인하고 편집을 계속하세요.',
                 emptyIcon: '✏️',
                 emptyMessage: '작업 중인 캔버스가 없습니다.',
+                bgGradient: 'from-red-400/20 via-red-400/20 to-white-400/20',
                 containerStyle: 'workspace'
             }
         }
@@ -154,6 +156,7 @@ export default function LandingPage() {
             description: '완성된 작품들을 감상해보세요.',
             emptyIcon: '🎨',
             emptyMessage: '완성된 작품이 없습니다.',
+            bgGradient: 'from-red-400/20 via-purple-400/20 to-white-400/20',
             containerStyle: 'gallery'
         }
     }
@@ -173,7 +176,7 @@ export default function LandingPage() {
     }
 
     const getBackgroundClasses = () => {
-        const baseClasses = `min-h-screen transition-all duration-700 ease-in-out bg-black`
+        const baseClasses = `min-h-screen transition-all duration-700 ease-in-out `
         
         if (isWorkspace) {
             return `${baseClasses} ${isTransitioning ? 'blur-sm' : ''}`
@@ -185,9 +188,10 @@ export default function LandingPage() {
     if (loading) {
         return (
             <div className={getBackgroundClasses()}>
+                <MouseFollower />
                 <div className="container mx-auto px-8 py-8">
                     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-                        <div className="w-12 h-12 border-4 border-t-red-500 rounded-full animate-spin"></div>
+                        <div className="w-12 h-12 border-4 border-yellow-300/20 border-t-yellow-300/80 rounded-full animate-spin"></div>
                         <div className="text-xl text-white">
                             {isWorkspace ? '작업 중인 캔버스를 불러오는 중...' : '갤러리를 불러오는 중...'}
                         </div>
@@ -201,23 +205,24 @@ export default function LandingPage() {
     if (error) {
         return (
             <div className={getBackgroundClasses()}>
+                <MouseFollower />
                 <div className="container mx-auto px-8 py-8">
                     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
                         <div className="text-6xl">❌</div>
-                        <div className="text-xl text-red-500">데이터를 불러오는 중 오류가 발생했습니다</div>
-                        <div className="text-sm text-white/60">{error}</div>
+                        <div className="text-xl text-red-600">데이터를 불러오는 중 오류가 발생했습니다</div>
+                        <div className="text-sm text-white-600">{error}</div>
                         <button 
                             onClick={() => window.location.reload()}
-                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 border border-red-400"
+                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                         >
                             다시 시도
                         </button>
                         
                         {/* 디버깅 정보 (개발 환경에서만) */}
                         {process.env.NODE_ENV === 'development' && debugInfo && (
-                            <details className="mt-4 p-4 bg-white/10 rounded-lg max-w-2xl border border-white/20">
-                                <summary className="cursor-pointer font-bold text-white">디버깅 정보</summary>
-                                <pre className="mt-2 text-xs overflow-auto text-white/80">
+                            <details className="mt-4 p-4 bg-black-100 rounded-lg max-w-2xl">
+                                <summary className="cursor-pointer font-bold">디버깅 정보</summary>
+                                <pre className="mt-2 text-xs overflow-auto">
                                     {JSON.stringify(debugInfo, null, 2)}
                                 </pre>
                             </details>
@@ -230,15 +235,18 @@ export default function LandingPage() {
 
     return (
         <div className={getBackgroundClasses()}>
+            {/* 마우스 커서 효과 */}
+            <MouseFollower />
+            
             {/* 작업실 효과를 위한 배경 요소들 */}
             {isWorkspace && (
                 <>
                     <div className="fixed inset-0 pointer-events-none">
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4/5 h-32 bg-red-500/10 rounded-full blur-xl"></div>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4/5 h-32 bg-black/10 rounded-full blur-xl"></div>
                     </div>
                     <div className="fixed inset-0 pointer-events-none opacity-5">
                         <div className="w-full h-full" style={{
-                            backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
+                            backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)',
                             backgroundSize: '20px 20px'
                         }}></div>
                     </div>
@@ -265,12 +273,21 @@ export default function LandingPage() {
                                     <h1 className="text-3xl font-bold text-white mb-2">
                                         {pageInfo.title}
                                     </h1>
-                                    <p className="text-white/70">
+                                    <p className="text-solarized-base01">
                                         {pageInfo.description}
                                     </p>
                                 </div>
                             </div>
                             
+                            {/* 디버깅 정보 (개발 환경에서만) */}
+                            {process.env.NODE_ENV === 'development' && debugInfo && (
+                                <details className="text-xs bg-black-100 p-2 rounded">
+                                    <summary className="cursor-pointer">Debug ({covers.length})</summary>
+                                    <pre className="mt-1 text-xs overflow-auto max-h-32">
+                                        {JSON.stringify(debugInfo, null, 2)}
+                                    </pre>
+                                </details>
+                            )}
                         </div>
                     </div>
 
@@ -286,10 +303,10 @@ export default function LandingPage() {
                                     onClick={() => setFilter(f)}
                                     className={`
                                         px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300
-                                        transform hover:scale-105 border
+                                        transform hover:scale-105
                                         ${filter === f
-                                            ? 'bg-red-500 text-white shadow-lg border-red-400' 
-                                            : 'text-white hover:bg-white/20 hover:shadow-md'
+                                            ? 'bg-yellow-300/20 text-yellow-300 shadow-lg' 
+                                            : 'bg-solarized-base2 text-solarized-base01 hover:bg-red hover:shadow-md'
                                         }
                                     `}
                                     style={{ transitionDelay: `${index * 50}ms` }}
@@ -317,7 +334,7 @@ export default function LandingPage() {
                             {isWorkspace && (
                                 <button
                                     onClick={() => navigate('/editor/new')}
-                                    className="px-8 py-4 bg-red-500 hover:bg-red-600 text-white rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-red-400"
+                                    className="px-8 py-4 bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                                 >
                                     새 캔버스 만들기
                                 </button>
@@ -331,10 +348,7 @@ export default function LandingPage() {
                             transition-all duration-700 delay-400
                             ${isTransitioning ? 'translate-y-8 opacity-0' : 'translate-y-0 opacity-100'}
                         `}>
-                            <div className={`
-                                relative h-[400px] 
-                                ${isWorkspace ? 'transform perspective-1000 rotateX-2' : ''}
-                            `}>
+                            <div className="relative h-[400px]">
                                 <Swiper
                                     modules={[Navigation]}
                                     spaceBetween={24}
@@ -346,14 +360,9 @@ export default function LandingPage() {
                                     {covers.map((doc, index) => (
                                         <SwiperSlide key={`${doc.id}-${doc.contentId || 'working'}-${index}`}>
                                             <div 
-                                                className={`
-                                                    h-full flex items-center justify-center
-                                                    transition-all duration-500 transform hover:scale-105
-                                                    ${isWorkspace ? 'hover:rotateY-5 hover:shadow-2xl' : 'hover:shadow-xl'}
-                                                `}
+                                                className="h-full flex items-center justify-center"
                                                 style={{ 
-                                                    transitionDelay: `${index * 100}ms`,
-                                                    transformStyle: 'preserve-3d'
+                                                    transitionDelay: `${index * 100}ms`
                                                 }}
                                             >
                                                 <CanvasCard
@@ -379,7 +388,7 @@ export default function LandingPage() {
                                 <div className="mt-8 text-center">
                                     <button
                                         onClick={() => navigate('/editor/new')}
-                                        className="px-8 py-4 bg-red-500 hover:bg-red-600 text-white rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-red-400"
+                                        className="px-8 py-4 bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                                     >
                                         새 캔버스 추가하기
                                     </button>

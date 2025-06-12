@@ -14,9 +14,9 @@ export default function CoverAccessPage() {
 
     const steps = {
         checking: { icon: '🔍', text: '캔버스 정보 확인 중...', color: 'text-red-500' },
-        redirecting: { icon: '🚀', text: '페이지로 이동 중...', color: 'text-purple-500' },
-        creating: { icon: '⚡', text: '새 편집 세션 생성 중...', color: 'text-red-500' },
-        error: { icon: '⚠️', text: '오류 발생', color: 'text-red-500' }
+        redirecting: { icon: '', text: '페이지로 이동 중...', color: 'text-purple-500' },
+        creating: { icon: '', text: '새 편집 세션 생성 중...', color: 'text-red-500' },
+        error: { icon: '', text: '오류 발생', color: 'text-red-500' }
     };
 
     useEffect(() => {

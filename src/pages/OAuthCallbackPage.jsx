@@ -12,13 +12,13 @@ export default function OAuthCallbackPage() {
     useEffect(() => {
         const processLogin = async () => {
             try {
-                console.log('🔐 OAuth 콜백 처리 시작...');
+                console.log(' OAuth 콜백 처리 시작...');
                 setStatus('processing');
                 
                 const currentUrl = window.location.href;
                 console.log('📍 현재 URL:', currentUrl);
                 
-                // 🔧 가이드에 따른 정확한 파라미터명 사용
+                //  가이드에 따른 정확한 파라미터명 사용
                 const accessToken = searchParams.get('access_token');
                 const refreshToken = searchParams.get('refresh_token');
 
@@ -32,13 +32,13 @@ export default function OAuthCallbackPage() {
                 };
                 
                 setDebugInfo(debugData);
-                console.log('🔑 토큰 추출 결과:', debugData);
+                console.log('토큰 추출 결과:', debugData);
 
                 if (accessToken && refreshToken) {
-                    console.log('✅ 토큰 발견, 저장 중...');
+                    console.log(' 토큰 발견, 저장 중...');
                     setStatus('saving');
                     
-                    // 🔧 가이드에 따른 토큰 저장 (정확한 코드)
+                    //  가이드에 따른 토큰 저장 (정확한 코드)
                     localStorage.setItem("accessToken", accessToken);
                     localStorage.setItem("refreshToken", refreshToken);
                     
@@ -51,9 +51,9 @@ export default function OAuthCallbackPage() {
                     setStatus('fetching_user');
                     try {
                         await authService.fetchAndSaveUser();
-                        console.log('👤 사용자 정보 저장 완료');
+                        console.log(' 사용자 정보 저장 완료');
                     } catch (userError) {
-                        console.warn('⚠️ 사용자 정보 가져오기 실패 (로그인은 성공):', userError);
+                        console.warn(' 사용자 정보 가져오기 실패 (로그인은 성공):', userError);
                     }
 
                     // 전역 인증 상태 변경 이벤트 발생
@@ -65,7 +65,7 @@ export default function OAuthCallbackPage() {
                     const redirectPath = localStorage.getItem('login_redirect_path') || '/';
                     localStorage.removeItem('login_redirect_path');
                     
-                    console.log('🏠 리다이렉트 경로:', redirectPath);
+                    console.log(' 리다이렉트 경로:', redirectPath);
                     
                     // 성공 애니메이션 후 리다이렉트
                     setTimeout(() => {
@@ -73,7 +73,7 @@ export default function OAuthCallbackPage() {
                     }, 2000);
 
                 } else {
-                    console.error('❌ 토큰을 찾을 수 없습니다');
+                    console.error(' 토큰을 찾을 수 없습니다');
                     console.error('사용 가능한 파라미터:', Array.from(searchParams.entries()));
                     
                     setStatus('error');
@@ -86,7 +86,7 @@ export default function OAuthCallbackPage() {
                 }
                 
             } catch (error) {
-                console.error('❌ OAuth 콜백 처리 중 오류:', error);
+                console.error(' OAuth 콜백 처리 중 오류:', error);
                 setStatus('error');
                 setDebugInfo(prev => ({ ...prev, error: error.message }));
                 
@@ -100,86 +100,51 @@ export default function OAuthCallbackPage() {
         processLogin();
     }, [navigate, searchParams]);
 
-    const getStatusDisplay = () => {
+    const getStatusInfo = (status) => {
         switch (status) {
-            case 'processing':
-                return {
-                    icon: '🔍',
-                    title: '로그인 정보 확인 중...',
-                    subtitle: '토큰을 추출하고 있습니다'
-                };
-            case 'saving':
-                return {
-                    icon: '💾',
-                    title: '로그인 정보 저장 중...',
-                    subtitle: '토큰을 안전하게 저장하고 있습니다'
-                };
-            case 'fetching_user':
-                return {
-                    icon: '👤',
-                    title: '사용자 정보 가져오는 중...',
-                    subtitle: '프로필 정보를 불러오고 있습니다'
-                };
             case 'redirecting':
                 return {
-                    icon: '🎉',
+                    icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>,
                     title: '로그인 성공!',
                     subtitle: '페이지로 이동하고 있습니다'
                 };
             case 'error':
                 return {
-                    icon: '❌',
+                    icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>,
                     title: '로그인 실패',
                     subtitle: '오류가 발생했습니다'
                 };
             default:
                 return {
-                    icon: '🔄',
+                    icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>,
                     title: '처리 중...',
                     subtitle: '잠시만 기다려주세요'
                 };
         }
     };
 
-    const statusDisplay = getStatusDisplay();
+    const statusInfo = getStatusInfo(status);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-purple-50 to-white-50">
             <div className="text-center space-y-8 max-w-md mx-4">
                 {/* 상태 아이콘 */}
-                <div className={`
-                    relative text-8xl transition-all duration-1000
-                    ${status === 'redirecting' ? 'animate-bounce' : status === 'error' ? 'animate-pulse' : 'animate-spin'}
-                `}>
-                    {statusDisplay.icon}
-                    
-                    {status === 'processing' && (
-                        <div className="absolute inset-0 w-16 h-16 border-4 border-red-200 border-t-red-500 rounded-full animate-spin mx-auto"></div>
-                    )}
-                </div>
-
-                {/* 상태 텍스트 */}
-                <div className="space-y-3">
-                    <h2 className={`
-                        text-2xl font-bold transition-colors duration-500
-                        ${status === 'redirecting' ? 'text-red-600' : status === 'error' ? 'text-red-600' : 'text-white-800'}
-                    `}>
-                        {statusDisplay.title}
-                    </h2>
-                    <p className="text-white-600">{statusDisplay.subtitle}</p>
-                    
-                    {status === 'redirecting' && (
-                        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                            <p className="text-red-700 font-medium">✨ 환영합니다!</p>
-                            <p className="text-red-600 text-sm">Live Canvas에서 멋진 이야기를 만들어보세요</p>
-                        </div>
-                    )}
+                <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                    {statusInfo.icon}
+                    <h2 className="text-2xl font-bold text-white-900">{statusInfo.title}</h2>
+                    <p className="text-white-600">{statusInfo.subtitle}</p>
                 </div>
                 
                 {/* 디버깅 정보 */}
                 {debugInfo && (
                     <details className="mt-8 p-4 bg-black rounded-xl shadow-lg text-left max-w-lg">
-                        <summary className="cursor-pointer font-bold mb-2">🔧 개발자 정보</summary>
+                        <summary className="cursor-pointer font-bold mb-2"> 개발자 정보</summary>
                         <div className="text-xs space-y-2">
                             <div><strong>URL:</strong> {debugInfo.url}</div>
                             <div><strong>모든 파라미터:</strong></div>
@@ -190,11 +155,25 @@ export default function OAuthCallbackPage() {
                             </pre>
                             <div><strong>토큰 상태:</strong></div>
                             <ul className="ml-4 space-y-1">
-                                <li className={debugInfo.hasAccessToken ? 'text-red-600' : 'text-red-600'}>
-                                    {debugInfo.hasAccessToken ? '✅' : '❌'} Access Token
+                                <li className={debugInfo.hasAccessToken ? 'text-green-600' : 'text-red-600'}>
+                                    {debugInfo.hasAccessToken ? 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg> : 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    } Access Token
                                 </li>
-                                <li className={debugInfo.hasRefreshToken ? 'text-red-600' : 'text-red-600'}>
-                                    {debugInfo.hasRefreshToken ? '✅' : '❌'} Refresh Token
+                                <li className={debugInfo.hasRefreshToken ? 'text-green-600' : 'text-red-600'}>
+                                    {debugInfo.hasRefreshToken ? 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg> : 
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    } Refresh Token
                                 </li>
                             </ul>
                             {debugInfo.error && (

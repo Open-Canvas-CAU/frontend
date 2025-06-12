@@ -23,7 +23,7 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="container mx-auto px-8 py-8">
           <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-            <div className="text-2xl text-red-600">⚠️</div>
+            <div className="text-2xl text-red-600"></div>
             <h2 className="text-xl font-semibold text-white-800">죄송합니다. 문제가 발생했습니다.</h2>
             <p className="text-white-600">잠시 후 다시 시도해주세요.</p>
             <button 

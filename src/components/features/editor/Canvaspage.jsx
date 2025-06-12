@@ -28,7 +28,7 @@ export default function CanvasPage() {
         navigate('/login', { state: { from: `/editor/${roomId}` } })
         return null
       }
-      console.error(`❌ ${errMsg}`, err)
+      console.error(` ${errMsg}`, err)
       throw err
     }
   }
@@ -153,10 +153,10 @@ export default function CanvasPage() {
         </div>
         <div className="text-sm">
           {wsConnected
-            ? '✅ 실시간 연결됨'
+            ? ' 실시간 연결됨'
             : wsError
-            ? `❌ ${wsError}`
-            : '🔄 연결중...'}
+            ? ` ${wsError}`
+            : ' 연결중...'}
         </div>
       </div>
       <div className="p-6 space-y-6">

@@ -100,7 +100,7 @@ public class SecurityConfig {
                 <div className="bg-gradient-to-r from-red-500 to-white-600 text-white p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-2xl font-bold mb-2">🔧 CORS 설정 가이드</h2>
+                            <h2 className="text-2xl font-bold mb-2"> CORS 설정 가이드</h2>
                             <p className="opacity-90">백엔드 서버에서 CORS를 설정하여 프론트엔드 연결을 허용하세요</p>
                         </div>
                         <button
@@ -154,7 +154,7 @@ public class SecurityConfig {
                                         onClick={() => copyToClipboard(config.code)}
                                         className="text-sm px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded transition-colors"
                                     >
-                                        📋 복사
+                                         복사
                                     </button>
                                 </div>
                                 <pre className="bg-black-900 text-white-100 p-4 rounded-lg overflow-x-auto text-sm">
@@ -165,7 +165,7 @@ public class SecurityConfig {
                             {/* 추가 안내 */}
                             {config.id === 'global' && (
                                 <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                    <h4 className="font-semibold text-red-800 mb-2">✅ 추천 설정</h4>
+                                    <h4 className="font-semibold text-red-800 mb-2"> 추천 설정</h4>
                                     <p className="text-sm text-red-700">
                                         전역 설정은 모든 컨트롤러에 적용되므로 가장 편리합니다. 
                                         src/main/java/config 폴더에 WebConfig.java 파일을 생성하고 위 코드를 추가하세요.
@@ -175,7 +175,7 @@ public class SecurityConfig {
 
                             {config.id === 'properties' && (
                                 <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                    <h4 className="font-semibold text-red-800 mb-2">📝 파일 위치</h4>
+                                    <h4 className="font-semibold text-red-800 mb-2"> 파일 위치</h4>
                                     <p className="text-sm text-red-700">
                                         application.properties 파일은 src/main/resources/ 폴더에 있습니다.
                                     </p>
@@ -189,7 +189,7 @@ public class SecurityConfig {
                 <div className="border-t border-white-200 p-6 bg-black-50">
                     <div className="space-y-4">
                         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                            <h4 className="font-semibold text-red-800 mb-2">🔄 설정 후 확인사항</h4>
+                            <h4 className="font-semibold text-red-800 mb-2"> 설정 후 확인사항</h4>
                             <ul className="text-sm text-red-700 space-y-1">
                                 <li>1. Spring Boot 서버를 재시작하세요</li>
                                 <li>2. 브라우저에서 F12 개발자 도구의 Network 탭을 확인하세요</li>

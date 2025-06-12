@@ -102,7 +102,7 @@ export default function NewCanvasPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-100">
         <div className="text-center space-y-4">
-          <div className="text-6xl text-red-600">🎉</div>
+          <div className="text-6xl text-red-600"></div>
           <h2 className="text-3xl font-bold">생성이 완료되었습니다!</h2>
           <p className="text-lg">{loadingMessage}</p>
         </div>

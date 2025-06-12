@@ -17,7 +17,7 @@ export class ServerChecker {
 
         for (const endpoint of SERVER_URLS) {
             try {
-                console.log(`🔍 Testing endpoint: ${endpoint}`)
+                console.log(`Testing endpoint: ${endpoint}`)
                 
                 const controller = new AbortController()
                 const timeoutId = setTimeout(() => controller.abort(), 5000)
@@ -38,7 +38,7 @@ export class ServerChecker {
                     results.isConnected = true
                     results.workingEndpoint = endpoint
                     results.serverRunning = true
-                    console.log(`✅ Server connected via: ${endpoint}`)
+                    console.log(`Server connected via: ${endpoint}`)
                     break
                 } else {
                     results.errors.push({
@@ -51,7 +51,7 @@ export class ServerChecker {
                 }
 
             } catch (error) {
-                console.error(`❌ Failed to connect to ${endpoint}:`, error)
+                console.error(` Failed to connect to ${endpoint}:`, error)
                 
                 let errorType = 'unknown'
                 let errorMessage = error.message

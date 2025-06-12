@@ -15,7 +15,6 @@ export default function CanvasViewPage() {
     const [error, setError] = useState(null)
     const [isJoiningRoom, setIsJoiningRoom] = useState(false)
 
-    // 커버 및 글 정보 조회
     useEffect(() => {
         const fetchCanvasData = async () => {
             if (!coverId) {
@@ -36,23 +35,20 @@ export default function CanvasViewPage() {
                 setCoverData(cover)
                 console.log('📋 커버 정보:', cover)
 
-                // 2. 기존 글이 있다면 조회 (roomId가 있는 경우에만)
+                // 2. 기존 글 트리 조회 (roomId가 있는 경우에만)
                 if (cover.roomId) {
-                    try {
-                        const writingsResponse = await api.get(`/api/writings/room/${cover.roomId}`)
-                        const existingWritings = Array.isArray(writingsResponse.data) 
-                            ? writingsResponse.data 
-                            : []
-                        
-                        setWritings(existingWritings.length > 0 
-                            ? existingWritings 
+                    // openai.json에 정의된 GET /api/writings/room/{roomId} 사용
+                    const writingsResponse = await api.get(`/api/writings/room/${cover.roomId}`)
+                    const existingWritings = Array.isArray(writingsResponse.data)
+                        ? writingsResponse.data
+                        : []
+                    
+                    setWritings(
+                        existingWritings.length > 0
+                            ? existingWritings
                             : [{ body: '<p>아직 작성된 내용이 없습니다.</p>' }]
-                        )
-                        console.log('📝 기존 글 내용:', existingWritings)
-                    } catch (writingError) {
-                        console.warn('⚠️ 글 내용 조회 실패 (무시):', writingError)
-                        setWritings([{ body: '<p>글 내용을 불러올 수 없습니다.</p>' }])
-                    }
+                    )
+                    console.log('📝 기존 글 내용:', existingWritings)
                 } else {
                     // roomId가 없으면 기본 메시지
                     setWritings([{ body: '<p>아직 작성이 시작되지 않은 캔버스입니다.</p>' }])
@@ -97,7 +93,10 @@ export default function CanvasViewPage() {
                 }
 
                 const roomResponse = await api.post('/api/rooms/create', writingDto)
-                roomId = roomResponse.data.roomId
+                // backend가 문자열(UUID) 자체를 반환하는 경우
+                roomId = typeof roomResponse.data === 'string'
+                  ? roomResponse.data
+                  : roomResponse.data.roomId
                 console.log('✅ 새 문서방 생성됨:', roomId)
             } else {
                 console.log('🚪 기존 문서방 참여:', roomId)

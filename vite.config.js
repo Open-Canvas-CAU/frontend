@@ -13,6 +13,9 @@ export default defineConfig({
       }
     }),
   ],
+  define: {
+    global: "window"
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),

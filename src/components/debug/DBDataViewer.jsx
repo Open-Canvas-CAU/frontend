@@ -5,6 +5,7 @@ import api from '@/services/api';
 import mockDataSeeder from '@/utils/mockDataSeeder';
 import completedDataSeeder from '@/utils/completedDataSeeder';
 
+
 export default function DBDataViewer() {
     const [covers, setCovers] = useState([]);
     const [contents, setContents] = useState([]);
@@ -199,6 +200,24 @@ export default function DBDataViewer() {
         );
     };
 
+    const deleteAllWritings = async () => {
+        if (!confirm('정말로 모든 글을 삭제하시겠습니까?')) return;
+        setLoading(true);
+        setError(null);
+        try {
+            // DELETE 메서드로 /api/writings/delete/root 호출
+            await api.delete('/api/writings/delete/root');
+            alert('✅ 모든 글을 성공적으로 삭제했습니다.');
+            await fetchAllData();
+        } catch (err) {
+            console.error('❌ 전체 글 삭제 실패:', err);
+            setError(err.message);
+            alert(`삭제 실패: ${err.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="p-6 max-w-6xl mx-auto">
             <div className="mb-6">
@@ -206,6 +225,14 @@ export default function DBDataViewer() {
                 
                 {/* 기본 작업 버튼들 */}
                 <div className="flex flex-wrap gap-4 mb-6">
+                    <button
+                        onClick={deleteAllWritings}
+                        disabled={loading}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                    >
+                        {loading ? '삭제 중...' : '🗑️ 전체 글 삭제'}
+                    </button>
+
                     <button 
                         onClick={fetchAllData}
                         disabled={loading || seedingStatus === 'seeding'}

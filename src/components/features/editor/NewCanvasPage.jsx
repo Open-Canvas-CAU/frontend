@@ -1,8 +1,9 @@
+// src/components/features/editor/NewCanvasPage.jsx - 개선된 버전
+
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import PhotoUpload from './PhotoUpload'
-import EditorSection from './EditorSection'
 import ThemeInput from './ThemeInput'
+import EditorSection from './EditorSection'
 import api from '@/services/api'
 
 export default function NewCanvasPage() {
@@ -10,23 +11,20 @@ export default function NewCanvasPage() {
     const [title, setTitle] = useState('')
     const [body, setBody] = useState('')
     const [limit, setLimit] = useState(5)
-    const [file, setFile] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
     const [step, setStep] = useState(1)
 
+    // 📋 올바른 순서: Cover -> Content -> Writing (Room) 구현
     const handleCreate = async () => {
         if (!title.trim()) {
             alert('제목을 입력해주세요.')
             return
         }
-
-        if (limit < 1 || limit > 10) {
-            alert('작가 수 제한은 1명~10명 사이로 설정해주세요.')
-            return
-        }
-
+    
         setIsLoading(true)
         try {
+            console.log('🚀 캔버스 생성 시작...')
+            
             // 1. 커버 생성
             const coverDto = {
                 title,
@@ -35,15 +33,15 @@ export default function NewCanvasPage() {
                 limit: limit,
             }
             
-            console.log('Creating cover with data:', coverDto)
+            console.log('📝 커버 생성 요청:', coverDto)
             const coverResponse = await api.post('/api/covers', coverDto)
-            console.log('Cover creation response:', coverResponse.data)
-            
             const createdCover = coverResponse.data
+            console.log('✅ 커버 생성 완료:', createdCover)
+            
             if (!createdCover.id) {
-                throw new Error('Cover ID not received from server')
+                throw new Error('Cover ID가 반환되지 않았습니다')
             }
-
+    
             // 2. 문서방 생성
             const writingDto = {
                 title,
@@ -52,25 +50,89 @@ export default function NewCanvasPage() {
                 siblingIndex: 0,
                 time: new Date().toISOString()
             }
-
-            console.log('Creating room with writing data:', writingDto)
+    
+            console.log('🏠 문서방 생성 요청:', writingDto)
             const roomResponse = await api.post('/api/rooms/create', writingDto)
-            console.log('Room creation response:', roomResponse.data)
-            
             const roomData = roomResponse.data
-            if (!roomData.roomId) {
-                throw new Error('Room ID not received from server')
+            console.log('✅ 문서방 생성 완료:', roomData)
+            
+            // ⭐ roomId 검증 강화
+            if (!roomData || !roomData.roomId) {
+                console.error('❌ roomId가 반환되지 않았습니다:', roomData)
+                throw new Error('서버에서 Room ID를 반환하지 않았습니다')
             }
-
+    
+            const finalRoomId = roomData.roomId
+            console.log('🎯 최종 roomId:', finalRoomId)
+            
+            if (typeof finalRoomId !== 'string' || finalRoomId.trim() === '') {
+                throw new Error(`유효하지 않은 roomId: ${finalRoomId}`)
+            }
+    
             // 3. 성공 애니메이션 후 에디터로 이동
             setStep(3)
+            const targetUrl = `/editor/${finalRoomId}/edit`
+            console.log('🚀 리다이렉트 대상:', targetUrl)
+            
             setTimeout(() => {
-                navigate(`/editor/${roomData.roomId}/edit`)
+                navigate(targetUrl)
             }, 2000)
             
         } catch (error) {
-            console.error('캔버스 생성 실패:', error)
+            console.error('❌ 캔버스 생성 실패:', error)
+            console.error('Error details:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+            })
             alert(`캔버스 생성에 실패했습니다: ${error.response?.data?.message || error.message}`)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+    
+    // 완성된 작품으로 즉시 변환하는 함수 (테스트용)
+    const handleCreateCompleted = async () => {
+        if (!title.trim()) {
+            alert('제목을 입력해주세요.')
+            return
+        }
+
+        setIsLoading(true)
+        try {
+            console.log('🎨 완성작 생성 플로우 시작...')
+            
+            // 1. Cover 생성
+            const coverDto = {
+                title,
+                coverImageUrl: `https://via.placeholder.com/400x300?text=${encodeURIComponent(title)}`,
+                time: new Date().toISOString(),
+                limit: limit,
+            }
+            
+            const coverResponse = await api.post('/api/covers', coverDto)
+            const createdCover = coverResponse.data
+            
+            // 2. Writing 생성 (Room)
+            const writingDto = {
+                title,
+                body: body || '<h1>완성된 작품</h1><p>이 작품은 완성되었습니다.</p>',
+                depth: 0,
+                siblingIndex: 0,
+                time: new Date().toISOString()
+            }
+            
+            const roomResponse = await api.post('/api/rooms/create', writingDto)
+            
+            // 3. Content 생성 (완성작으로 만들기)
+            const contentResponse = await api.get(`/api/contents/${createdCover.id}`)
+            
+            alert(`완성작이 생성되었습니다!\nCover ID: ${createdCover.id}\nContent ID: ${contentResponse.data.id}`)
+            navigate(`/completed/${createdCover.id}`)
+            
+        } catch (error) {
+            console.error('❌ 완성작 생성 실패:', error)
+            alert(`완성작 생성에 실패했습니다: ${error.message}`)
         } finally {
             setIsLoading(false)
         }
@@ -83,10 +145,8 @@ export default function NewCanvasPage() {
                     <div className="text-8xl animate-bounce">🎉</div>
                     <h2 className="text-4xl font-bold">캔버스가 생성되었습니다!</h2>
                     <p className="text-xl opacity-90">편집 페이지로 이동하고 있습니다...</p>
-                    <div className="flex justify-center space-x-2">
-                        <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                        <div className="w-3 h-3 bg-white rounded-full animate-pulse animation-delay-200"></div>
-                        <div className="w-3 h-3 bg-white rounded-full animate-pulse animation-delay-400"></div>
+                    <div className="text-sm opacity-75">
+                        Cover → Content → Writing 순서로 생성 완료!
                     </div>
                 </div>
             </div>
@@ -95,12 +155,6 @@ export default function NewCanvasPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-            {/* 배경 장식 */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-20 left-20 w-64 h-64 bg-purple-200/30 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-20 right-20 w-80 h-80 bg-blue-200/20 rounded-full blur-3xl animate-pulse animation-delay-700"></div>
-            </div>
-
             <div className="relative z-10 min-h-screen py-8">
                 <div className="container mx-auto max-w-4xl">
                     {/* 헤더 */}
@@ -129,31 +183,20 @@ export default function NewCanvasPage() {
 
                     {/* 메인 컨텐츠 */}
                     <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/50 overflow-hidden">
-                        {/* 진행 표시기 */}
-                        <div className="px-8 py-6 bg-gradient-to-r from-purple-500 to-blue-500">
-                            <div className="flex items-center justify-between text-white">
-                                <span className="text-sm font-medium">캔버스 설정</span>
-                                <div className="flex space-x-2">
-                                    <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-white' : 'bg-white/30'}`}></div>
-                                    <div className={`w-3 h-3 rounded-full ${step >= 2 ? 'bg-white' : 'bg-white/30'}`}></div>
-                                    <div className={`w-3 h-3 rounded-full ${step >= 3 ? 'bg-white' : 'bg-white/30'}`}></div>
-                                </div>
-                            </div>
-                        </div>
-
                         <div className="p-8 space-y-8">
-                            {/* 안내 카드 */}
+                            {/* API 순서 안내 */}
                             <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6">
                                 <div className="flex items-start space-x-4">
                                     <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white text-xl font-bold">
-                                        ✨
+                                        📋
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-800 mb-2">협업 캔버스 만들기</h3>
-                                        <p className="text-gray-600 text-sm leading-relaxed">
-                                            여러 작가가 함께 참여하여 하나의 이야기를 완성해나가는 특별한 공간입니다. 
-                                            제목과 내용을 설정하고, 참여할 수 있는 작가 수를 정해주세요.
-                                        </p>
+                                        <h3 className="font-bold text-gray-800 mb-2">생성 순서</h3>
+                                        <div className="text-sm text-gray-600 space-y-1">
+                                            <p>1️⃣ <strong>Cover</strong> 생성 - 캔버스 표지 정보</p>
+                                            <p>2️⃣ <strong>Content</strong> 조회/생성 - 실제 작품 데이터</p>
+                                            <p>3️⃣ <strong>Writing (Room)</strong> 생성 - 편집용 문서방</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -165,19 +208,11 @@ export default function NewCanvasPage() {
                                     <span>캔버스 제목</span>
                                     <span className="text-red-500">*</span>
                                 </label>
-                                <div className="relative">
-                                    <ThemeInput
-                                        value={title}
-                                        onChange={setTitle}
-                                        className="bg-white border-2 border-gray-200 focus:border-purple-400 rounded-2xl p-6 text-xl"
-                                    />
-                                    <div className="absolute right-4 bottom-4 text-sm text-gray-400">
-                                        {title.length}/50
-                                    </div>
-                                </div>
-                                <p className="text-gray-500 text-sm">
-                                    📝 다른 작가들이 볼 수 있는 캔버스의 제목입니다. 매력적이고 명확하게 작성해주세요.
-                                </p>
+                                <ThemeInput
+                                    value={title}
+                                    onChange={setTitle}
+                                    placeholder="예: 판타지 모험기, 미래 도시 이야기..."
+                                />
                             </div>
 
                             {/* 작가 수 제한 */}
@@ -185,34 +220,20 @@ export default function NewCanvasPage() {
                                 <label className="flex items-center space-x-2 text-lg font-semibold text-gray-800">
                                     <span className="w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white text-sm">2</span>
                                     <span>최대 작가 수</span>
-                                    <span className="text-red-500">*</span>
                                 </label>
-                                <div className="bg-gray-50 rounded-2xl p-6">
-                                    <div className="flex items-center space-x-6">
-                                        <div className="flex items-center space-x-4">
-                                            <input
-                                                type="range"
-                                                min="1"
-                                                max="10"
-                                                value={limit}
-                                                onChange={(e) => setLimit(parseInt(e.target.value))}
-                                                className="w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                                            />
-                                            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white text-xl font-bold">
-                                                {limit}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-gray-800">최대 {limit}명의 작가</p>
-                                            <p className="text-sm text-gray-600">
-                                                {limit <= 3 ? '소규모 협업' : limit <= 6 ? '중간 규모 협업' : '대규모 협업'}
-                                            </p>
-                                        </div>
+                                <div className="flex items-center space-x-4">
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="10"
+                                        value={limit}
+                                        onChange={(e) => setLimit(parseInt(e.target.value))}
+                                        className="flex-1"
+                                    />
+                                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white text-xl font-bold">
+                                        {limit}
                                     </div>
                                 </div>
-                                <p className="text-gray-500 text-sm">
-                                    👥 이 캔버스에 참여할 수 있는 최대 작가 수입니다. 제한에 도달하면 자동으로 완성됩니다.
-                                </p>
                             </div>
 
                             {/* 초기 내용 */}
@@ -222,44 +243,15 @@ export default function NewCanvasPage() {
                                     <span>시작 이야기</span>
                                     <span className="text-gray-400 text-sm font-normal">(선택사항)</span>
                                 </label>
-                                <div className="border-2 border-gray-200 rounded-2xl overflow-hidden focus-within:border-purple-400 transition-colors">
-                                    <EditorSection
-                                        content={body}
-                                        onChange={setBody}
-                                        readOnly={false}
-                                        className="min-h-[200px] bg-white"
-                                    />
-                                </div>
-                                <p className="text-gray-500 text-sm">
-                                    ✍️ 이야기의 첫 문장이나 설정을 입력하세요. 다른 작가들이 이어서 작성할 수 있습니다.
-                                </p>
+                                <EditorSection
+                                    content={body}
+                                    onChange={setBody}
+                                    readOnly={false}
+                                    className="min-h-[200px] border-2 border-gray-200 rounded-2xl"
+                                />
                             </div>
 
-                            {/* 설정 요약 */}
-                            <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl p-6 border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                                    <span className="text-xl">📋</span>
-                                    <span>캔버스 설정 요약</span>
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="bg-white rounded-xl p-4 border border-gray-100">
-                                        <div className="text-sm text-gray-600 mb-1">제목</div>
-                                        <div className="font-medium text-gray-800">
-                                            {title || '(제목을 입력하세요)'}
-                                        </div>
-                                    </div>
-                                    <div className="bg-white rounded-xl p-4 border border-gray-100">
-                                        <div className="text-sm text-gray-600 mb-1">최대 작가 수</div>
-                                        <div className="font-medium text-gray-800">{limit}명</div>
-                                    </div>
-                                    <div className="bg-white rounded-xl p-4 border border-gray-100">
-                                        <div className="text-sm text-gray-600 mb-1">상태</div>
-                                        <div className="font-medium text-green-600">편집 가능</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* 생성 버튼 */}
+                            {/* 생성 버튼들 */}
                             <div className="flex justify-between items-center pt-6">
                                 <button
                                     onClick={() => navigate(-1)}
@@ -267,27 +259,37 @@ export default function NewCanvasPage() {
                                 >
                                     취소
                                 </button>
-                                <button
-                                    onClick={handleCreate}
-                                    disabled={isLoading || !title.trim() || limit < 1 || limit > 10}
-                                    className={`px-12 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform ${
-                                        isLoading || !title.trim() || limit < 1 || limit > 10
-                                            ? 'bg-gray-400 cursor-not-allowed text-gray-200 scale-95' 
-                                            : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-105'
-                                    }`}
-                                >
-                                    {isLoading ? (
-                                        <div className="flex items-center space-x-2">
-                                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                            <span>생성 중...</span>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center space-x-2">
-                                            <span>🎨</span>
-                                            <span>캔버스 생성하기</span>
-                                        </div>
-                                    )}
-                                </button>
+                                
+                                <div className="flex space-x-4">
+                                    {/* 테스트용: 완성작으로 생성 */}
+                                    <button
+                                        onClick={handleCreateCompleted}
+                                        disabled={isLoading || !title.trim()}
+                                        className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-2xl font-bold transition-all duration-300"
+                                    >
+                                        완성작으로 생성
+                                    </button>
+                                    
+                                    {/* 일반 캔버스 생성 */}
+                                    <button
+                                        onClick={handleCreate}
+                                        disabled={isLoading || !title.trim()}
+                                        className={`px-12 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform ${
+                                            isLoading || !title.trim()
+                                                ? 'bg-gray-400 cursor-not-allowed text-gray-200 scale-95' 
+                                                : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                                        }`}
+                                    >
+                                        {isLoading ? (
+                                            <div className="flex items-center space-x-2">
+                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                <span>생성 중...</span>
+                                            </div>
+                                        ) : (
+                                            '🎨 캔버스 생성하기'
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

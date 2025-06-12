@@ -1,3 +1,4 @@
+// src/components/features/editor/Canvaspage.jsx - 에러 해결 버전
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import CarouselEditor from './CarouselEditor.jsx'
@@ -100,56 +101,31 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
         }
     }
 
-    // WebSocket 연결 시도
-    const attemptWebSocketConnection = async () => {
-        if (!isEditing || !authService.isAuthenticated()) {
-            console.log('🚫 Skipping WebSocket connection (not editing or not authenticated)')
-            return
-        }
-
-        const attempts = connectionAttempts + 1
-        setConnectionAttempts(attempts)
-        
-        console.log(`🔌 WebSocket connection attempt ${attempts}...`)
-        
+    // 🔧 수정: 안전한 API 요청을 위한 헬퍼 함수
+    const safeApiCall = async (apiCall, errorMessage = '요청 실패') => {
         try {
-            websocketService.connect(roomId, {
-                onConnect: (frame) => {
-                    console.log('✅ WebSocket connected successfully:', frame)
-                    setWebsocketConnected(true)
-                    setWebsocketError(null)
-                    setConnectionAttempts(0)
-                    setShowConnectionStatus(false)
-                },
-                onMessage: (message) => {
-                    console.log('📨 WebSocket message received:', message)
-                    handleWebSocketMessage(message)
-                },
-                onError: (error) => {
-                    console.error('❌ WebSocket error:', error)
-                    setWebsocketConnected(false)
-                    setWebsocketError(error.message || 'WebSocket 연결 오류')
-                    
-                    // 3회 이상 실패하면 포기
-                    if (attempts >= 3) {
-                        console.log('🛑 Max WebSocket connection attempts reached')
-                        setShowConnectionStatus(true)
-                    }
-                },
-                onClose: () => {
-                    console.log('🔌 WebSocket disconnected')
-                    setWebsocketConnected(false)
-                }
-            })
+            // 인증 상태 먼저 확인
+            if (!authService.isAuthenticated()) {
+                throw new Error('로그인이 필요합니다')
+            }
+
+            return await apiCall()
         } catch (error) {
-            console.error('❌ WebSocket connection setup failed:', error)
-            setWebsocketError(error.message)
-            setWebsocketConnected(false)
+            console.error(`❌ ${errorMessage}:`, error)
+            
+            // 401 에러나 인증 관련 에러인 경우
+            if (error.response?.status === 401 || error.message.includes('Unauthorized')) {
+                console.log('🔑 인증 에러 감지, 로그인 페이지로 이동')
+                authService.logout()
+                navigate('/login', { state: { from: { pathname: `/editor/${roomId}` } } })
+                return null
+            }
+            
+            throw error
         }
     }
 
-    // 문서방 참여 및 데이터 로딩
-
+    // 🔧 수정: 문서방 참여 및 데이터 로딩
     useEffect(() => {
         async function joinRoomAndConnect() {
             if (!roomId) {
@@ -160,26 +136,61 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
             try {
                 setIsLoading(true);
-                const roomResponse = await api.get(`/api/rooms/${roomId}`);
+                setError(null);
+                
+                console.log('🚪 문서방 참여 시작:', roomId);
+
+                // 🔧 수정: 안전한 API 호출
+                const roomResponse = await safeApiCall(
+                    () => api.get(`/api/rooms/${roomId}`),
+                    '문서방 정보 조회 실패'
+                );
+                
+                if (!roomResponse) return; // 인증 에러로 리다이렉트된 경우
+                
+                console.log('🏠 문서방 정보:', roomResponse.data);
                 setRoomData(roomResponse.data);
 
-                const writingsResponse = await api.get(`/api/writings/room/${roomId}`);
-                const initialWritings = Array.isArray(writingsResponse.data) ? writingsResponse.data : [];
-                setWritings(initialWritings.length > 0 ? initialWritings : [{ body: '<p>이야기를 시작하세요...</p>' }]);
+                // 문서방 글 조회
+                const writingsResponse = await safeApiCall(
+                    () => api.get(`/api/writings/room/${roomId}`),
+                    '문서방 글 조회 실패'
+                );
+                
+                if (!writingsResponse) return; // 인증 에러로 리다이렉트된 경우
+                
+                console.log('📝 문서방 글:', writingsResponse.data);
+                
+                const initialWritings = Array.isArray(writingsResponse.data) 
+                    ? writingsResponse.data 
+                    : [];
+                    
+                setWritings(initialWritings.length > 0 
+                    ? initialWritings 
+                    : [{ body: '<p>이야기를 시작하세요...</p>' }]
+                );
 
-
+                // WebSocket 연결 (편집 모드에서만)
                 if (isEditing && authService.isAuthenticated()) {
-                    websocketService.connect(roomId, {
-                        onConnect: () => {
-                            setWebsocketConnected(true);
-                            console.log(`WebSocket 연결 성공: ${roomId}`);
-                        },
-                        onMessage: handleWebSocketMessage,
-                        onError: (err) => setError(`WebSocket 오류: ${err.message || '연결 실패'}`),
-                    });
+                    console.log('⚡ WebSocket 연결 시작...');
+                    attemptWebSocketConnection();
+                } else {
+                    console.log('👀 보기 모드 - WebSocket 연결 생략');
                 }
+
             } catch (err) {
-                setError(`문서방 정보를 불러올 수 없습니다: ${err.response?.data?.message || err.message}`);
+                console.error('❌ 문서방 참여 실패:', err);
+                
+                // 🔧 수정: 더 구체적인 에러 메시지
+                if (err.message.includes('로그인이 필요')) {
+                    setError('로그인이 필요합니다. 다시 로그인해주세요.');
+                } else if (err.response?.status === 404) {
+                    setError('문서방을 찾을 수 없습니다. 이미 삭제되었거나 잘못된 주소일 수 있습니다.');
+                } else if (err.response?.status === 403) {
+                    setError('이 문서방에 접근할 권한이 없습니다.');
+                } else {
+                    setError(`문서방 참여에 실패했습니다: ${err.response?.data?.message || err.message}`);
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -187,65 +198,61 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
         
         joinRoomAndConnect();
 
-        return () => {
-            if (websocketService.client?.active) {
-                websocketService.disconnect();
-            }
-        };
-    }, [roomId, isEditing]);
-
-    useEffect(() => {
-        async function joinRoom() {
-            try {
-                setIsLoading(true)
-                setError(null)
-                console.log('🚪 Joining room:', roomId)
-
-                // 1. 문서방 참여
-                const roomResponse = await api.get(`/api/rooms/${roomId}`)
-                console.log('🏠 Room response:', roomResponse.data)
-                setRoomData(roomResponse.data)
-
-                // 2. 문서방 글 조회
-                const writingsResponse = await api.get(`/api/writings/room/${roomId}`)
-                console.log('📝 Writings response:', writingsResponse.data)
-                
-                const data = writingsResponse.data
-                const writingsArray = Array.isArray(data) ? data : (data ? [data] : [])
-                setWritings(writingsArray)
-
-                // 3. WebSocket 연결 시도 (편집 모드에서만)
-                if (isEditing) {
-                    console.log('⚡ Attempting WebSocket connection for editing mode...')
-                    await attemptWebSocketConnection()
-                } else {
-                    console.log('👀 View mode - skipping WebSocket connection')
-                }
-
-            } catch (error) {
-                console.error('❌ Room joining failed:', error)
-                setError(`문서방 참여에 실패했습니다: ${error.response?.data?.message || error.message}`)
-            } finally {
-                setIsLoading(false)
-            }
-        }
-
-        if (roomId) {
-            joinRoom()
-        }
-
         // Cleanup: WebSocket 연결 해제
         return () => {
             if (websocketConnected) {
                 try {
-                    websocketService.disconnect()
-                    console.log('🧹 WebSocket cleanup completed')
+                    websocketService.disconnect();
+                    console.log('🧹 WebSocket cleanup 완료');
                 } catch (e) {
-                    console.warn('⚠️ WebSocket cleanup error:', e)
+                    console.warn('⚠️ WebSocket cleanup 에러:', e);
                 }
             }
+        };
+    }, [roomId, isEditing]); // navigate 의존성 제거
+
+    // WebSocket 연결 시도
+    const attemptWebSocketConnection = async () => {
+        const attempts = connectionAttempts + 1;
+        setConnectionAttempts(attempts);
+        
+        console.log(`🔌 WebSocket 연결 시도 ${attempts}...`);
+        
+        try {
+            websocketService.connect(roomId, {
+                onConnect: (frame) => {
+                    console.log('✅ WebSocket 연결 성공:', frame);
+                    setWebsocketConnected(true);
+                    setWebsocketError(null);
+                    setConnectionAttempts(0);
+                    setShowConnectionStatus(false);
+                },
+                onMessage: (message) => {
+                    console.log('📨 WebSocket 메시지 수신:', message);
+                    handleWebSocketMessage(message);
+                },
+                onError: (error) => {
+                    console.error('❌ WebSocket 에러:', error);
+                    setWebsocketConnected(false);
+                    setWebsocketError(error.message || 'WebSocket 연결 오류');
+                    
+                    // 3회 이상 실패하면 포기
+                    if (attempts >= 3) {
+                        console.log('🛑 최대 WebSocket 연결 시도 횟수 초과');
+                        setShowConnectionStatus(true);
+                    }
+                },
+                onClose: () => {
+                    console.log('🔌 WebSocket 연결 종료');
+                    setWebsocketConnected(false);
+                }
+            });
+        } catch (error) {
+            console.error('❌ WebSocket 연결 설정 실패:', error);
+            setWebsocketError(error.message);
+            setWebsocketConnected(false);
         }
-    }, [roomId, isEditing])
+    };
 
     // WebSocket 메시지 처리
     const handleWebSocketMessage = (message) => {
@@ -262,43 +269,30 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
         }
     };
 
-    // 원격 편집 처리
-    const handleRemoteEdit = (message) => {
-        const blockNum = parseInt(message.num || '0')
-        console.log(`✏️ Remote edit for block ${blockNum}:`, message.message)
-        
-        setWritings(prev => {
-            const copy = [...prev]
-            if (copy[blockNum]) {
-                copy[blockNum] = { ...copy[blockNum], body: message.message }
-            }
-            return copy
-        })
-    }
-
     // 로컬 편집 처리 (WebSocket으로 전송)
     const handleLocalEdit = (index, html) => {
         const newWritings = [...writings];
         newWritings[index] = { ...newWritings[index], body: html };
         setWritings(newWritings);
 
-        if (isEditing && websocketService.throttledSend) {
-            websocketService.throttledSend(html);
+        if (isEditing && websocketService.isConnectedToRoom()) {
+            websocketService.sendThrottledMessage(index, html);
         }
     };
 
     // WebSocket 수동 재연결
     const handleWebSocketReconnect = () => {
-        console.log('🔄 Manual WebSocket reconnection...')
-        setConnectionAttempts(0)
-        setWebsocketError(null)
-        attemptWebSocketConnection()
-    }
+        console.log('🔄 수동 WebSocket 재연결...');
+        setConnectionAttempts(0);
+        setWebsocketError(null);
+        setShowConnectionStatus(false);
+        attemptWebSocketConnection();
+    };
 
     // 임시 저장
     const handleSave = async () => {
         try {
-            console.log('💾 Saving writings as draft:', writings)
+            console.log('💾 임시저장 시작:', writings);
             
             const writingDto = {
                 title: roomData?.title || '제목 없음',
@@ -306,34 +300,38 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                 depth: 0,
                 siblingIndex: 0,
                 time: new Date().toISOString()
-            }
+            };
 
-            await api.post('/api/writings', writingDto)
-            alert('임시저장되었습니다!')
+            await safeApiCall(
+                () => api.post('/api/writings', writingDto),
+                '임시저장 실패'
+            );
+
+            alert('임시저장되었습니다!');
             
         } catch (error) {
-            console.error('❌ Save failed:', error)
-            alert(`임시저장에 실패했습니다: ${error.response?.data?.message || error.message}`)
+            console.error('❌ 임시저장 실패:', error);
+            alert(`임시저장에 실패했습니다: ${error.response?.data?.message || error.message}`);
         }
-    }
+    };
 
     // 완성하기 모달 열기
     const handleCompleteClick = () => {
         if (!canComplete) {
-            alert(`완성하려면 최소 ${COMPLETION_CRITERIA.MIN_WORDS}단어 또는 ${COMPLETION_CRITERIA.MIN_CHARACTERS}글자 이상 작성해야 합니다.`)
-            return
+            alert(`완성하려면 최소 ${COMPLETION_CRITERIA.MIN_WORDS}단어 또는 ${COMPLETION_CRITERIA.MIN_CHARACTERS}글자 이상 작성해야 합니다.`);
+            return;
         }
-        setShowCompletionModal(true)
-    }
+        setShowCompletionModal(true);
+    };
 
     // 작품 완성 처리
     const handleComplete = async () => {
         if (!canComplete) {
-            alert('완성 조건을 충족하지 않습니다.')
-            return
+            alert('완성 조건을 충족하지 않습니다.');
+            return;
         }
 
-        setIsCompleting(true)
+        setIsCompleting(true);
         try {
             const writingDto = {
                 title: roomData?.title || '제목 없음',
@@ -341,70 +339,95 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                 depth: 0,
                 siblingIndex: 0,
                 time: new Date().toISOString()
-            }
+            };
 
-            await api.post('/api/writings', writingDto)
-            alert('작품이 저장되었습니다.')
-            setShowCompletionModal(false)
+            await safeApiCall(
+                () => api.post('/api/writings', writingDto),
+                '작품 완성 실패'
+            );
+
+            alert('작품이 저장되었습니다.');
+            setShowCompletionModal(false);
             
         } catch (error) {
-            console.error('❌ Complete failed:', error)
-            alert(`작품 완성에 실패했습니다: ${error.response?.data?.message || error.message}`)
+            console.error('❌ 작품 완성 실패:', error);
+            alert(`작품 완성에 실패했습니다: ${error.response?.data?.message || error.message}`);
         } finally {
-            setIsCompleting(false)
+            setIsCompleting(false);
         }
-    }
+    };
 
     // 문서방 나가기
     const handleExit = async () => {
         try {
             if (websocketConnected) {
-                websocketService.disconnect()
+                websocketService.disconnect();
             }
             
-            await api.post(`/api/rooms/exit`, null, { params: { roomId } })
-            navigate(-1)
+            // 🔧 수정: 안전한 나가기 API 호출
+            await safeApiCall(
+                () => api.post(`/api/rooms/exit`, null, { params: { roomId } }),
+                '문서방 나가기 실패'
+            );
+            
+            console.log('🚪 문서방 나가기 완료');
         } catch (error) {
-            console.error('❌ Exit failed:', error)
-            navigate(-1)
+            console.error('❌ 문서방 나가기 실패:', error);
+            // 에러가 발생해도 페이지에서는 나가기
+        } finally {
+            navigate(-1);
         }
-    }
+    };
 
     // 신고 모달 열기
     const handleReportClick = () => {
-        setShowReportModal(true)
-    }
+        setShowReportModal(true);
+    };
 
     // 신고 제출
     const handleReportSubmit = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
         if (!reportReason.trim()) {
-            alert('신고 사유를 입력해주세요.')
-            return
+            alert('신고 사유를 입력해주세요.');
+            return;
         }
 
-        setIsReporting(true)
+        setIsReporting(true);
         try {
-            await api.post('/api/reports', {
-                title: roomData?.title || '제목 없음',
-                depth: 0,
-                siblingIndex: 0,
-                body: reportReason,
-                time: new Date().toISOString()
-            })
-            alert('신고가 접수되었습니다.')
-            setShowReportModal(false)
-            setReportReason('')
+            await safeApiCall(
+                () => api.post('/api/reports', {
+                    title: roomData?.title || '제목 없음',
+                    depth: 0,
+                    siblingIndex: 0,
+                    body: reportReason,
+                    time: new Date().toISOString()
+                }),
+                '신고 제출 실패'
+            );
+
+            alert('신고가 접수되었습니다.');
+            setShowReportModal(false);
+            setReportReason('');
         } catch (error) {
-            console.error('❌ Report failed:', error)
-            alert('신고 제출에 실패했습니다.')
+            console.error('❌ 신고 제출 실패:', error);
+            alert('신고 제출에 실패했습니다.');
         } finally {
-            setIsReporting(false)
+            setIsReporting(false);
         }
-    }
+    };
 
     if (isLoading) return <div className="p-8 text-center">로딩 중...</div>;
-    if (error) return <div className="p-8 text-center text-red-500">오류: {error}</div>;
+    if (error) return (
+        <div className="p-8 text-center">
+            <div className="text-red-500 mb-4">오류: {error}</div>
+            <button 
+                onClick={() => navigate(-1)}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+                뒤로 가기
+            </button>
+        </div>
+    );
 
     return (
         <div className="min-h-screen">
@@ -499,7 +522,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                     />
 
                     {/* 신고 버튼 - 편집 모드가 아닐 때만 표시 */}
-                    {isEditing && !error && (
+                    {!isEditing && !error && (
                         <div className="flex justify-end">
                             <button
                                 onClick={handleReportClick}

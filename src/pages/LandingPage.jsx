@@ -131,48 +131,30 @@ export default function LandingPage() {
         fetchCovers()
     }, [filter, location.pathname])
 
+    // src/pages/LandingPage.jsx에서 기존의 handleCardClick 함수를 찾아서 
+// 아래 코드로 완전히 교체하세요
+
     const handleCardClick = (doc) => {
         console.log('🖱️ Card clicked:', doc)
         
         if (location.pathname === '/workingon') {
-            // 작업 중인 캔버스 (contentId가 null이거나 undefined)
-            const before = filteredCovers.length
-            filteredCovers = response.data.filter(cover => {
-                const isWorking = cover.contentId === null || cover.contentId === undefined
-                console.log(`🎨 Cover "${cover.title}": contentId=${cover.contentId}, roomType=${cover.roomType}, isWorking=${isWorking}`)
-                return isWorking
-            })
-            
-            debug.beforeFilter = before
-            debug.afterFilter = filteredCovers.length
-            debug.workingCovers = filteredCovers.map(c => ({
-                id: c.id,
-                title: c.title,
-                contentId: c.contentId,
-                roomType: c.roomType,
-                roomId: c.roomId  // roomId도 포함
-            }))
-            
-            console.log(`📊 Working canvas filter: ${before} → ${filteredCovers.length}`)
+            // 작업 중인 캔버스 - 편집 모드로 이동
+            if (doc.roomId) {
+                console.log(`🎨 Navigating to editor: /editor/${doc.roomId}/edit`)
+                navigate(`/editor/${doc.roomId}/edit`)
+            } else {
+                console.error('❌ No roomId found for working canvas:', doc)
+                alert('편집할 수 없는 캔버스입니다. Room ID가 없습니다.')
+            }
         } else {
-            // 완성된 캔버스 (contentId가 있음)
-            const before = filteredCovers.length
-            filteredCovers = response.data.filter(cover => {
-                const isCompleted = cover.contentId !== null && cover.contentId !== undefined
-                console.log(`🎭 Cover "${cover.title}": contentId=${cover.contentId}, roomType=${cover.roomType}, isCompleted=${isCompleted}`)
-                return isCompleted
-            })
-            
-            debug.beforeFilter = before
-            debug.afterFilter = filteredCovers.length
-            debug.completedCovers = filteredCovers.map(c => ({
-                id: c.id,
-                title: c.title,
-                contentId: c.contentId,
-                roomType: c.roomType
-            }))
-            
-            console.log(`📊 Completed canvas filter: ${before} → ${filteredCovers.length}`)
+            // 완성된 캔버스 - 완성작 보기로 이동  
+            if (doc.contentId) {
+                console.log(`🎭 Navigating to completed work: /completed/${doc.id}`)
+                navigate(`/completed/${doc.id}`) // coverId로 이동
+            } else {
+                console.error('❌ No contentId found for completed canvas:', doc)
+                alert('완성되지 않은 작품입니다.')
+            }
         }
     }
 

@@ -7,7 +7,7 @@ import IllustrationGenerator from '../illustration/IllustrationGenerator';
 import { illustrationService } from '@/services/illustrationService';
 import { recommendService } from '@/services/recommendService';
 import { authService } from '@/services/authService';
-import api from '@/services/api';
+import { coverService } from '@/services/coverService';
 
 export default function NewCanvasPage() {
   const navigate = useNavigate();
@@ -63,29 +63,43 @@ export default function NewCanvasPage() {
     try {
       const currentUser = authService.getCurrentUser();
       
-      // 커버 생성
+      // 1. Cover 생성
       setLoadingMessage('표지 정보 생성 중...');
-      const coverDto = { 
+      const coverData = { 
         title, 
         coverImageUrl: coverImageUrl || `https://via.placeholder.com/400x300/1a1a1a/ffffff?text=${encodeURIComponent(title)}`, 
         time: new Date().toISOString(), 
-        limit 
+        limit,
+        genres,
+        roomType: 'AVAILABLE' // 초기 상태는 AVAILABLE
       };
-      const coverRes = await api.post('/api/covers', coverDto);
-      const createdCover = coverRes.data;
+
+      // 2. Content 생성
+      setLoadingMessage('편집 공간 마련 중...');
+      const contentData = {
+        title,
+        body: body || '<p>새로운 캔버스가 시작되었습니다.</p>',
+        depth: 0,
+        siblingIndex: 0,
+        time: new Date().toISOString()
+      };
+
+      // 3. Cover와 Content를 함께 생성
+      const { cover, content } = await coverService.createDocumentRoom(coverData, contentData);
 
       // AI 일러스트 생성 (백그라운드에서 처리)
       if (!hasCustomImage && title.trim()) {
         setLoadingMessage('AI 일러스트 생성 중...');
         try {
           const generatedImageUrl = await illustrationService.generateAndSaveCoverImage({
-            postId: createdCover.id,
+            postId: cover.id,
             title,
             genres,
             content: body || title
           });
           
-          // 생성된 이미지로 커버 업데이트 (별도 API 필요 시)
+          // 생성된 이미지로 cover 업데이트
+          await coverService.updateCoverImage(cover.id, generatedImageUrl);
           setCoverImageUrl(generatedImageUrl);
           console.log('✅ AI 일러스트 생성 완료:', generatedImageUrl);
         } catch (imgError) {
@@ -93,24 +107,11 @@ export default function NewCanvasPage() {
         }
       }
 
-      // 문서방 생성 (처음 글 포함)
-      setLoadingMessage('편집 공간 마련 중...');
-      const initialDto = {
-        title,
-        body: body || '<p>새로운 캔버스가 시작되었습니다.</p>',
-        depth: 0,
-        siblingIndex: 0,
-        time: new Date().toISOString()
-      };
-      const roomRes = await api.post('/api/rooms/create', initialDto);
-      const roomData = roomRes.data;
-      if (!roomData?.roomId) throw new Error('Room ID를 반환받지 못했습니다.');
-
       // 추천시스템 연동
       setLoadingMessage('추천시스템 연동 중...');
       if (currentUser?.id) {
         await recommendService.onCanvasCreated({
-          coverId: createdCover.id,
+          coverId: cover.id,
           title,
           content: body,
           genres
@@ -120,7 +121,7 @@ export default function NewCanvasPage() {
       // 이동
       setStep(3);
       setLoadingMessage('편집 페이지로 이동 중...');
-      setTimeout(() => navigate(`/editor/${roomData.roomId}/edit`), 1000);
+      setTimeout(() => navigate(`/editor/${cover.id}/edit`), 1000);
       
     } catch (err) {
       console.error('캔버스 생성 실패:', err);
@@ -137,60 +138,59 @@ export default function NewCanvasPage() {
     }
     
     setIsLoading(true);
-    
+    setLoadingMessage('완성작 생성 중...');
+
     try {
       const currentUser = authService.getCurrentUser();
       
-      // 커버 생성
-      setLoadingMessage('1/4: 표지 생성 중...');
-      const coverDto = { 
+      // 1. Cover 생성 (COMPLETE 상태로)
+      setLoadingMessage('표지 정보 생성 중...');
+      const coverData = { 
         title, 
         coverImageUrl: coverImageUrl || `https://via.placeholder.com/400x300/1a1a1a/ffffff?text=${encodeURIComponent(title)}`, 
         time: new Date().toISOString(), 
-        limit 
+        limit,
+        genres,
+        roomType: 'COMPLETE' // 완성 상태로 생성
       };
-      const coverRes = await api.post('/api/covers', coverDto);
-      const createdCover = coverRes.data;
-      if (!createdCover?.id) throw new Error('커버 생성 실패');
 
-      // AI 일러스트 생성
-      if (!hasCustomImage && title.trim()) {
-        setLoadingMessage('2/4: AI 일러스트 생성 중...');
-        try {
-          const generatedImageUrl = await illustrationService.generateAndSaveCoverImage({
-            postId: createdCover.id,
-            title,
-            genres,
-            content: body || title
-          });
-          setCoverImageUrl(generatedImageUrl);
-          console.log('✅ AI 일러스트 생성 완료:', generatedImageUrl);
-        } catch (imgError) {
-          console.warn('⚠️ AI 일러스트 생성 실패:', imgError.message);
-        }
-      }
-
-      // 문서방 생성
-      setLoadingMessage('3/4: 문서방 생성 중...');
-      const initialDto = {
+      // 2. Content 생성
+      setLoadingMessage('내용 저장 중...');
+      const contentData = {
         title,
-        body: body || `<h1>${title}</h1><p>완성된 이야기입니다.</p>`,
+        body: body || '<p>새로운 캔버스가 시작되었습니다.</p>',
         depth: 0,
         siblingIndex: 0,
         time: new Date().toISOString()
       };
-      const roomRes = await api.post('/api/rooms/create', initialDto);
-      const roomData = roomRes.data;
-      if (!roomData?.roomId) throw new Error('Room 생성 실패');
 
-      // 방 종료 및 저장 (완성본 생성)
-      setLoadingMessage('4/4: 완성본 저장 중...');
-      await api.post('/api/rooms/exit', { roomId: roomData.roomId, writingDtos: roomData.writingDtos });
+      // 3. Cover와 Content를 함께 생성
+      const { cover, content } = await coverService.createDocumentRoom(coverData, contentData);
+
+      // AI 일러스트 생성 (백그라운드에서 처리)
+      if (!hasCustomImage && title.trim()) {
+        setLoadingMessage('AI 일러스트 생성 중...');
+        try {
+          const generatedImageUrl = await illustrationService.generateAndSaveCoverImage({
+            postId: cover.id,
+            title,
+            genres,
+            content: body || title
+          });
+          
+          // 생성된 이미지로 cover 업데이트
+          await coverService.updateCoverImage(cover.id, generatedImageUrl);
+          setCoverImageUrl(generatedImageUrl);
+          console.log('✅ AI 일러스트 생성 완료:', generatedImageUrl);
+        } catch (imgError) {
+          console.warn('⚠️ AI 일러스트 생성 실패 (기본 이미지 사용):', imgError.message);
+        }
+      }
 
       // 추천시스템 연동
       if (currentUser?.id) {
         await recommendService.onCanvasCreated({
-          coverId: createdCover.id,
+          coverId: cover.id,
           title,
           content: body,
           genres
@@ -199,7 +199,7 @@ export default function NewCanvasPage() {
 
       setStep(3);
       setLoadingMessage('완성작 생성 완료! 페이지로 이동합니다.');
-      setTimeout(() => navigate(`/completed/${createdCover.id}`), 1500);
+      setTimeout(() => navigate(`/completed/${cover.id}`), 1500);
       
     } catch (err) {
       console.error('완성작 생성 실패:', err);

@@ -73,5 +73,82 @@ export const coverService = {
       console.error('사용자 캔버스 조회 실패:', error)
       throw error
     }
+  },
+
+  /**
+   * 특정 ID의 cover 정보를 조회합니다.
+   * @param {string | number} coverId - 조회할 cover의 ID
+   * @returns {Promise<object>} CoverDto 객체를 포함하는 Promise
+   */
+  getCoverById: async (coverId) => {
+    try {
+      const response = await api.get(`/api/covers/${coverId}`)
+      return response
+    } catch (error) {
+      console.error('Cover 조회 실패:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Cover의 상태를 업데이트합니다.
+   * @param {string | number} coverId - 업데이트할 cover의 ID
+   * @param {'EDITING' | 'AVAILABLE' | 'COMPLETE'} status - 변경할 상태
+   * @returns {Promise<object>} 업데이트된 CoverDto 객체
+   */
+  updateCoverStatus: async (coverId, status) => {
+    try {
+      const response = await api.patch(`/api/covers/${coverId}/status`, null, {
+        params: { status }
+      })
+      return response
+    } catch (error) {
+      console.error('Cover 상태 업데이트 실패:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 새로운 문서방을 생성합니다.
+   * 1. 먼저 cover를 생성하고
+   * 2. 생성된 coverId로 content를 생성합니다.
+   * @param {object} coverData - cover 생성에 필요한 데이터
+   * @param {object} contentData - content 생성에 필요한 데이터
+   * @returns {Promise<{cover: object, content: object}>} 생성된 cover와 content 정보
+   */
+  createDocumentRoom: async (coverData, contentData) => {
+    try {
+      // 1. Cover 생성
+      const coverResponse = await api.post('/api/covers', coverData)
+      const coverId = coverResponse.data.id
+
+      // 2. Content 생성
+      const contentResponse = await api.post(`/api/contents/${coverId}`, contentData)
+
+      return {
+        cover: coverResponse.data,
+        content: contentResponse.data
+      }
+    } catch (error) {
+      console.error('문서방 생성 실패:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 문서방에서 나가기
+   * @param {string | number} roomId - 나갈 방의 ID
+   * @returns {Promise<object>} API 응답 데이터
+   */
+  exitRoom: async (roomId) => {
+    try {
+      const response = await api.post('/api/rooms/exit', null, {
+        params: { roomId }
+      })
+      return response
+    } catch (error) {
+      console.error('방 나가기 실패:', error)
+      throw error
+    }
   }
 }

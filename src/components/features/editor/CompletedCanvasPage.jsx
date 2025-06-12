@@ -6,7 +6,7 @@ import EditorSection from './EditorSection';
 import { authService } from '@/services/authService';
 
 export default function CompletedCanvasPage() {
-    const { contentId } = useParams();
+    const { coverId } = useParams();
     const navigate = useNavigate();
     const editorRef = useRef(null);
 
@@ -38,29 +38,93 @@ export default function CompletedCanvasPage() {
         const fetchCanvasData = async () => {
             setIsLoading(true);
             try {
-                const data = await canvasService.getCanvasDetail(contentId);
+                // coverId로 컨텐츠 조회 (API가 coverId를 받는다면)
+                const data = await canvasService.getCanvasDetail(coverId);
                 setCanvasData(data);
                 
                 if (data.writingDtos && data.writingDtos.length > 0) {
                     setCurrentWriting(data.writingDtos[0]);
                 }
 
-                // 댓글 로딩
-                const commentsData = await canvasService.getComments(contentId);
-                setComments(Array.isArray(commentsData) ? commentsData : []);
+                // 댓글 로딩 - API 스키마상 contentId 필요
+                if (data.id) { // content의 실제 ID
+                    const commentsData = await canvasService.getComments(data.id);
+                    setComments(Array.isArray(commentsData) ? commentsData : []);
+                }
                 
             } catch (e) {
                 console.error('캔버스 데이터를 불러오는데 실패했습니다:', e);
-                setError('데이터를 불러오는 중 오류가 발생했습니다.');
+                if (e.response?.status === 404) {
+                    setError(`완성된 작품을 찾을 수 없습니다. (Cover ID: ${coverId})`);
+                } else {
+                    setError('데이터를 불러오는 중 오류가 발생했습니다.');
+                }
             } finally {
                 setIsLoading(false);
             }
         };
         
-        if (contentId) {
+        if (coverId) {
             fetchCanvasData();
         }
-    }, [contentId]);
+    }, [coverId]);
+
+    // 댓글 작성 함수도 contentId 사용하도록 수정
+    const handleCommentSubmit = async (e) => {
+        e.preventDefault();
+        if (!newComment.trim() || isCommenting) return;
+
+        if (!authService.isAuthenticated()) {
+            alert('댓글을 작성하려면 로그인이 필요합니다.');
+            navigate('/login');
+            return;
+        }
+
+        setIsCommenting(true);
+        try {
+            const newCommentData = await canvasService.addComment({
+                contentId: canvasData.id, // canvasData.id가 실제 contentId
+                body: newComment,
+            });
+            setComments(prev => [...prev, newCommentData]);
+            setNewComment('');
+        } catch (e) {
+            console.error('댓글 작성 실패:', e);
+            alert('댓글 작성에 실패했습니다.');
+        } finally {
+            setIsCommenting(false);
+        }
+    };
+
+    // 댓글 삭제 함수도 contentId 사용하도록 수정
+    const handleCommentDelete = async (commentId) => {
+        if (!confirm('댓글을 삭제하시겠습니까?')) return;
+
+        try {
+            await canvasService.deleteComment(commentId, canvasData.id); // canvasData.id 사용
+            setComments(prev => prev.filter(comment => comment.id !== commentId));
+        } catch (e) {
+            console.error('댓글 삭제 실패:', e);
+            alert('댓글 삭제에 실패했습니다.');
+        }
+    };
+
+    // 좋아요 토글도 contentId 사용
+    const handleLikeToggle = async () => {
+        if (!canvasData || isLiking) return;
+        
+        setIsLiking(true);
+        try {
+            const newLikeType = canvasData.likeType === 'LIKE' ? null : 'LIKE';
+            const updatedCanvas = await canvasService.toggleLike(canvasData.id, newLikeType || 'LIKE');
+            setCanvasData(updatedCanvas);
+        } catch (e) {
+            console.error('좋아요 토글 실패:', e);
+            alert('좋아요 상태 변경에 실패했습니다.');
+        } finally {
+            setIsLiking(false);
+        }
+    };
 
     // 텍스트 선택 감지
     const handleTextSelection = useCallback(() => {
@@ -114,62 +178,7 @@ export default function CompletedCanvasPage() {
         }
     };
 
-    // 좋아요 토글
-    const handleLikeToggle = async () => {
-        if (!canvasData || isLiking) return;
-        
-        setIsLiking(true);
-        try {
-            const newLikeType = canvasData.likeType === 'LIKE' ? null : 'LIKE';
-            const updatedCanvas = await canvasService.toggleLike(contentId, newLikeType || 'LIKE');
-            setCanvasData(updatedCanvas);
-        } catch (e) {
-            console.error('좋아요 토글 실패:', e);
-            alert('좋아요 상태 변경에 실패했습니다.');
-        } finally {
-            setIsLiking(false);
-        }
-    };
 
-    // 댓글 작성
-    const handleCommentSubmit = async (e) => {
-        e.preventDefault();
-        if (!newComment.trim() || isCommenting) return;
-
-        if (!authService.isAuthenticated()) {
-            alert('댓글을 작성하려면 로그인이 필요합니다.');
-            navigate('/login');
-            return;
-        }
-
-        setIsCommenting(true);
-        try {
-            const newCommentData = await canvasService.addComment({
-                contentId: parseInt(contentId),
-                body: newComment,
-            });
-            setComments(prev => [...prev, newCommentData]);
-            setNewComment('');
-        } catch (e) {
-            console.error('댓글 작성 실패:', e);
-            alert('댓글 작성에 실패했습니다.');
-        } finally {
-            setIsCommenting(false);
-        }
-    };
-
-    // 댓글 삭제
-    const handleCommentDelete = async (commentId) => {
-        if (!confirm('댓글을 삭제하시겠습니까?')) return;
-
-        try {
-            await canvasService.deleteComment(commentId, contentId);
-            setComments(prev => prev.filter(comment => comment.id !== commentId));
-        } catch (e) {
-            console.error('댓글 삭제 실패:', e);
-            alert('댓글 삭제에 실패했습니다.');
-        }
-    };
 
     // 버전 트리에서 노드 클릭
     const handleVersionNodeClick = (writingNode) => {
@@ -182,6 +191,7 @@ export default function CompletedCanvasPage() {
                 <div className="text-center space-y-4">
                     <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
                     <div className="text-xl text-gray-700">작품을 불러오고 있습니다...</div>
+                    <div className="text-sm text-gray-500">Cover ID: {coverId}</div>
                 </div>
             </div>
         );
@@ -193,11 +203,18 @@ export default function CompletedCanvasPage() {
                 <div className="text-center space-y-4 max-w-md">
                     <div className="text-6xl">⚠️</div>
                     <div className="text-xl text-red-600">{error}</div>
+                    <div className="text-sm text-gray-600">Cover ID: {coverId}</div>
                     <button
                         onClick={() => navigate(-1)}
                         className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                     >
                         뒤로 가기
+                    </button>
+                    <button
+                        onClick={() => navigate('/debug')}
+                        className="ml-4 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                        DB 데이터 확인
                     </button>
                 </div>
             </div>

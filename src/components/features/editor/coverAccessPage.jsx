@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { coverService } from '../../services/coverService';
-import { authService } from '../../services/authService';
-import api from '../../services/api';
+import { coverService } from '@/services/coverService';
+import { authService } from '@/services/authService';
+import api from '@/services/api';
 
 export default function CoverAccessPage() {
     const { coverId } = useParams();

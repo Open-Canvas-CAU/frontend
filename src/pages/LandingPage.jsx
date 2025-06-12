@@ -84,7 +84,8 @@ export default function LandingPage() {
                             id: c.id,
                             title: c.title,
                             contentId: c.contentId,
-                            roomType: c.roomType
+                            roomType: c.roomType,
+                            roomId: c.roomId
                         }))
                         
                         console.log(`📊 Working canvas filter: ${before} → ${filteredCovers.length}`)
@@ -134,26 +135,44 @@ export default function LandingPage() {
         console.log('🖱️ Card clicked:', doc)
         
         if (location.pathname === '/workingon') {
-            // 작업 중인 캔버스 → 에디터로
-            if (doc.roomId) {
-                console.log('→ Going to editor with roomId:', doc.roomId)
-                navigate(`/editor/${doc.roomId}/edit`)
-            } else if (doc.id) {
-                console.log('→ Going to editor with id:', doc.id) 
-                navigate(`/editor/${doc.id}/edit`)
-            } else {
-                console.error('❌ No valid ID found for working canvas')
-                alert('캔버스 정보가 올바르지 않습니다.')
-            }
+            // 작업 중인 캔버스 (contentId가 null이거나 undefined)
+            const before = filteredCovers.length
+            filteredCovers = response.data.filter(cover => {
+                const isWorking = cover.contentId === null || cover.contentId === undefined
+                console.log(`🎨 Cover "${cover.title}": contentId=${cover.contentId}, roomType=${cover.roomType}, isWorking=${isWorking}`)
+                return isWorking
+            })
+            
+            debug.beforeFilter = before
+            debug.afterFilter = filteredCovers.length
+            debug.workingCovers = filteredCovers.map(c => ({
+                id: c.id,
+                title: c.title,
+                contentId: c.contentId,
+                roomType: c.roomType,
+                roomId: c.roomId  // roomId도 포함
+            }))
+            
+            console.log(`📊 Working canvas filter: ${before} → ${filteredCovers.length}`)
         } else {
-            // 완성된 캔버스 → 완성작 보기로
-            if (doc.contentId) {
-                console.log('→ Going to completed with contentId:', doc.contentId)
-                navigate(`/completed/${doc.contentId}`)
-            } else {
-                console.error('❌ No contentId found for completed canvas')
-                alert('완성되지 않은 작품입니다.')
-            }
+            // 완성된 캔버스 (contentId가 있음)
+            const before = filteredCovers.length
+            filteredCovers = response.data.filter(cover => {
+                const isCompleted = cover.contentId !== null && cover.contentId !== undefined
+                console.log(`🎭 Cover "${cover.title}": contentId=${cover.contentId}, roomType=${cover.roomType}, isCompleted=${isCompleted}`)
+                return isCompleted
+            })
+            
+            debug.beforeFilter = before
+            debug.afterFilter = filteredCovers.length
+            debug.completedCovers = filteredCovers.map(c => ({
+                id: c.id,
+                title: c.title,
+                contentId: c.contentId,
+                roomType: c.roomType
+            }))
+            
+            console.log(`📊 Completed canvas filter: ${before} → ${filteredCovers.length}`)
         }
     }
 
@@ -400,7 +419,7 @@ export default function LandingPage() {
                                                     timeAgo={new Date(doc.time).toLocaleDateString()}
                                                     description={
                                                         isWorkspace
-                                                            ? `작업 중 • ${new Date(doc.time).toLocaleTimeString()}`
+                                                            ? `${doc.roomType === 'EDITING' ? '편집 중' : '편집 가능'} • ${new Date(doc.time).toLocaleTimeString()}`
                                                             : `조회수: ${doc.view || 0} | 좋아요: ${doc.likeNum || 0}`
                                                     }
                                                     imgSrc={doc.coverImageUrl}

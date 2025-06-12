@@ -1,4 +1,4 @@
-// src/components/features/editor/Canvaspage.jsx - 에러 해결 버전
+// src/components/features/editor/Canvaspage.jsx - 편집 전용으로 수정된 버전
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import CarouselEditor from './CarouselEditor.jsx'
@@ -21,8 +21,8 @@ const COMPLETION_CRITERIA = {
     MAX_IDLE_HOURS: 24
 }
 
-export default function CanvasPage({ isEditing = false, onEdit, showEditButton = true }) {
-    const { roomId } = useParams();
+export default function CanvasPage({ isEditing = false }) {
+    const { roomId } = useParams(); // ✅ props 대신 useParams 사용
     const navigate = useNavigate()
 
     // 기존 상태들
@@ -101,7 +101,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
         }
     }
 
-    // 🔧 수정: 안전한 API 요청을 위한 헬퍼 함수
+    // ✅ 안전한 API 요청을 위한 헬퍼 함수
     const safeApiCall = async (apiCall, errorMessage = '요청 실패') => {
         try {
             // 인증 상태 먼저 확인
@@ -125,7 +125,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
         }
     }
 
-    // 🔧 수정: 문서방 참여 및 데이터 로딩
+    // ✅ 문서방 참여 및 데이터 로딩 (편집 모드에서만)
     useEffect(() => {
         async function joinRoomAndConnect() {
             if (!roomId) {
@@ -134,13 +134,20 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                 return;
             }
 
+            // ✅ 편집 모드가 아니면 로딩하지 않음
+            if (!isEditing) {
+                console.log('👀 보기 전용 모드 - 데이터 로딩 생략')
+                setIsLoading(false)
+                return
+            }
+
             try {
                 setIsLoading(true);
                 setError(null);
                 
                 console.log('🚪 문서방 참여 시작:', roomId);
 
-                // 🔧 수정: 안전한 API 호출
+                // 문서방 참여
                 const roomResponse = await safeApiCall(
                     () => api.get(`/api/rooms/${roomId}`),
                     '문서방 정보 조회 실패'
@@ -174,14 +181,11 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                 if (isEditing && authService.isAuthenticated()) {
                     console.log('⚡ WebSocket 연결 시작...');
                     attemptWebSocketConnection();
-                } else {
-                    console.log('👀 보기 모드 - WebSocket 연결 생략');
                 }
 
             } catch (err) {
                 console.error('❌ 문서방 참여 실패:', err);
                 
-                // 🔧 수정: 더 구체적인 에러 메시지
                 if (err.message.includes('로그인이 필요')) {
                     setError('로그인이 필요합니다. 다시 로그인해주세요.');
                 } else if (err.response?.status === 404) {
@@ -209,7 +213,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                 }
             }
         };
-    }, [roomId, isEditing]); // navigate 의존성 제거
+    }, [roomId, isEditing]);
 
     // WebSocket 연결 시도
     const attemptWebSocketConnection = async () => {
@@ -364,7 +368,6 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                 websocketService.disconnect();
             }
             
-            // 🔧 수정: 안전한 나가기 API 호출
             await safeApiCall(
                 () => api.post(`/api/rooms/exit`, null, { params: { roomId } }),
                 '문서방 나가기 실패'
@@ -416,7 +419,14 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
         }
     };
 
-    if (isLoading) return <div className="p-8 text-center">로딩 중...</div>;
+    // ✅ 편집 모드가 아닌 경우 리다이렉트
+    if (!isEditing) {
+        console.log('❌ 편집 모드가 아닌 상태로 CanvasPage 접근 시도')
+        navigate(-1)
+        return null
+    }
+
+    if (isLoading) return <div className="p-8 text-center">편집 모드 로딩 중...</div>;
     if (error) return (
         <div className="p-8 text-center">
             <div className="text-red-500 mb-4">오류: {error}</div>
@@ -444,7 +454,7 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
                     <div className="flex flex-col items-center">
                         <div className="text-xl font-semibold">{roomData?.title || '제목 없음'}</div>
                         <div className="text-sm text-gray-500">
-                            상태: {canvasStatus === CANVAS_STATUS.WORKING ? '작업 중' : '완성됨'}
+                            편집 모드 • Room ID: {roomId}
                         </div>
                     </div>
                     <span className="text-base font-medium text-zinc-500">
@@ -454,108 +464,89 @@ export default function CanvasPage({ isEditing = false, onEdit, showEditButton =
 
                 <div className="p-6 space-y-8">
                     {/* 작품 통계 및 상태 표시 */}
-                    {isEditing && !error && (
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                            <div className="grid grid-cols-3 gap-4 text-sm">
-                                <div>
-                                    <span className="font-medium">단어 수:</span> {completionStats.wordCount}
-                                    {completionStats.wordCount >= COMPLETION_CRITERIA.MIN_WORDS && 
-                                        <span className="text-green-600 ml-1">✓</span>
-                                    }
-                                </div>
-                                <div>
-                                    <span className="font-medium">글자 수:</span> {completionStats.characterCount}
-                                    {completionStats.characterCount >= COMPLETION_CRITERIA.MIN_CHARACTERS && 
-                                        <span className="text-green-600 ml-1">✓</span>
-                                    }
-                                </div>
-                                <div>
-                                    <span className="font-medium">완성 가능:</span> 
-                                    <span className={canComplete ? 'text-green-600' : 'text-red-600'}>
-                                        {canComplete ? '예' : '아니오'}
-                                    </span>
-                                </div>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <span className="font-medium">단어 수:</span> {completionStats.wordCount}
+                                {completionStats.wordCount >= COMPLETION_CRITERIA.MIN_WORDS && 
+                                    <span className="text-green-600 ml-1">✓</span>
+                                }
+                            </div>
+                            <div>
+                                <span className="font-medium">글자 수:</span> {completionStats.characterCount}
+                                {completionStats.characterCount >= COMPLETION_CRITERIA.MIN_CHARACTERS && 
+                                    <span className="text-green-600 ml-1">✓</span>
+                                }
+                            </div>
+                            <div>
+                                <span className="font-medium">완성 가능:</span> 
+                                <span className={canComplete ? 'text-green-600' : 'text-red-600'}>
+                                    {canComplete ? '예' : '아니오'}
+                                </span>
                             </div>
                         </div>
-                    )}
+                    </div>
 
                     {/* WebSocket 연결 상태 표시 */}
-                    {isEditing && !error && (
-                        <div className={`p-3 rounded-lg flex items-center justify-between ${
+                    <div className={`p-3 rounded-lg flex items-center justify-between ${
+                        websocketConnected 
+                            ? 'bg-green-50 border border-green-200' 
+                            : showConnectionStatus 
+                                ? 'bg-red-50 border border-red-200'
+                                : 'bg-yellow-50 border border-yellow-200'
+                    }`}>
+                        <span className={`text-sm ${
                             websocketConnected 
-                                ? 'bg-green-50 border border-green-200' 
+                                ? 'text-green-700' 
                                 : showConnectionStatus 
-                                    ? 'bg-red-50 border border-red-200'
-                                    : 'bg-yellow-50 border border-yellow-200'
+                                    ? 'text-red-700'
+                                    : 'text-yellow-700'
                         }`}>
-                            <span className={`text-sm ${
-                                websocketConnected 
-                                    ? 'text-green-700' 
-                                    : showConnectionStatus 
-                                        ? 'text-red-700'
-                                        : 'text-yellow-700'
-                            }`}>
-                                {websocketConnected 
-                                    ? '✅ 실시간 동기화 연결됨' 
-                                    : showConnectionStatus
-                                        ? `❌ 실시간 동기화 연결 실패: ${websocketError || '알 수 없는 오류'}`
-                                        : '🔄 실시간 동기화 연결 중...'
-                                }
-                            </span>
-                            
-                            {showConnectionStatus && (
-                                <button 
-                                    onClick={handleWebSocketReconnect}
-                                    className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                                >
-                                    다시 연결
-                                </button>
-                            )}
-                        </div>
-                    )}
+                            {websocketConnected 
+                                ? '✅ 실시간 동기화 연결됨' 
+                                : showConnectionStatus
+                                    ? `❌ 실시간 동기화 연결 실패: ${websocketError || '알 수 없는 오류'}`
+                                    : '🔄 실시간 동기화 연결 중...'
+                            }
+                        </span>
+                        
+                        {showConnectionStatus && (
+                            <button 
+                                onClick={handleWebSocketReconnect}
+                                className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                                다시 연결
+                            </button>
+                        )}
+                    </div>
 
                     {/* 본문 에디터 */}
                     <CarouselEditor
                         variants={writings.map(w => w.body || '<p>내용이 없습니다.</p>')}
-                        readOnly={!isEditing}
+                        readOnly={false} // ✅ 편집 모드에서는 항상 편집 가능
                         onChange={handleLocalEdit}
                     />
 
-                    {/* 신고 버튼 - 편집 모드가 아닐 때만 표시 */}
-                    {!isEditing && !error && (
-                        <div className="flex justify-end">
-                            <button
-                                onClick={handleReportClick}
-                                className="flex items-center space-x-2 px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                                <img src={ReportIconUrl} alt="report" className="w-5 h-5" />
-                                <span className="text-sm font-medium">작품 신고하기</span>
-                            </button>
-                        </div>
-                    )}
-
                     {/* 액션 버튼들 */}
-                    {isEditing && !error && (
-                        <div className="flex justify-end space-x-4">
-                            <button
-                                onClick={handleSave}
-                                className="px-6 py-3 bg-gray-500 hover:bg-gray-600 transition rounded-full text-white font-semibold"
-                            >
-                                임시저장
-                            </button>
-                            <button
-                                onClick={handleCompleteClick}
-                                disabled={!canComplete}
-                                className={`px-6 py-3 transition rounded-full font-semibold ${
-                                    canComplete 
-                                        ? 'bg-green-500 hover:bg-green-600 text-white' 
-                                        : 'bg-gray-300 cursor-not-allowed text-gray-500'
-                                }`}
-                            >
-                                완성하기
-                            </button>
-                        </div>
-                    )}
+                    <div className="flex justify-end space-x-4">
+                        <button
+                            onClick={handleSave}
+                            className="px-6 py-3 bg-gray-500 hover:bg-gray-600 transition rounded-full text-white font-semibold"
+                        >
+                            임시저장
+                        </button>
+                        <button
+                            onClick={handleCompleteClick}
+                            disabled={!canComplete}
+                            className={`px-6 py-3 transition rounded-full font-semibold ${
+                                canComplete 
+                                    ? 'bg-green-500 hover:bg-green-600 text-white' 
+                                    : 'bg-gray-300 cursor-not-allowed text-gray-500'
+                            }`}
+                        >
+                            완성하기
+                        </button>
+                    </div>
                 </div>
             </div>
 

@@ -1,3 +1,4 @@
+// src/pages/LandingPage.jsx - 수정된 handleCardClick 로직
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import CanvasCard from '@/components/features/landing/CanvasCard'
@@ -12,7 +13,7 @@ export default function LandingPage() {
     const [covers, setCovers] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [debugInfo, setDebugInfo] = useState(null) // 디버깅 정보 추가
+    const [debugInfo, setDebugInfo] = useState(null)
     const [isTransitioning, setIsTransitioning] = useState(false)
     const [previousPath, setPreviousPath] = useState('')
     const navigate = useNavigate()
@@ -65,7 +66,7 @@ export default function LandingPage() {
                     // 디버깅 정보 저장
                     const debug = {
                         totalCount: response.data.length,
-                        sampleData: response.data.slice(0, 2), // 처음 2개만 샘플로
+                        sampleData: response.data.slice(0, 2),
                         filteringFor: location.pathname === '/workingon' ? 'working' : 'completed'
                     }
 
@@ -131,12 +132,16 @@ export default function LandingPage() {
         fetchCovers()
     }, [filter, location.pathname])
 
-    // src/pages/LandingPage.jsx에서 기존의 handleCardClick 함수를 찾아서 
-// 아래 코드로 완전히 교체하세요
-
+    // 🔧 수정된 카드 클릭 핸들러 - 모든 카드는 먼저 보기 모드로
     const handleCardClick = (doc) => {
         console.log('🖱️ Card clicked:', doc)
         
+        // ✅ 새로운 로직: 모든 카드 클릭은 캔버스 보기 페이지로 이동
+        console.log(`📖 Navigating to canvas view: /canvas/${doc.id}`)
+        navigate(`/canvas/${doc.id}`)
+        
+        // 기존 로직은 주석 처리
+        /*
         if (location.pathname === '/workingon') {
             // 작업 중인 캔버스 - 편집 모드로 이동
             if (doc.roomId) {
@@ -156,13 +161,14 @@ export default function LandingPage() {
                 alert('완성되지 않은 작품입니다.')
             }
         }
+        */
     }
 
     const getPageInfo = () => {
         if (location.pathname === '/workingon') {
             return {
                 title: '작업 중인 캔버스',
-                description: '현재 작업 중인 캔버스들입니다. 클릭하여 편집을 계속하세요.',
+                description: '현재 작업 중인 캔버스들입니다. 클릭하여 내용을 확인하고 편집을 계속하세요.',
                 emptyIcon: '✏️',
                 emptyMessage: '작업 중인 캔버스가 없습니다.',
                 bgGradient: 'from-orange-400/20 via-red-400/20 to-pink-400/20',

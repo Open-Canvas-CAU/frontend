@@ -1,3 +1,4 @@
+// src/components/layout/Header.jsx - 수정된 헤더 (로그인 버튼 포함)
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '@/services/authService';
@@ -54,6 +55,24 @@ export default function Header() {
     const handleLogout = () => {
         authService.logout();
         navigate('/');
+    };
+
+    // 🔧 수정된 로그인 처리 - OAuth2 URL로 직접 이동
+    const handleLogin = () => {
+        // 현재 경로 저장
+        localStorage.setItem('login_redirect_path', location.pathname);
+        
+        // 동적 포트 감지
+        const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '3000');
+        const redirectUri = `http://localhost:${currentPort}/oauth2/callback`;
+        
+        // OAuth2 로그인 URL 생성
+        const googleLoginUrl = `http://localhost:8080/oauth2/authorization/google?redirect_uri=${encodeURIComponent(redirectUri)}&mode=login`;
+        
+        console.log('🔑 Header에서 로그인 시도:', googleLoginUrl);
+        
+        // 페이지 전체를 리다이렉트
+        window.location.href = googleLoginUrl;
     };
 
     const handleSearch = (e) => {
@@ -125,17 +144,6 @@ export default function Header() {
                 </Link>
                 
                 <nav className="flex space-x-2 relative">
-                    {/* 배경 슬라이더
-                    <div className={`
-                        absolute top-0 left-0 h-full rounded-lg transition-all duration-500 ease-out
-                        ${activeNav === 'gallery' 
-                            ? 'w-20 bg-blue-400/20 translate-x-0' 
-                            : activeNav === 'workingon' 
-                                ? 'w-24 bg-orange-400/20 translate-x-24' 
-                                : 'w-0 opacity-0'
-                        }
-                    `}></div> */}
-
                     <button
                         onClick={() => handleNavClick('/gallery', 'gallery')}
                         className={getNavStyle('gallery', activeNav === 'gallery')}
@@ -207,7 +215,7 @@ export default function Header() {
                                     {currentUser?.nickname?.charAt(0)?.toUpperCase() || 'U'}
                                 </div>
                                 <span className="text-sm text-white font-medium">
-                                    {currentUser?.nickname || '사용자'}님
+                                    {currentUser?.nickname?.split('@')[0] || '사용자'}님
                                 </span>
                             </div>
                             <button
@@ -218,12 +226,27 @@ export default function Header() {
                             </button>
                         </>
                     ) : (
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="px-6 py-3 text-sm font-medium text-gray-800 bg-yellow-300/90 hover:bg-yellow-300 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg backdrop-blur-sm"
-                        >
-                            로그인
-                        </button>
+                        <>
+                            {/* 🔧 수정된 로그인 버튼 - OAuth2 직접 연결 */}
+                            <button
+                                onClick={handleLogin}
+                                className="px-6 py-3 text-sm font-medium text-gray-800 bg-yellow-300/90 hover:bg-yellow-300 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg backdrop-blur-sm flex items-center space-x-2"
+                            >
+                                <img 
+                                    className="w-5 h-5" 
+                                    src="https://www.svgrepo.com/show/475656/google-color.svg" 
+                                    alt="Google" 
+                                />
+                                <span>로그인</span>
+                            </button>
+                            
+                            {/* 개발 모드에서만 보이는 디버그 정보 */}
+                            {process.env.NODE_ENV === 'development' && (
+                                <div className="text-xs text-white/60">
+                                    포트: {window.location.port || '3000'}
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

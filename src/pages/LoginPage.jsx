@@ -1,16 +1,26 @@
-// src/pages/LoginPage.jsx - 수정된 버전
+// src/pages/LoginPage.jsx - 가이드에 따른 수정
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 
-/**
- * 로그인 페이지 컴포넌트입니다.
- * 현재 접속 환경에 따라 동적으로 리다이렉션 URI를 생성하여 구글 로그인을 처리합니다.
- */
 export default function LoginPage() {
     const location = useLocation();
 
-    // 현재 도메인에 맞는 리다이렉트 URI 생성
-    const redirectUri = `${window.location.origin}/oauth2/callback`;
+    // 🔧 가이드에 따라 정확한 리다이렉트 URI 설정
+    // 개발 환경에서는 포트를 동적으로 감지
+    const getCurrentPort = () => {
+        const port = window.location.port;
+        // Vite는 기본적으로 5173, CRA는 3000
+        return port || (window.location.protocol === 'https:' ? '443' : '3000');
+    };
+    
+    const currentPort = getCurrentPort();
+    const redirectUri = `http://localhost:${currentPort}/oauth2/callback`;
+    
+    console.log('🔑 로그인 설정:', {
+        currentOrigin: window.location.origin,
+        currentPort,
+        redirectUri
+    });
     
     // 로그인 후 돌아갈 경로 저장
     const from = location.state?.from?.pathname || '/';
@@ -19,51 +29,62 @@ export default function LoginPage() {
         // 로그인 후 돌아갈 경로를 로컬 스토리지에 저장
         localStorage.setItem('login_redirect_path', from);
         
-        // Google OAuth2 로그인 URL 생성 (문서 명세에 따라)
-        const googleLoginUrl = new URL('http://localhost:8080/oauth2/authorization/google');
-        googleLoginUrl.searchParams.append('redirect_uri', redirectUri);
-        googleLoginUrl.searchParams.append('mode', 'login');
+        // 🔧 가이드에 따른 정확한 Google OAuth2 URL
+        const googleLoginUrl = `http://localhost:8080/oauth2/authorization/google?redirect_uri=${encodeURIComponent(redirectUri)}&mode=login`;
         
-        console.log('🔑 Google 로그인 시작:', googleLoginUrl.toString());
+        console.log('🚀 Google 로그인 URL:', googleLoginUrl);
         console.log('📍 로그인 후 리다이렉트 경로:', from);
         
         // 페이지 전체를 리다이렉트
-        window.location.href = googleLoginUrl.toString();
+        window.location.href = googleLoginUrl;
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-solarized-base2 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 p-10 bg-solarized-base3 rounded-xl shadow-lg">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-solarized-base00">
-                        로그인
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-3xl shadow-2xl border border-white/50">
+                <div className="text-center">
+                    <div className="mx-auto h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+                        <span className="text-white text-2xl">🔐</span>
+                    </div>
+                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+                        Live Canvas 로그인
                     </h2>
-                    <p className="mt-2 text-center text-sm text-solarized-base01">
-                        소셜 계정으로 간편하게 로그인하세요.
+                    <p className="mt-2 text-sm text-gray-600">
+                        함께 만드는 이야기의 세계로 들어오세요
                     </p>
                 </div>
                 
                 <div className="mt-8 space-y-6">
                     <button
                         onClick={handleGoogleLogin}
-                        className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        className="group relative w-full flex justify-center items-center py-4 px-4 border border-transparent text-sm font-medium rounded-2xl text-gray-700 bg-white border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                     >
                         <img 
-                            className="w-6 h-6 mr-2" 
+                            className="w-6 h-6 mr-3" 
                             src="https://www.svgrepo.com/show/475656/google-color.svg" 
                             alt="Google logo" 
                         />
-                        Google 계정으로 로그인
+                        <span className="text-lg">Google 계정으로 로그인</span>
                     </button>
                     
-                    {/* 디버깅 정보 (개발 환경에서만) */}
-                    {process.env.NODE_ENV === 'development' && (
-                        <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs">
-                            <p><strong>개발자 정보:</strong></p>
-                            <p>리다이렉트 URI: {redirectUri}</p>
-                            <p>돌아갈 경로: {from}</p>
+                    {/* 개발자 정보 */}
+                    <div className="mt-4 p-4 bg-blue-50 rounded-2xl text-xs space-y-2">
+                        <p><strong>🔧 개발자 정보:</strong></p>
+                        <div className="space-y-1 text-gray-600">
+                            <p>• 현재 포트: {currentPort}</p>
+                            <p>• 리다이렉트 URI: {redirectUri}</p>
+                            <p>• 백엔드 서버: http://localhost:8080</p>
+                            <p>• 돌아갈 경로: {from}</p>
                         </div>
-                    )}
+                        <div className="mt-2 p-2 bg-yellow-50 rounded text-xs">
+                            <p>⚠️ 백엔드에서 이 redirect_uri를 허용해야 합니다!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="text-center text-sm text-gray-500">
+                    새로운 캔버스를 만들고 다른 작가들과 함께<br/>
+                    멋진 이야기를 완성해보세요! ✨
                 </div>
             </div>
         </div>

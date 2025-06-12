@@ -1,146 +1,137 @@
-// src/services/authService.js - 수정된 버전
+// src/services/authService.js - 개발자 모드 + 함수명 수정 최종 버전
 import api from './api';
 
-/**
- * 인증 및 토큰 관리를 담당하는 서비스 객체입니다.
- */
-export const authService = {
+// 💡 [임시 해결책] 아이디 연동을 잠시 끄려면 이 값을 true로 변경하세요.
+const DEV_MODE_ENABLED = false;
+const DEV_MODE_DUMMY_TOKEN = 'DEV_MODE_TOKEN_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZXZNb2RlIiwibmFtZSI6IkRldmVsb3BlciIsImlhdCI6MTUxNjIzOTAyMn0.fA43WJb3tS0j4wL_Dx942-S1bZgTjM0JzCqK_w3tT_A';
 
-    /**
-     * 로컬 스토리지에 토큰을 저장합니다.
-     * @param {object} tokens - { accessToken, refreshToken } 객체
-     */
+const decodeJwt = (token) => {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        return null; // 디코딩 실패 시 null 반환
+    }
+};
+
+export const authService = {
     saveTokens: (tokens) => {
-        if (tokens.accessToken) {
-            localStorage.setItem('accessToken', tokens.accessToken);
-        }
-        if (tokens.refreshToken) {
-            localStorage.setItem('refreshToken', tokens.refreshToken);
-        }
+        if (DEV_MODE_ENABLED) return;
+        if (tokens.accessToken) localStorage.setItem('accessToken', tokens.accessToken);
+        if (tokens.refreshToken) localStorage.setItem('refreshToken', tokens.refreshToken);
     },
 
-    /**
-     * 로컬 스토리지에서 엑세스 토큰을 가져옵니다.
-     * @returns {string | null} 엑세스 토큰 또는 null
-     */
     getAccessToken: () => {
+        if (DEV_MODE_ENABLED) return DEV_MODE_DUMMY_TOKEN;
         return localStorage.getItem('accessToken');
     },
 
-    /**
-     * 로컬 스토리지에서 리프레시 토큰을 가져옵니다.
-     * @returns {string | null} 리프레시 토큰 또는 null
-     */
     getRefreshToken: () => {
+        if (DEV_MODE_ENABLED) return 'DEV_MODE_REFRESH_TOKEN';
         return localStorage.getItem('refreshToken');
     },
 
-    /**
-     * 현재 로그인(인증) 상태인지 확인합니다.
-     * @returns {boolean} 엑세스 토큰 존재 여부
-     */
     isAuthenticated: () => {
+        if (DEV_MODE_ENABLED) return true;
         return !!authService.getAccessToken();
     },
 
-    /**
-     * 리프레시 토큰을 사용하여 새로운 엑세스 토큰을 발급받습니다.
-     * @returns {Promise<string>} 새로 발급된 엑세스 토큰
-     */
+    isTokenExpired: (token) => {
+        if (DEV_MODE_ENABLED) return false; // 개발자 모드에서는 만료되지 않음
+
+        if (!token) return true;
+        const decoded = decodeJwt(token);
+        if (!decoded || !decoded.exp) return true;
+        return Date.now() >= decoded.exp * 1000;
+    },
+
     refreshToken: async () => {
+        if (DEV_MODE_ENABLED) return DEV_MODE_DUMMY_TOKEN; // 개발자 모드에서는 재발급 불필요
+
         const refreshToken = authService.getRefreshToken();
-        
         if (!refreshToken) {
-            console.warn('⚠️ 리프레시 토큰이 없습니다.');
             authService.logout();
             throw new Error('리프레시 토큰이 없습니다.');
         }
 
         try {
-            console.log('🔄 토큰 갱신 시도...');
-            
-            // API 호출 시 무한루프 방지를 위해 직접 fetch 호출
             const response = await fetch('http://localhost:8080/auth/refresh', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ refreshToken })
             });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('❌ 토큰 갱신 HTTP 에러:', response.status, errorText);
-                throw new Error(`토큰 갱신 실패: ${response.status} ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            const { accessToken } = data;
+            if (!response.ok) throw new Error('토큰 재발급에 실패했습니다.');
             
-            if (accessToken) {
-                authService.saveTokens({ accessToken });
-                console.log('✅ 토큰 갱신 성공');
-                return accessToken;
+            const data = await response.json();
+            if (data.accessToken) {
+                authService.saveTokens({ accessToken: data.accessToken });
+                return data.accessToken;
             } else {
                 throw new Error('새로운 엑세스 토큰을 받지 못했습니다.');
             }
-            
         } catch (error) {
-            console.error('❌ 토큰 재발급 실패:', error);
-            
-            // 네트워크 에러가 아닌 경우에만 로그아웃
-            if (error.message.includes('401') || error.message.includes('403') || error.message.includes('토큰')) {
-                console.log('🚪 토큰 만료로 인한 로그아웃');
-                authService.logout();
-            }
-            
+            authService.logout();
             throw error;
         }
     },
     
-    /**
-     * 서버로부터 현재 사용자 정보를 가져와 로컬 스토리지에 저장합니다.
-     */
+    validateTokens: async () => {
+        if (DEV_MODE_ENABLED) return; // 개발자 모드에서는 유효성 검사 생략
+
+        const accessToken = authService.getAccessToken();
+        if (!accessToken) return;
+
+        if (authService.isTokenExpired(accessToken)) {
+            console.log('⏳ 엑세스 토큰이 만료되어 재발급합니다...');
+            try {
+                await authService.refreshToken();
+            } catch (error) {
+                console.error('토큰 재발급에 실패하여 요청을 중단합니다.');
+                throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
+            }
+        }
+    },
+
     fetchAndSaveUser: async () => {
+        if (DEV_MODE_ENABLED) {
+            const devUser = { id: 999, nickname: '개발자', email: 'dev@opencanvas.com', color: '#ff00ff', role: 'ADMIN' };
+            localStorage.setItem('user', JSON.stringify(devUser));
+            return devUser;
+        }
         try {
             const response = await api.get('/api/users/');
-            if(response.data) {
-                localStorage.setItem('user', JSON.stringify(response.data));
-                console.log('✅ 사용자 정보 저장 완료');
-            }
+            if(response.data) localStorage.setItem('user', JSON.stringify(response.data));
             return response.data;
         } catch(error) {
-            console.error('❌ 사용자 정보 조회 실패:', error);
             return null;
         }
     },
 
-    /**
-     * 로컬 스토리지에서 현재 사용자 정보를 가져옵니다.
-     */
     getCurrentUser: () => {
+        if (DEV_MODE_ENABLED) {
+            const userStr = localStorage.getItem('user');
+            if(userStr) return JSON.parse(userStr);
+            return { nickname: '개발자' };
+        }
         const userStr = localStorage.getItem('user');
         return userStr ? JSON.parse(userStr) : null;
     },
 
-    /**
-     * 로그아웃 처리. 로컬 스토리지에서 모든 인증 정보를 제거합니다.
-     */
     logout: () => {
-        console.log('🚪 로그아웃 처리 중...');
+        if (DEV_MODE_ENABLED) {
+            alert("개발자 모드에서는 로그아웃할 수 없습니다. authService.js의 DEV_MODE_ENABLED를 false로 변경해주세요.");
+            return;
+        }
+        
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         
-        // 전역 상태 변경 이벤트 발생
         window.dispatchEvent(new Event('auth-change'));
-        
-        // 현재 페이지가 로그인이 필요한 페이지라면 홈으로 이동
-        const currentPath = window.location.pathname;
-        const protectedPaths = ['/editor', '/palette', '/favorites', '/mypage'];
-        
-        if (protectedPaths.some(path => currentPath.startsWith(path))) {
-            window.location.href = '/';
-        }
+        window.location.href = '/';
     }
 };

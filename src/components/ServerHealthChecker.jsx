@@ -112,77 +112,27 @@ export default function ServerHealthChecker({ onStatusChange = null }) {
     }
 
     return (
-        <div className="bg-black border rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-white-800">서버 상태</h3>
-                <button
-                    onClick={checkServerHealth}
-                    disabled={serverStatus === 'checking'}
-                    className="text-sm px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded disabled:opacity-50 transition-colors"
-                >
-                    {serverStatus === 'checking' ? '확인 중...' : '다시 확인'}
-                </button>
-            </div>
-            
-            <div className="space-y-3">
-                <div className={`flex items-center space-x-2 font-medium ${getStatusColor()}`}>
-                    <span className="text-xl">{getStatusIcon()}</span>
-                    <span>{getStatusText()}</span>
-                </div>
-                
-                <div className="text-sm text-white-600 space-y-1">
-                    <div>대상 서버: http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com</div>
-                    {lastChecked && (
-                        <div>마지막 확인: {lastChecked.toLocaleTimeString()}</div>
+        <div className="fixed bottom-4 right-4 z-50">
+            <div className="bg-black border border-white/10 rounded-xl shadow-lg p-4 max-w-sm">
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-white">서버 상태</span>
+                        <span className={`text-sm ${getStatusColor(serverStatus)}`}>
+                            {getStatusText(serverStatus)}
+                        </span>
+                    </div>
+                    
+                    {serverStatus === 'connected' && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded text-sm">
+                            <div className="text-red-700 flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>서버가 정상적으로 연결되었습니다! 모든 기능을 사용할 수 있습니다.</span>
+                            </div>
+                        </div>
                     )}
                 </div>
-                
-                {/*  상세 진단 정보 */}
-                {diagnosis && !connectionResults?.isConnected && (
-                    <div className={`p-4 border rounded-lg ${getSeverityColor(diagnosis.severity)}`}>
-                        <h4 className="font-semibold text-white-800 mb-2 flex items-center space-x-2">
-                            <span>{diagnosis.severity === 'critical' ? '🚨' : diagnosis.severity === 'high' ? '' : '💡'}</span>
-                            <span>진단: {diagnosis.primaryIssue}</span>
-                        </h4>
-                        
-                        <div className="text-sm text-white-700">
-                            <p className="font-medium mb-2">해결 방법:</p>
-                            <ul className="space-y-1">
-                                {diagnosis.solutions.map((solution, index) => (
-                                    <li key={index} className="flex items-start space-x-2">
-                                        <span className="text-red-500 mt-0.5">•</span>
-                                        <span>{solution}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                )}
-                
-                {/*  연결 시도 결과 상세 정보 (개발 모드에서만) */}
-                {process.env.NODE_ENV === 'development' && connectionResults && (
-                    <details className="text-xs">
-                        <summary className="cursor-pointer text-white-500 hover:text-white-700">
-                            상세 진단 정보 ({connectionResults.errors.length}개 오류)
-                        </summary>
-                        <div className="mt-2 p-3 bg-black-50 rounded max-h-48 overflow-auto">
-                            <pre className="text-xs">
-                                {JSON.stringify(connectionResults, null, 2)}
-                            </pre>
-                        </div>
-                    </details>
-                )}
-                
-                {serverStatus === 'connected' && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded text-sm">
-                        <div className="text-red-700 flex items-center space-x-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>서버가 정상적으로 연결되었습니다! 모든 기능을 사용할 수 있습니다.</span>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     )

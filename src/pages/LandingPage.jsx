@@ -9,6 +9,28 @@ import { Navigation } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
 
+// 커스텀 스타일 추가
+const customStyles = `
+    .swiper-button-next,
+    .swiper-button-prev {
+        color: #ef4444 !important;
+        background: rgba(0, 0, 0, 0.5);
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+    .swiper-button-next:hover,
+    .swiper-button-prev:hover {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171 !important;
+    }
+    .swiper-button-next:after,
+    .swiper-button-prev:after {
+        font-size: 20px !important;
+    }
+`;
+
 export default function LandingPage() {
     const [filter, setFilter] = useState('전체')
     const [covers, setCovers] = useState([])
@@ -184,6 +206,20 @@ export default function LandingPage() {
         return `${baseClasses} ${isTransitioning ? 'blur-sm' : ''}`
     }
 
+    const getStatusStyle = (status) => {
+        if (status === filter) {
+            return 'bg-red-500 text-white shadow-lg'
+        }
+        return 'bg-black border-2 border-white/20 text-white hover:bg-red-500'
+    }
+
+    // 필터별로 커버 데이터 분류
+    const categorizedCovers = {
+        '인기순': covers.filter(cover => cover.likeNum > 0).sort((a, b) => b.likeNum - a.likeNum),
+        '최신순': covers.sort((a, b) => new Date(b.time) - new Date(a.time)),
+        '전체': covers
+    };
+
     // 로딩 상태
     if (loading) {
         return (
@@ -204,8 +240,7 @@ export default function LandingPage() {
     // 에러 상태
     if (error) {
         return (
-            <div className={getBackgroundClasses()}>
-                <MouseFollower />
+            <div className="min-h-screen bg-black">
                 <div className="container mx-auto px-8 py-8">
                     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
                         <div className="text-6xl">❌</div>
@@ -217,16 +252,6 @@ export default function LandingPage() {
                         >
                             다시 시도
                         </button>
-                        
-                        {/* 디버깅 정보 (개발 환경에서만) */}
-                        {process.env.NODE_ENV === 'development' && debugInfo && (
-                            <details className="mt-4 p-4 bg-black-100 rounded-lg max-w-2xl">
-                                <summary className="cursor-pointer font-bold">디버깅 정보</summary>
-                                <pre className="mt-2 text-xs overflow-auto">
-                                    {JSON.stringify(debugInfo, null, 2)}
-                                </pre>
-                            </details>
-                        )}
                     </div>
                 </div>
             </div>
@@ -234,175 +259,165 @@ export default function LandingPage() {
     }
 
     return (
-        <div className={getBackgroundClasses()}>
-            {/* 마우스 커서 효과 */}
-            <MouseFollower />
-            
-            {/* 작업실 효과를 위한 배경 요소들 */}
-            {isWorkspace && (
-                <>
-                    <div className="fixed inset-0 pointer-events-none">
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4/5 h-32 bg-black/10 rounded-full blur-xl"></div>
-                    </div>
-                    <div className="fixed inset-0 pointer-events-none opacity-5">
-                        <div className="w-full h-full" style={{
-                            backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)',
-                            backgroundSize: '20px 20px'
-                        }}></div>
-                    </div>
-                </>
-            )}
+        <>
+            <style>{customStyles}</style>
+            <div className={getBackgroundClasses()}>
+                {/* 마우스 커서 효과 */}
+                <MouseFollower />
+                
+                {/* 작업실 효과를 위한 배경 요소들 */}
+                {isWorkspace && (
+                    <>
+                        <div className="fixed inset-0 pointer-events-none">
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4/5 h-32 bg-black/10 rounded-full blur-xl"></div>
+                        </div>
+                        <div className="fixed inset-0 pointer-events-none opacity-5">
+                            <div className="w-full h-full" style={{
+                                backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)',
+                                backgroundSize: '20px 20px'
+                            }}></div>
+                        </div>
+                    </>
+                )}
 
-            {/* 메인 컨텐츠 */}
-            <div className={`
-                relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 
-                transition-all duration-700 ease-in-out transform-gpu
-                ${getTransitionClasses()}
-                ${isWorkspace ? 'perspective-1000' : ''}
-            `}>
-                <div className="max-w-7xl mx-auto">
-                    {/* 페이지 헤더 */}
-                    <div className={`
-                        mb-6 transition-all duration-500 delay-100
-                        ${isTransitioning ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100'}
-                    `}>
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center space-x-4">
-                                
-                                <div>
-                                    <h1 className="text-3xl font-bold text-white mb-2">
-                                        {pageInfo.title}
-                                    </h1>
-                                    <p className="text-solarized-base01">
-                                        {pageInfo.description}
-                                    </p>
+                {/* 메인 컨텐츠 */}
+                <div className={`
+                    relative z-10 w-full px-4 sm:px-6 lg:px-8 py-8 
+                    transition-all duration-700 ease-in-out transform-gpu
+                    ${getTransitionClasses()}
+                    ${isWorkspace ? 'perspective-1000' : ''}
+                `}>
+                    <div className="max-w-7xl mx-auto">
+                        {/* 페이지 헤더 */}
+                        <div className={`
+                            mb-6 transition-all duration-500 delay-100
+                            ${isTransitioning ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100'}
+                        `}>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center space-x-4">
+                                    <div>
+                                        <h1 className="text-3xl font-bold text-white mb-2">
+                                            {pageInfo.title}
+                                        </h1>
+                                        <p className="text-red-100/80">
+                                            {pageInfo.description}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            {/* 디버깅 정보 (개발 환경에서만) */}
-                            {process.env.NODE_ENV === 'development' && debugInfo && (
-                                <details className="text-xs bg-black-100 p-2 rounded">
-                                    <summary className="cursor-pointer">Debug ({covers.length})</summary>
-                                    <pre className="mt-1 text-xs overflow-auto max-h-32">
-                                        {JSON.stringify(debugInfo, null, 2)}
-                                    </pre>
-                                </details>
-                            )}
                         </div>
-                    </div>
 
-                    {/* 필터 버튼들 (갤러리에서만 표시) */}
-                    {showFilters && (
-                        <div className={`
-                            flex space-x-3 mb-8 transition-all duration-500 delay-200
-                            ${isTransitioning ? 'translate-x-4 opacity-0' : 'translate-x-0 opacity-100'}
-                        `}>
-                            {FILTERS.map((f, index) => (
-                                <button
-                                    key={f}
-                                    onClick={() => setFilter(f)}
-                                    className={`
-                                        px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300
-                                        transform hover:scale-105
-                                        ${filter === f
-                                            ? 'bg-yellow-300/20 text-yellow-300 shadow-lg' 
-                                            : 'bg-solarized-base2 text-solarized-base01 hover:bg-red hover:shadow-md'
-                                        }
-                                    `}
-                                    style={{ transitionDelay: `${index * 50}ms` }}
-                                >
-                                    {f}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* 빈 상태 */}
-                    {covers.length === 0 && (
-                        <div className={`
-                            flex flex-col items-center justify-center min-h-[40vh] text-white
-                            transition-all duration-700 delay-300
-                            ${isTransitioning ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}
-                        `}>
+                        {/* 필터 버튼들 (갤러리에서만 표시) */}
+                        {showFilters && (
                             <div className={`
-                                text-6xl mb-6 transition-transform duration-1000
-                                ${isWorkspace ? 'animate-bounce' : 'animate-pulse'}
+                                flex space-x-3 mb-8 transition-all duration-500 delay-200
+                                ${isTransitioning ? 'translate-x-4 opacity-0' : 'translate-x-0 opacity-100'}
                             `}>
-                                {pageInfo.emptyIcon}
+                                {FILTERS.map((f, index) => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setFilter(f)}
+                                        className={`
+                                            px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300
+                                            transform hover:scale-105
+                                            ${getStatusStyle(f)}
+                                        `}
+                                        style={{ transitionDelay: `${index * 50}ms` }}
+                                    >
+                                        {f}
+                                    </button>
+                                ))}
                             </div>
-                            <div className="text-xl mb-6">{pageInfo.emptyMessage}</div>
-                            {isWorkspace && (
-                                <button
-                                    onClick={() => navigate('/editor/new')}
-                                    className="px-8 py-4 bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
-                                >
-                                    새 캔버스 만들기
-                                </button>
-                            )}
-                        </div>
-                    )}
+                        )}
 
-                    {/* 캔버스 목록 */}
-                    {covers.length > 0 && (
-                        <div className={`
-                            transition-all duration-700 delay-400
-                            ${isTransitioning ? 'translate-y-8 opacity-0' : 'translate-y-0 opacity-100'}
-                        `}>
-                            <div className="relative h-[400px]">
-                                <Swiper
-                                    modules={[Navigation]}
-                                    spaceBetween={24}
-                                    slidesPerView={Math.min(4, covers.length)}
-                                    navigation
-                                    loop={covers.length > 4}
-                                    className="h-full"
-                                >
-                                    {covers.map((doc, index) => (
-                                        <SwiperSlide key={`${doc.id}-${doc.contentId || 'working'}-${index}`}>
-                                            <div 
-                                                className="h-full flex items-center justify-center"
-                                                style={{ 
-                                                    transitionDelay: `${index * 100}ms`
-                                                }}
-                                            >
-                                                <CanvasCard
-                                                    title={doc.title}
-                                                    timeAgo={new Date(doc.time).toLocaleDateString()}
-                                                    description={
-                                                        isWorkspace
-                                                            ? `${doc.roomType === 'EDITING' ? '편집 중' : '편집 가능'} • ${new Date(doc.time).toLocaleTimeString()}`
-                                                            : `조회수: ${doc.view || 0} | 좋아요: ${doc.likeNum || 0}`
-                                                    }
-                                                    imgSrc={doc.coverImageUrl}
-                                                    onClick={() => handleCardClick(doc)}
-                                                    cardType={isWorkspace ? 'workspace' : 'gallery'}
-                                                />
-                                            </div>
-                                        </SwiperSlide>
-                                    ))}
-                                </Swiper>
-                            </div>
-
-                            {/* 추가 액션 버튼 */}
-                            {isWorkspace && (
-                                <div className="mt-8 text-center">
+                        {/* 빈 상태 */}
+                        {covers.length === 0 && (
+                            <div className={`
+                                flex flex-col items-center justify-center min-h-[40vh] text-white
+                                transition-all duration-700 delay-300
+                                ${isTransitioning ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}
+                            `}>
+                                <div className={`
+                                    text-6xl mb-6 transition-transform duration-1000
+                                    ${isWorkspace ? 'animate-bounce' : 'animate-pulse'}
+                                `}>
+                                    {pageInfo.emptyIcon}
+                                </div>
+                                <div className="text-xl mb-6">{pageInfo.emptyMessage}</div>
+                                {isWorkspace && (
                                     <button
                                         onClick={() => navigate('/editor/new')}
                                         className="px-8 py-4 bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                                     >
-                                        새 캔버스 추가하기
+                                        새 캔버스 만들기
                                     </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
+                                )}
+                            </div>
+                        )}
 
-            {/* 페이지 전환 오버레이 */}
-            {isTransitioning && (
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 pointer-events-none transition-opacity duration-300"></div>
-            )}
-        </div>
+                        {/* 캔버스 목록 */}
+                        {covers.length > 0 && (
+                            <div className={`
+                                space-y-12
+                                transition-all duration-700 delay-400
+                                ${isTransitioning ? 'translate-y-8 opacity-0' : 'translate-y-0 opacity-100'}
+                            `}>
+                                {/* 각 카테고리별 캐러셀 */}
+                                {Object.entries(categorizedCovers).map(([category, categoryCovers]) => (
+                                    categoryCovers.length > 0 && (
+                                        <div key={category} className="space-y-4">
+                                            <h2 className="text-2xl font-bold text-red-100">
+                                                {category === '인기순' ? '🔥 인기 작품' : 
+                                                 category === '최신순' ? '✨ 최신 작품' : 
+                                                 '🎨 전체 작품'}
+                                            </h2>
+                                            <div className="relative h-[400px]">
+                                                <Swiper
+                                                    modules={[Navigation]}
+                                                    spaceBetween={24}
+                                                    slidesPerView={Math.min(4, categoryCovers.length)}
+                                                    navigation
+                                                    loop={categoryCovers.length > 4}
+                                                    className="h-full p-4"
+                                                >
+                                                    {categoryCovers.map((doc, index) => (
+                                                        <SwiperSlide key={`${doc.id}-${doc.contentId || 'working'}-${index}`}>
+                                                            <div 
+                                                                className="h-full flex items-center justify-center px-4"
+                                                                style={{ 
+                                                                    transitionDelay: `${index * 100}ms`
+                                                                }}
+                                                            >
+                                                                <CanvasCard
+                                                                    title={doc.title}
+                                                                    timeAgo={new Date(doc.time).toLocaleDateString()}
+                                                                    description={
+                                                                        isWorkspace
+                                                                            ? `${doc.roomType === 'EDITING' ? '편집 중' : '편집 가능'} • ${new Date(doc.time).toLocaleTimeString()}`
+                                                                            : `조회수: ${doc.view || 0} | 좋아요: ${doc.likeNum || 0}`
+                                                                    }
+                                                                    imgSrc={doc.coverImageUrl}
+                                                                    onClick={() => handleCardClick(doc)}
+                                                                    cardType={isWorkspace ? 'workspace' : 'gallery'}
+                                                                />
+                                                            </div>
+                                                        </SwiperSlide>
+                                                    ))}
+                                                </Swiper>
+                                            </div>
+                                        </div>
+                                    )
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* 페이지 전환 오버레이 */}
+                {isTransitioning && (
+                    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 pointer-events-none transition-opacity duration-300"></div>
+                )}
+            </div>
+        </>
     )
 }

@@ -1,5 +1,8 @@
 // src/services/websocketService.js - STOMP 클라이언트 방식으로 수정
+import SockJS from 'sockjs-client'
+import { Client } from '@stomp/stompjs'
 import { authService } from './authService'
+import { WS_BASE_URL } from '@/config'
 
 class WebSocketService {
   constructor() {
@@ -13,39 +16,21 @@ class WebSocketService {
     this.maxReconnectAttempts = 3
   }
 
-  connect(roomId, callbacks = {}) {
-    this.roomId = roomId
-    this.callbacks = callbacks
-    const accessToken = authService.getAccessToken()
-
-    console.log(' WebSocket 연결 시도...', { roomId, hasToken: !!accessToken })
-
-    if (!accessToken) {
-      console.error(' 액세스 토큰이 없습니다')
-      if (callbacks.onError) {
-        callbacks.onError(new Error('인증 토큰이 없습니다'))
-      }
-      return
-    }
-
-    // 기존 연결 해제
-    if (this.stompClient) {
-      this.disconnect()
-    }
-
+  async connect(roomId, callbacks = {}) {
     try {
-      // SockJS와 STOMP 라이브러리 동적 로드 (CDN에서)
-      this.loadStompLibraries().then(() => {
-        this.initializeStompConnection(accessToken, callbacks)
-      }).catch(error => {
-        console.error(' STOMP 라이브러리 로드 실패:', error)
-        if (callbacks.onError) {
-          callbacks.onError(error)
-        }
-      })
+      this.roomId = roomId
+      this.callbacks = callbacks
+      const accessToken = authService.getAccessToken()
+      
+      console.log('WebSocket 연결 시도...', { roomId, hasToken: !!accessToken })
+      
+      if (!accessToken) {
+        throw new Error('액세스 토큰이 없습니다')
+      }
 
+      this.initializeStompConnection(accessToken, callbacks)
     } catch (error) {
-      console.error(' WebSocket 연결 초기화 실패:', error)
+      console.error('WebSocket 연결 실패:', error)
       if (callbacks.onError) {
         callbacks.onError(error)
       }
@@ -76,10 +61,11 @@ class WebSocketService {
 
   initializeStompConnection(accessToken, callbacks) {
     try {
-      // SockJS 소켓 생성
-      const socket = new SockJS(`http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/ws-stomp?access_token=${accessToken}`)
+      const wsUrl = WS_BASE_URL.replace('ws://', 'http://').replace('wss://', 'https://')
+      const socket = new SockJS(`${wsUrl}/ws-stomp?access_token=${accessToken}`)
       
-      // STOMP 클라이언트 생성
+      console.log('WebSocket 연결 URL:', `${wsUrl}/ws-stomp`)
+      
       this.stompClient = new Client({
         webSocketFactory: () => socket,
         debug: (str) => {
@@ -87,51 +73,32 @@ class WebSocketService {
         },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
-        heartbeatOutgoing: 4000
+        heartbeatOutgoing: 4000,
+        onConnect: () => {
+          console.log('STOMP 연결 성공')
+          this.isConnected = true
+          this.reconnectAttempts = 0
+          if (callbacks.onConnect) {
+            callbacks.onConnect()
+          }
+        },
+        onStompError: (frame) => {
+          console.error('STOMP 에러:', frame)
+          if (callbacks.onError) {
+            callbacks.onError(frame)
+          }
+        },
+        onWebSocketError: (event) => {
+          console.error('WebSocket 에러:', event)
+          if (callbacks.onError) {
+            callbacks.onError(event)
+          }
+        }
       })
 
-      // 연결 시작
-      console.log('STOMP 연결 시작...')
-      this.stompClient.onConnect = (frame) => {
-        console.log('STOMP 연결 성공:', frame)
-        this.isConnected = true
-        this.reconnectAttempts = 0
-
-        // 구독 설정
-        this.subscribe(this.roomId, callbacks.onMessage)
-        
-        // 큐에 쌓인 메시지 전송
-        this.flushMessageQueue()
-
-        if (callbacks.onConnect) {
-          callbacks.onConnect(frame)
-        }
-      }
-
-      this.stompClient.onError = (error) => {
-        console.error(' STOMP 연결 실패:', error)
-        this.isConnected = false
-
-        if (callbacks.onError) {
-          callbacks.onError(error)
-        }
-
-        // 토큰 만료 등의 인증 에러인 경우 토큰 갱신 시도
-        if (error.headers && (
-          error.headers.message?.includes('Unauthorized') ||
-          error.headers.message?.includes('Authentication') ||
-          error.headers.message?.includes('401')
-        )) {
-          console.log(' 토큰 갱신 후 재연결 시도...')
-          this.attemptTokenRefreshAndReconnect()
-        } else {
-          // 기타 에러의 경우 일반적인 재연결
-          this.attemptReconnect()
-        }
-      }
-
+      this.stompClient.activate()
     } catch (error) {
-      console.error(' STOMP 초기화 실패:', error)
+      console.error('STOMP 초기화 실패:', error)
       if (callbacks.onError) {
         callbacks.onError(error)
       }
@@ -139,70 +106,55 @@ class WebSocketService {
   }
 
   subscribe(roomId, onMessage) {
-    if (!this.stompClient || !this.isConnected) {
-      console.warn(' 구독 불가: STOMP 클라이언트가 연결되지 않음')
+    if (!this.isConnected || !this.stompClient) {
+      console.error('STOMP 클라이언트가 연결되지 않았습니다')
       return
     }
 
     try {
       const destination = `/sub/chat/room/${roomId}`
       console.log('📡 구독 시작:', destination)
-
-      // 기존 구독 해제
-      if (this.subscription) {
-        this.subscription.unsubscribe()
-      }
-
-      // 새 구독 생성 (문서 명세에 따라)
+      
+      // subscribe 대신 subscribeToDestination 사용
       this.subscription = this.stompClient.subscribe(destination, (message) => {
-        console.log(' 메시지 수신:', message.body)
-        
-        if (onMessage) {
-          try {
-            const parsedMessage = JSON.parse(message.body)
+        try {
+          const parsedMessage = JSON.parse(message.body)
+          console.log('📨 메시지 수신:', parsedMessage)
+          if (onMessage) {
             onMessage(parsedMessage)
-          } catch (e) {
-            console.error(' 메시지 파싱 실패:', e)
-            console.error('원본 메시지:', message.body)
           }
+        } catch (error) {
+          console.error('메시지 파싱 실패:', error)
         }
       })
-
-      console.log(' 구독 성공:', roomId)
-
     } catch (error) {
-      console.error(' 구독 실패:', error)
-      throw error
+      console.error('구독 실패:', error)
     }
   }
 
-  sendMessage(messageData) {
+  sendMessage(message) {
     if (!this.isConnected || !this.stompClient) {
-      console.log(' WebSocket 미연결, 메시지 큐에 추가')
-      this.messageQueue.push(messageData)
+      console.log('메시지 큐에 추가:', message)
+      this.messageQueue.push(message)
       return
     }
 
     try {
-      // 문서 명세에 따른 메시지 형식
-      const message = {
-        type: messageData.type || "EDIT",
-        roomId: this.roomId,
-        message: messageData.content || messageData.message,
-        num: messageData.blockNum || messageData.num || "0",
-        ...messageData
-      }
-
-      console.log(' 메시지 전송:', message)
-
-      // 문서 명세에 따라 /pub/chat/message로 전송
-      this.stompClient.send("/pub/chat/message", {}, JSON.stringify(message))
+      const destination = `/pub/chat/message`
+      console.log('메시지 전송:', message)
       
-      console.log(' 메시지 전송 완료')
-
+      // send 대신 publish 사용
+      this.stompClient.publish({
+        destination,
+        body: JSON.stringify(message),
+        headers: {
+          'content-type': 'application/json'
+        }
+      })
     } catch (error) {
-      console.error(' 메시지 전송 실패:', error)
-      this.messageQueue.push(messageData)
+      console.error('메시지 전송 실패:', error)
+      // 전송 실패한 메시지는 큐에 추가
+      this.messageQueue.push(message)
     }
   }
 

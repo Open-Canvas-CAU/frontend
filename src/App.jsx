@@ -16,7 +16,6 @@ import DashboardPage from "@/pages/DashboardPage.jsx";
 import ProtectedRoute from "@/components/features/auth/ProtectedRoute.jsx";
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import OAuthCallbackPage from '@/pages/OAuthCallbackPage';
-import DBDataViewer from '@/components/debug/DBDataViewer'; // 디버그 컴포넌트
 
 export default function App() {
     return (
@@ -33,10 +32,7 @@ export default function App() {
                         {/* OAuth2 콜백 라우트 */}
                         <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
 
-                        {/* 디버그 라우트 - 개발 중에만 사용 */}
-                        <Route path="/debug" element={<DBDataViewer />} />
-
-                        {/*  새로운 캔버스 보기 라우트 - 모든 카드 클릭 시 이동 */}
+                        {/* 새로운 캔버스 보기 라우트 - 모든 카드 클릭 시 이동 */}
                         <Route path="/canvas/:coverId" element={<CanvasViewPage />} />
                         
                         {/* 완성된 작품 보기 - coverId 사용 */}

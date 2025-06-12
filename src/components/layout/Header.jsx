@@ -58,21 +58,10 @@ export default function Header() {
     };
 
     //  수정된 로그인 처리 - OAuth2 URL로 직접 이동
-    const handleLogin = () => {
-        // 현재 경로 저장
-        localStorage.setItem('login_redirect_path', location.pathname);
-        
-        // 동적 포트 감지
-        const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '3000');
-        const redirectUri = `http://localhost:${currentPort}/oauth2/callback`;
-        
-        // OAuth2 로그인 URL 생성
-        const googleLoginUrl = `http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/oauth2/authorization/google?redirect_uri=${encodeURIComponent(redirectUri)}&mode=login`;
-        
-        console.log('Header에서 로그인 시도:', googleLoginUrl);
-        
-        // 페이지 전체를 리다이렉트
-        window.location.href = googleLoginUrl;
+    const handleGoogleLogin = () => {
+        const redirectUri = `${window.location.origin}/oauth2/callback`
+        const googleLoginUrl = authService.getGoogleLoginUrl(redirectUri)
+        window.location.href = googleLoginUrl
     };
 
     const handleSearch = (e) => {
@@ -128,6 +117,13 @@ export default function Header() {
         return `${baseStyle} text-white hover:text-red-400 hover:bg-black/50 hover:scale-105 hover:shadow-md`;
     };
 
+    const getNotificationStyle = (hasNotification) => {
+        const baseStyle = 'relative px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300'
+        return hasNotification
+            ? `${baseStyle} text-red-600 bg-red-100/80 shadow-lg scale-105`
+            : `${baseStyle} text-white-600 hover:text-white-800 hover:bg-black-50`
+    }
+
     return (
         <header className={`
             h-24 flex items-center justify-between p-4 md:p-6 lg:p-8 border-b backdrop-blur-sm
@@ -163,7 +159,7 @@ export default function Header() {
                         <span className="relative z-10 flex items-center space-x-2">
                             <span>작업 중</span>
                             {activeNav === 'workingon' && (
-                                <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></span>
+                                <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></span>
                             )}
                         </span>
                     </button>
@@ -189,7 +185,7 @@ export default function Header() {
                             />
                             <button 
                                 type="submit" 
-                                className="px-4 py-3 bg-red-300 text-black hover:bg-red-400 transition-colors duration-200 font-medium"
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors"
                             >
                                 검색
                             </button>
@@ -209,43 +205,21 @@ export default function Header() {
                 {/* 인증 정보 영역 */}
                 <div className="flex items-center space-x-4">
                     {isAuthenticated ? (
-                        <>
-                            <div className="flex items-center space-x-3 bg-black/10 backdrop-blur-sm rounded-xl px-4 py-2">
-                                <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-white-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                    {currentUser?.nickname?.charAt(0)?.toUpperCase() || 'U'}
-                                </div>
-                                <span className="text-sm text-white font-medium">
-                                    {currentUser?.nickname?.split('@')[0] || '사용자'}님
-                                </span>
-                            </div>
+                        <div className="flex items-center space-x-4">
                             <button
                                 onClick={handleLogout}
-                                className="px-4 py-2 text-sm font-medium text-white bg-red-500/80 hover:bg-red-500 rounded-xl transition-all duration-300 transform hover:scale-105 backdrop-blur-sm"
+                                className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors duration-200"
                             >
                                 로그아웃
                             </button>
-                        </>
+                        </div>
                     ) : (
-                        <>
-                            {/*  수정된 로그인 버튼 - OAuth2 직접 연결 */}
-                            <button
-                                onClick={handleLogin}
-                                className="px-4 py-3 bg-red-500 text-white hover:bg-red-600 transition-colors duration-200 font-medium"                            >
-                                <img 
-                                    className="w-5 h-5" 
-                                    src="https://www.svgrepo.com/show/475656/google-color.svg" 
-                                    alt="Google" 
-                                />
-                                <span>로그인</span>
-                            </button>
-                            
-                            {/* 개발 모드에서만 보이는 디버그 정보 */}
-                            {process.env.NODE_ENV === 'development' && (
-                                <div className="text-xs text-white/60">
-                                    포트: {window.location.port || '3000'}
-                                </div>
-                            )}
-                        </>
+                        <button
+                            onClick={handleGoogleLogin}
+                            className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors duration-200"
+                        >
+                            로그인
+                        </button>
                     )}
                 </div>
             </div>

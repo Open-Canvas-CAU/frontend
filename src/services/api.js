@@ -1,108 +1,87 @@
 // src/services/api.js - isPublic 버그 수정 및 인증 로직 강화
 import axios from 'axios'
+import { API_BASE_URL } from '@/config'
 import { authService } from './authService'
 
-const API_BASE_URL = import.meta.env.VITE_USE_MOCK_API === 'true'
-  ? 'http://localhost:3000'
-  : 'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com'
+const API_URL = import.meta.env.VITE_USE_MOCK_API === 'true'
+  ? 'http://localhost:5173/mock-api'
+  : API_BASE_URL
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_URL,
+  withCredentials: true,  // 쿠키 포함
   headers: {
     'Content-Type': 'application/json'
   },
   timeout: 10000,
 });
 
+// 요청 인터셉터
 api.interceptors.request.use(
   async (config) => {
-    // 공개 API 엔드포인트 목록
-    const publicEndpoints = [
-      '/auth/login', 
-      '/auth/refresh', 
-      '/oauth2', // '/oauth2'로 시작하는 모든 경로 포함
-      '/api/covers/all',
-      '/api/covers/views',
-      '/api/covers/likes',
-      '/api/covers/search'
-    ];
-    
-    //  [버그 수정] startsWith로 각 엔드포인트를 명확하게 확인하도록 변경
-    const isPublicEndpoint = publicEndpoints.some(endpoint => 
-      config.url.startsWith(endpoint)
-    );
-
-    console.log(' API 요청:', {
-      url: config.url,
-      method: config.method,
-      isPublic: isPublicEndpoint, // 이제 정확하게 false가 나옵니다.
-    });
-    
-    // 비공개 API라면 토큰 유효성 검사
-    if (!isPublicEndpoint) {
-      try {
-        await authService.validateTokens();
-      } catch (error) {
-        console.error("토큰 유효성 확보 실패. API 요청을 취소합니다.", error);
-        return Promise.reject(error);
+    try {
+      // 토큰 유효성 검사 및 갱신
+      const token = await authService.validateTokens();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
+      return config;
+    } catch (error) {
+      console.error('API 요청 준비 중 오류:', error);
+      // 토큰 관련 에러인 경우 로그인 페이지로 리다이렉트
+      if (error.message.includes('토큰') || error.message.includes('인증')) {
+        window.location.href = '/login';
+      }
+      return Promise.reject(error);
     }
-
-    // 유효한 토큰을 헤더에 추가
-    const token = authService.getAccessToken();
-    if (token && !isPublicEndpoint) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    
-    return config;
   },
   (error) => {
+    console.error('API 요청 인터셉터 에러:', error);
     return Promise.reject(error);
   }
 );
 
-
-// 응답 인터셉터 (변경 없음)
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
-    if (error) prom.reject(error);
-    else prom.resolve(token);
-  });
-  failedQueue = [];
-};
-
+// 응답 인터셉터
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // 토큰 만료로 인한 401 에러이고, 재시도하지 않은 요청인 경우
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then(token => {
-          originalRequest.headers['Authorization'] = 'Bearer ' + token;
-          return api(originalRequest);
-        });
-      }
       originalRequest._retry = true;
-      isRefreshing = true;
+
       try {
-        const newAccessToken = await authService.refreshToken();
-        processQueue(null, newAccessToken);
-        originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
+        // 토큰 재발급 시도
+        const newToken = await authService.refreshToken();
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
+        console.error('토큰 재발급 실패:', refreshError);
+        // 토큰 재발급 실패 시 로그인 페이지로 리다이렉트
+        window.location.href = '/login';
         return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   }
 );
+
+export const _request = async ({ url, method, data, isPublic = false }) => {
+  try {
+    console.log('API 요청:', { url, method, isPublic });
+    const response = await api({
+      url,
+      method,
+      data,
+      headers: isPublic ? {} : undefined
+    });
+    return response.data;
+  } catch (error) {
+    console.error('API 요청 실패:', error);
+    throw error;
+  }
+};
 
 export default api;

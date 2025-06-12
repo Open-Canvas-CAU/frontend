@@ -89,19 +89,21 @@ export default function SearchResultsPage() {
     }
 
     const handleCardClick = (cover) => {
-        navigate(`/cover/${cover.id}`)
+        if (cover.contentId) {
+            navigate(`/completed/${cover.id}`);
+        } else {
+            navigate(`/canvas/${cover.id}`);
+        }
     }
 
-    const getStatusInfo = (cover) => {
-        switch (cover.roomType) {
-            case 'EDITING':
-                return { icon: '', text: '편집 중', color: 'text-red-400', bgColor: 'bg-red-500/20' }
-            case 'AVAILABLE':
-                return { icon: '🎨', text: '편집 가능', color: 'text-red-400', bgColor: 'bg-red-500/20' }
-            case 'COMPLETE':
-                return { icon: '✨', text: '완성', color: 'text-purple-400', bgColor: 'bg-purple-500/20' }
+    const getStatusInfo = (status) => {
+        switch (status) {
+            case 'working':
+                return { icon: '🎨', text: '작업 중', color: 'text-red-400', bgColor: 'bg-red-500/20' }
+            case 'completed':
+                return { icon: '✨', text: '완성', color: 'text-red-400', bgColor: 'bg-red-500/20' }
             default:
-                return { icon: '❓', text: '알 수 없음', color: 'text-white/60', bgColor: 'bg-white/10' }
+                return { icon: '❓', text: '알 수 없음', color: 'text-red-400', bgColor: 'bg-red-500/20' }
         }
     }
 
@@ -176,13 +178,22 @@ export default function SearchResultsPage() {
             <div className="relative z-10 container mx-auto px-8 py-8">
                 {/* 검색바 */}
                 <div className="mb-8">
-                    <SearchBar
-                        value={searchInput}
-                        onChange={setSearchInput}
-                        onSearch={handleSearch}
-                        onKeyPress={handleKeyPress}
-                        className="max-w-2xl mx-auto"
-                    />
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                            placeholder="검색어를 입력하세요"
+                            className="flex-1 px-4 py-2 bg-black border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-red-500"
+                        />
+                        <button
+                            onClick={handleSearch}
+                            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-400 transition-colors"
+                        >
+                            검색
+                        </button>
+                    </div>
                 </div>
 
                 {!hasSearched ? (
@@ -260,7 +271,7 @@ export default function SearchResultsPage() {
                         {/* 검색 결과 그리드 */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                             {covers.map((cover, index) => {
-                                const statusInfo = getStatusInfo(cover)
+                                const statusInfo = getStatusInfo(cover.roomType)
                                 return (
                                     <div 
                                         key={cover.id} 

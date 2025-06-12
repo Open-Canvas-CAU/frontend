@@ -9,6 +9,28 @@ export default function CanvasCard({
     onClick,
     cardType = 'gallery'
 }) {
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'working':
+                return 'bg-red-500/80 text-white'
+            case 'completed':
+                return 'bg-red-500/80 text-white'
+            default:
+                return 'bg-red-500/80 text-white'
+        }
+    }
+
+    const getButtonStyle = (status) => {
+        switch (status) {
+            case 'working':
+                return 'bg-red-500/80 hover:bg-red-500 text-white'
+            case 'completed':
+                return 'bg-red-500/80 hover:bg-red-500 text-white'
+            default:
+                return 'bg-red-500/80 hover:bg-red-500 text-white'
+        }
+    }
+
     return (
         <div 
             className="canvas-card w-full group cursor-pointer"
@@ -43,10 +65,7 @@ export default function CanvasCard({
                 <div className={`
                     absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm
                     transition-all duration-300 transform translate-y-1 opacity-0 group-hover:translate-y-0 group-hover:opacity-100
-                    ${cardType === 'workspace' 
-                        ? 'bg-orange-500/80 text-white' 
-                        : 'bg-blue-500/80 text-white'
-                    }
+                    ${getStatusStyle(cardType)}
                 `}>
                     {cardType === 'workspace' ? '작업 중' : '완성작'}
                 </div>
@@ -67,9 +86,7 @@ export default function CanvasCard({
                 
                 <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
                     <span>{timeAgo}</span>
-                    <span className={`font-medium ${
-                        cardType === 'workspace' ? 'text-orange-400' : 'text-blue-400'
-                    }`}>
+                    <span className={`font-medium ${getStatusStyle(cardType)}`}>
                         {cardType === 'workspace' ? '편집하기' : '보기'}
                     </span>
                 </div>
@@ -81,10 +98,7 @@ export default function CanvasCard({
                 {/* 간단한 액션 버튼 */}
                 <button className={`
                     w-full py-2 px-4 rounded-md text-sm font-medium transition-all duration-300
-                    ${cardType === 'workspace' 
-                        ? 'bg-orange-500/80 hover:bg-orange-500 text-white' 
-                        : 'bg-blue-500/80 hover:bg-blue-500 text-white'
-                    }
+                    ${getButtonStyle(cardType)}
                 `}>
                     {cardType === 'workspace' ? '계속 편집' : '작품 보기'}
                 </button>

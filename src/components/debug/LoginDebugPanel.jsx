@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { authService } from '@/services/authService'
 import api from '@/services/api'
+import { API_BASE_URL } from '@/config'
 
 export default function LoginDebugPanel() {
     const [debugInfo, setDebugInfo] = useState({})
@@ -14,7 +15,7 @@ export default function LoginDebugPanel() {
 
     const updateDebugInfo = () => {
         const currentUrl = window.location.href
-        const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '3000')
+        const currentPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80')
         
         const info = {
             // 현재 환경
@@ -43,10 +44,10 @@ export default function LoginDebugPanel() {
             
             // 예상 URL들
             urls: {
-                loginUrl: `http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/oauth2/authorization/google?redirect_uri=${encodeURIComponent(`http://localhost:${currentPort}/oauth2/callback`)}&mode=login`,
+                loginUrl: authService.getGoogleLoginUrl(`http://localhost:${currentPort}/oauth2/callback`),
                 callbackUrl: `http://localhost:${currentPort}/oauth2/callback`,
-                backendBase: 'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com',
-                refreshEndpoint: 'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/auth/refresh'
+                backendBase: API_BASE_URL,
+                refreshEndpoint: `${API_BASE_URL}/auth/refresh`
             }
         }
         

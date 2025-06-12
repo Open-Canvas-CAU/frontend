@@ -4,6 +4,7 @@ import { authService } from '@/services/authService'
 import { coverService } from '@/services/coverService'
 import websocketService from '@/services/websocketService'
 import api from '@/services/api'
+import { API_BASE_URL, WS_BASE_URL } from '@/config'
 
 export default function DebugPage() {
     const [results, setResults] = useState({})
@@ -328,8 +329,8 @@ export default function DebugPage() {
                             <pre>
 {`현재 URL: ${window.location.href}
 Node ENV: ${process.env.NODE_ENV}
-API Base: ${import.meta.env.VITE_USE_MOCK_API === 'true' ? 'Mock API' : 'http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com'}
-WebSocket URL: ws://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/ws-stomp
+API Base: ${import.meta.env.VITE_USE_MOCK_API === 'true' ? 'Mock API' : API_BASE_URL}
+WebSocket URL: ${WS_BASE_URL}/ws-stomp
 브라우저: ${navigator.userAgent}`}
                             </pre>
                         </div>

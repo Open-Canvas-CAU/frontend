@@ -4,6 +4,9 @@ import { canvasService } from '@/services/canvasService';
 import VersionTree from './VersionTree';
 import EditorSection from './EditorSection';
 import { authService } from '@/services/authService';
+import IllustrationGenerator from '../illustration/IllustrationGenerator';
+import { illustrationService } from '@/services/illustrationService';
+import { recommendService } from '@/services/recommendService';
 
 export default function CompletedCanvasPage() {
     const { coverId } = useParams();
@@ -199,22 +202,14 @@ export default function CompletedCanvasPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-red-50 to-white-100 flex items-center justify-center">
+            <div className="min-h-screen bg-black flex items-center justify-center">
                 <div className="text-center space-y-4 max-w-md">
-                    <div className="text-6xl"></div>
                     <div className="text-xl text-red-600">{error}</div>
-                    <div className="text-sm text-white-600">Cover ID: {coverId}</div>
                     <button
                         onClick={() => navigate(-1)}
                         className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                     >
                         뒤로 가기
-                    </button>
-                    <button
-                        onClick={() => navigate('/debug')}
-                        className="ml-4 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                    >
-                        DB 데이터 확인
                     </button>
                 </div>
             </div>
@@ -223,9 +218,8 @@ export default function CompletedCanvasPage() {
 
     if (!canvasData) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-red-50 to-white-100 flex items-center justify-center">
+            <div className="min-h-screen bg-black flex items-center justify-center">
                 <div className="text-center space-y-4">
-                    <div className="text-4xl">📭</div>
                     <div className="text-xl text-white-600">데이터가 없습니다.</div>
                 </div>
             </div>

@@ -1,5 +1,6 @@
 // src/services/authService.js - 개발자 모드 + 함수명 수정 최종 버전
 import api from './api';
+import { API_BASE_URL } from '@/config'
 
 // 💡 [임시 해결책] 아이디 연동을 잠시 끄려면 이 값을 true로 변경하세요.
 const DEV_MODE_ENABLED = false;
@@ -49,50 +50,110 @@ export const authService = {
         return Date.now() >= decoded.exp * 1000;
     },
 
-    refreshToken: async () => {
-        if (DEV_MODE_ENABLED) return DEV_MODE_DUMMY_TOKEN; // 개발자 모드에서는 재발급 불필요
-
-        const refreshToken = authService.getRefreshToken();
-        if (!refreshToken) {
-            authService.logout();
-            throw new Error('리프레시 토큰이 없습니다.');
-        }
-
+    async refreshToken() {
         try {
-            const response = await fetch('http://ec2-54-180-117-21.ap-northeast-2.compute.amazonaws.com/auth/refresh', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refreshToken })
-            });
-            if (!response.ok) throw new Error('토큰 재발급에 실패했습니다.');
-            
-            const data = await response.json();
-            if (data.accessToken) {
-                authService.saveTokens({ accessToken: data.accessToken });
-                return data.accessToken;
-            } else {
-                throw new Error('새로운 엑세스 토큰을 받지 못했습니다.');
+            const refreshToken = localStorage.getItem('refreshToken')
+            if (!refreshToken) {
+                console.error('리프레시 토큰이 없습니다')
+                throw new Error('리프레시 토큰이 없습니다')
             }
+
+            console.log('⏳ 엑세스 토큰이 만료되어 재발급합니다...', {
+                refreshToken: refreshToken.substring(0, 10) + '...',
+                currentUrl: window.location.href
+            })
+            
+            const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${refreshToken}`
+                }
+            })
+
+            console.log('토큰 재발급 응답:', {
+                status: response.status,
+                ok: response.ok,
+                headers: Object.fromEntries(response.headers.entries())
+            })
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.error('리프레시 토큰이 만료되었습니다')
+                    authService.logout()
+                    throw new Error('리프레시 토큰이 만료되었습니다')
+                }
+                const errorText = await response.text()
+                console.error('토큰 재발급 실패:', {
+                    status: response.status,
+                    error: errorText
+                })
+                throw new Error(`토큰 재발급 실패: ${response.status} - ${errorText}`)
+            }
+
+            const data = await response.json()
+            console.log('토큰 재발급 성공:', {
+                hasAccessToken: !!data.accessToken,
+                hasRefreshToken: !!data.refreshToken
+            })
+            
+            if (!data.accessToken) {
+                throw new Error('새로운 액세스 토큰이 없습니다')
+            }
+
+            // 새 토큰 저장
+            localStorage.setItem('accessToken', data.accessToken)
+            if (data.refreshToken) {
+                localStorage.setItem('refreshToken', data.refreshToken)
+            }
+
+            return data.accessToken
         } catch (error) {
-            authService.logout();
-            throw error;
+            console.error('토큰 재발급 실패:', error)
+            // 토큰 관련 에러인 경우 로그아웃
+            if (error.message.includes('토큰') || error.message.includes('인증')) {
+                authService.logout()
+            }
+            throw error
         }
     },
     
-    validateTokens: async () => {
-        if (DEV_MODE_ENABLED) return; // 개발자 모드에서는 유효성 검사 생략
-
-        const accessToken = authService.getAccessToken();
-        if (!accessToken) return;
-
-        if (authService.isTokenExpired(accessToken)) {
-            console.log('⏳ 엑세스 토큰이 만료되어 재발급합니다...');
-            try {
-                await authService.refreshToken();
-            } catch (error) {
-                console.error('토큰 재발급에 실패하여 요청을 중단합니다.');
-                throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
+    async validateTokens() {
+        try {
+            const accessToken = authService.getAccessToken()
+            if (!accessToken) {
+                console.log('액세스 토큰이 없습니다')
+                throw new Error('액세스 토큰이 없습니다')
             }
+
+            // 토큰 만료 체크 (JWT 디코딩)
+            try {
+                const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]))
+                const expirationTime = tokenPayload.exp * 1000
+                const currentTime = Date.now()
+                
+                console.log('토큰 유효성 검사:', {
+                    expirationTime: new Date(expirationTime).toISOString(),
+                    currentTime: new Date(currentTime).toISOString(),
+                    timeLeft: Math.floor((expirationTime - currentTime) / 1000) + '초'
+                })
+
+                // 만료 1분 전부터 갱신
+                if (currentTime >= expirationTime - 60000) {
+                    console.log('토큰 만료 임박, 재발급 시도')
+                    const newToken = await authService.refreshToken()
+                    return newToken
+                }
+
+                return accessToken
+            } catch (decodeError) {
+                console.error('토큰 디코딩 실패:', decodeError)
+                throw new Error('유효하지 않은 토큰 형식')
+            }
+        } catch (error) {
+            console.error('토큰 유효성 검증 실패:', error)
+            throw error
         }
     },
 
@@ -122,16 +183,29 @@ export const authService = {
     },
 
     logout: () => {
-        if (DEV_MODE_ENABLED) {
-            alert("개발자 모드에서는 로그아웃할 수 없습니다. authService.js의 DEV_MODE_ENABLED를 false로 변경해주세요.");
-            return;
-        }
+        console.log('로그아웃 처리 중...')
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        // 로그아웃 후 로그인 페이지로 리다이렉트
+        window.location.href = '/login'
+    },
+
+    getGoogleLoginUrl: (redirectUri) => {
+        // 로컬 환경에서는 로컬 서버의 OAuth 엔드포인트 사용
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        const baseUrl = isLocalhost ? 'http://localhost:8080' : API_BASE_URL
         
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        
-        window.dispatchEvent(new Event('auth-change'));
-        window.location.href = '/';
+        // 리다이렉트 URI도 로컬 환경에 맞게 조정
+        const adjustedRedirectUri = isLocalhost 
+          ? `http://localhost:${window.location.port}/oauth2/callback`
+          : redirectUri
+
+        console.log('OAuth 로그인 URL 생성:', {
+          baseUrl,
+          redirectUri: adjustedRedirectUri,
+          isLocalhost
+        })
+
+        return `${baseUrl}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(adjustedRedirectUri)}&mode=login`
     }
 };

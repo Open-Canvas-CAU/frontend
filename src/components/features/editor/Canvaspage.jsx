@@ -2,15 +2,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import CarouselEditor from './CarouselEditor'
+import VersionTree from './VersionTree' // 기존 VersionTree 컴포넌트 가져오기
 import api from '@/services/api'
 import websocketService from '@/services/websocketService'
 import { authService } from '@/services/authService'
-
-// 최소 완성 기준(단어, 글자 수)
-const COMPLETION_CRITERIA = {
-  MIN_WORDS: 100,
-  MIN_CHARACTERS: 500,
-}
 
 export default function CanvasPage({ isEditing = false }) {
   const { roomId } = useParams()
@@ -19,8 +14,13 @@ export default function CanvasPage({ isEditing = false }) {
   // API + 에디터 상태
   const [roomData, setRoomData] = useState(null)
   const [writings, setWritings] = useState([])
+  const [savedWritings, setSavedWritings] = useState([]) // 저장된 버전들 (CompletedCanvasPage와 동일)
+  const [currentWriting, setCurrentWriting] = useState(null) // 현재 선택된 버전
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  // UI 상태 (CompletedCanvasPage와 동일)
+  const [showVersions, setShowVersions] = useState(false)
 
   // WebSocket 연결 상태
   const [wsConnected, setWsConnected] = useState(false)
@@ -44,6 +44,15 @@ export default function CanvasPage({ isEditing = false }) {
     }
   }
 
+  // --- 버전 노드 클릭 핸들러 (CompletedCanvasPage와 동일)
+  const handleVersionNodeClick = (versionData) => {
+    if (versionData && versionData.data) {
+      setCurrentWriting(versionData.data)
+      // 선택된 버전으로 에디터 내용 업데이트
+      setWritings([{ body: versionData.data.body }])
+    }
+  }
+
   // --- 초기 데이터 로드 & 소켓 연결
   useEffect(() => {
     if (!roomId || !isEditing) {
@@ -61,16 +70,22 @@ export default function CanvasPage({ isEditing = false }) {
         if (!roomRes) return
         setRoomData(roomRes.data)
 
+        // 기존 CompletedCanvasPage와 동일한 방식으로 writings 가져오기
         const wrRes = await safeApiCall(
           () => api.get(`/api/writings/room/${roomId}`),
           '글 조회 실패'
         )
         if (!wrRes) return
-        setWritings(
-          Array.isArray(wrRes.data) && wrRes.data.length
-            ? wrRes.data
-            : [{ body: '<p>새 이야기를 시작하세요...</p>' }]
-        )
+        
+        const writingsData = Array.isArray(wrRes.data) ? wrRes.data : []
+        setSavedWritings(writingsData) // 버전 트리용
+        
+        if (writingsData.length > 0) {
+          setCurrentWriting(writingsData[0])
+          setWritings([{ body: writingsData[0].body }])
+        } else {
+          setWritings([{ body: '<p>새 이야기를 시작하세요...</p>' }])
+        }
 
         // WebSocket 연결
         websocketService.connect(roomId, {
@@ -124,12 +139,21 @@ export default function CanvasPage({ isEditing = false }) {
         title: roomData.title || '제목 없음',
         body: writings[0].body,
         depth: 0,
-        siblingIndex: 0,
+        siblingIndex: savedWritings.length, // 새 버전 번호
         time: new Date().toISOString(),
         roomId,
       }
       await safeApiCall(() => api.post('/api/writings', dto), '저장 실패')
       alert('저장되었습니다')
+      
+      // 저장 후 버전 목록 새로고침
+      const wrRes = await safeApiCall(
+        () => api.get(`/api/writings/room/${roomId}`),
+        '글 조회 실패'
+      )
+      if (wrRes) {
+        setSavedWritings(Array.isArray(wrRes.data) ? wrRes.data : [])
+      }
     } catch {
       alert('저장에 실패했습니다')
     }
@@ -157,15 +181,29 @@ export default function CanvasPage({ isEditing = false }) {
           ← 나가기
         </button>
         <div className="text-center">
-          <div className="text-xl font-semibold">{roomData.title}</div>
+          <div className="text-xl font-semibold">{roomData?.title}</div>
           <div className="text-sm text-gray-500">Room: {roomId}</div>
         </div>
-        <div className="text-sm">
-          {wsConnected
-            ? '✅ 실시간 연결됨'
-            : wsError
-            ? `❌ ${wsError}`
-            : '🔄 연결중...'}
+        <div className="flex items-center space-x-3">
+          {/* 버전 보기 버튼 (CompletedCanvasPage와 동일) */}
+          <button
+            onClick={() => setShowVersions(!showVersions)}
+            className={`px-4 py-2 rounded-xl font-medium transition-colors ${
+              showVersions 
+                ? 'bg-blue-100 text-blue-600' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            📊 버전 기록
+          </button>
+          
+          <div className="text-sm">
+            {wsConnected
+              ? '✅ 실시간 연결됨'
+              : wsError
+              ? `❌ ${wsError}`
+              : '🔄 연결중...'}
+          </div>
         </div>
       </div>
 
@@ -187,6 +225,36 @@ export default function CanvasPage({ isEditing = false }) {
           </button>
         </div>
       </div>
+
+      {/* 버전 트리 사이드바 (CompletedCanvasPage에서 그대로 가져옴) */}
+      {showVersions && (
+        <div className="fixed right-0 top-0 w-80 h-full bg-white/95 backdrop-blur-sm border-l border-white/50 shadow-2xl z-40">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-800">버전 기록</h3>
+              <button
+                onClick={() => setShowVersions(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {savedWritings && savedWritings.length > 0 ? (
+              <VersionTree
+                writings={savedWritings}
+                onNodeClick={handleVersionNodeClick}
+                currentVersion={currentWriting}
+              />
+            ) : (
+              <div className="text-center text-gray-500 py-8">
+                <div className="text-2xl mb-2">📊</div>
+                <p>버전 기록이 없습니다.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

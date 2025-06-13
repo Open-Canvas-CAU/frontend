@@ -309,7 +309,7 @@ export default function NewCanvasPage() {
           
           {/* 4. 초기 본문 */}
           <div className="border border-white/20 rounded-lg p-6">
-            <label className="block text-white mb-2 text-lg">시작 이야기 (선택)</label>
+            <label className="block text-white mb-2 text-lg">시작 이야기</label>
             <EditorSection 
               content={body} 
               onChange={setBody} 

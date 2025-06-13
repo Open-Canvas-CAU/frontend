@@ -1,4 +1,3 @@
-// src/components/features/landing/CanvasCard.jsx - 간소화된 버전
 import React from 'react'
 import { RoomType } from '@/types'
 

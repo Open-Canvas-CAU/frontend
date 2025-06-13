@@ -1,4 +1,3 @@
-// src/pages/LandingPage.jsx - MouseFollower 추가된 버전
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import CanvasCard from '@/components/features/landing/CanvasCard'
@@ -192,7 +191,7 @@ export default function LandingPage() {
             }
         }
         return {
-            title: '완성된 작품 갤러리', 
+            title: '완성된 캔버스', 
             description: '완성된 작품들을 감상해보세요.',
             emptyIcon: '🎨',
             emptyMessage: '완성된 작품이 없습니다.',

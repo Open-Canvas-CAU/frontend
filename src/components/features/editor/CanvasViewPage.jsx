@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import EditorSection from './EditorSection';
 import { authService } from '@/services/authService';
 import { coverService } from '@/services/coverService'; // coverService 사용
-import api from '@/services/api'; // 직접 api 사용도 가능
+import api from '@/services/api';
 import VersionTree from './VersionTree';
 import { 
     ERROR_MESSAGES,
@@ -147,9 +147,30 @@ export default function CanvasViewPage() {
         <div className="min-h-screen bg-black rounded-2xl shadow-lg overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b">
                 <button onClick={()=>navigate(-1)} className="text-white">← 나가기</button>
-                <div className="text-center">
-                    <div className="text-xl font-semibold">{coverData.title}</div>
-                    <div className="text-sm text-white-500">RoomType: {coverData.roomType}</div>
+                <div className="text-center flex items-center justify-center gap-2">
+                    {/* {coverData.roomType === 'EDITING' && (
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-red-500 font-medium">ON AIR</span>
+                        </div>
+                    )} */}
+                    <div>
+                        <div className="text-xl font-semibold">{coverData.title}</div>
+                        <div className={`text-sm flex items-center justify-center gap-1.5 ${
+                            coverData.roomType === 'EDITING' 
+                                ? 'text-red-500' 
+                                : 'text-white-500'
+                        }`}>
+                            {coverData.roomType === 'EDITING' ? (
+                                <>
+                                    편집 중
+                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
+                                </>
+                            ) : (
+                                '편집 가능'
+                            )}
+                        </div>
+                    </div>
                 </div>
                 <div className="flex items-center space-x-3">
                     <button onClick={()=>setShowVersions(!showVersions)} className="px-4 py-2 bg-black-100 rounded">📊 버전 기록</button>

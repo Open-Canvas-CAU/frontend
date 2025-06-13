@@ -4,7 +4,6 @@ import React, { useRef, useLayoutEffect } from 'react'
 export default function ThemeInput({ value, onChange }) {
   const ta = useRef(null)
 
-  // 내용이 바뀔 때마다 높이를 자동으로 맞춰줍니다
   useLayoutEffect(() => {
     if (!ta.current) return
     ta.current.style.height = 'auto'

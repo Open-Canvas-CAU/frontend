@@ -1,4 +1,3 @@
-// src/pages/LoginPage.jsx - 가이드에 따른 수정
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { authService } from '@/services/authService'
@@ -41,14 +40,14 @@ export default function LoginPage() {
                         Open Canvas
                     </h2>
                     <p className="mt-2 text-sm text-white/60">
-                        함께 그림을 그리고 이야기를 만들어보세요
+                        함께 그려나가는 이야기
                     </p>
                 </div>
                 
                 <div className="mt-8 space-y-6">
                     <button
                         onClick={handleGoogleLogin}
-                        className="w-full flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl text-white bg-black hover:bg-white/5 transition-colors duration-200"
+                        className="w-full flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl text-black bg-white hover:bg-white/90 transition-colors duration-200"
                     >
                         <img 
                             className="w-5 h-5 mr-2" 

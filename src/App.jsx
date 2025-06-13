@@ -18,6 +18,8 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 import OAuthCallbackPage from '@/pages/OAuthCallbackPage';
 import MyCanvasPage from '@/pages/MyCanvasPage';
 import ProfilePage from '@/pages/ProfilePage';
+import AdminPage from '@/pages/AdminPage';
+import AdminRoute from '@/components/features/auth/AdminRoute';
 
 export default function App() {
     return (
@@ -92,6 +94,16 @@ export default function App() {
                                 <ProtectedRoute>
                                     <PalettePage />
                                 </ProtectedRoute>
+                            }
+                        />
+
+                        {/* 관리자 페이지 */}
+                        <Route
+                            path="/admin"
+                            element={
+                                <AdminRoute>
+                                    <AdminPage />
+                                </AdminRoute>
                             }
                         />
                     </Route>

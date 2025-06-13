@@ -27,16 +27,16 @@ export default function DrawerMenu() {
     }
 
     const menuItems = [
-        {
-            path: '/canvas/new',
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-            ),
-            label: '새 캔버스',
-            requireAuth: true
-        },
+        // {
+        //     path: '/canvas/new',
+        //     icon: (
+        //         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        //         </svg>
+        //     ),
+        //     label: '새 캔버스',
+        //     requireAuth: true
+        // },
         {
             path: '/my-canvas',
             icon: (
@@ -91,7 +91,7 @@ export default function DrawerMenu() {
                 fixed top-24 left-0 h-[calc(100vh-6rem)] 
                 transform transition-all duration-300 ease-in-out z-20
                 ${isOpen ? 'w-72' : 'w-20'}
-                border-r border-white/20
+                border-r border-white
             `}>
                 {/* 메뉴 배경 */}
                 <div className={`
@@ -213,10 +213,10 @@ export default function DrawerMenu() {
                 </div>
 
                 {/* 토글 버튼 */}
-                <button
+                {/* <button
                     onClick={() => setIsOpen(!isOpen)}
                     className={`
-                        absolute -right-3 top-1/2 -translate-y-1/2
+                        absolute -right-3 top-4
                         w-6 h-12 bg-black/80 text-white rounded-r-lg shadow-lg 
                         hover:bg-black/90 transition-all duration-300 
                         flex items-center justify-center z-30
@@ -225,7 +225,7 @@ export default function DrawerMenu() {
                     <span className="transform transition-transform duration-300" style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}>
                         {'>>'}
                     </span>
-                </button>
+                </button> */}
             </div>
 
             {/* 오버레이 */}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { coverService } from '@/services/coverService';
+import { authService } from '@/services/authService';
 import CanvasCard from '@/components/features/landing/CanvasCard';
 import MouseFollower from '@/components/common/MouseFollower';
+import { RoomType } from '@/types';
 
 export default function PalettePage() {
     const [covers, setCovers] = useState([]);
@@ -14,9 +16,20 @@ export default function PalettePage() {
         const fetchWorkingCovers = async () => {
             try {
                 setLoading(true);
-                // contentId가 없는 '작업 중'인 캔버스만 가져옵니다.
-                const response = await coverService.getWorkingCovers();
-                setCovers(response.data || []);
+                // 모든 캔버스를 가져와서 현재 사용자의 것만 필터링
+                const response = await coverService.getAllCovers();
+                const currentUser = authService.getCurrentUser();
+                
+                if (response.data && currentUser?.email) {
+                    // 현재 사용자의 캔버스 중 roomType이 EDITING인 것만 필터링
+                    const workingCovers = response.data.filter(cover => 
+                        cover.userEmail === currentUser.email && 
+                        cover.roomType === RoomType.EDITING
+                    );
+                    setCovers(workingCovers);
+                } else {
+                    setCovers([]);
+                }
             } catch (err) {
                 console.error("작업 중인 캔버스 조회 실패:", err);
                 setError("캔버스 목록을 불러오는 데 실패했습니다.");

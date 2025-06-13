@@ -1,11 +1,13 @@
 // src/components/layout/MainLayout.jsx
 import React from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import Header from '@/components/layout/Header'
 import DrawerMenu from '@/components/layout/DrawerMenu'
 
 export default function MainLayout() {
     const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
+    const location = useLocation()
+    const isAdminPage = location.pathname === '/admin'
 
     return (
         <div className="flex flex-col h-screen overflow-hidden">
@@ -18,7 +20,8 @@ export default function MainLayout() {
                 <main className={`
                     h-full overflow-auto
                     transition-all duration-300 ease-in-out
-                    ${isDrawerOpen ? 'ml-72 w-[calc(100%-18rem)]' : 'ml-20 w-[calc(100%-5rem)]'}
+                    ${!isAdminPage && isDrawerOpen ? 'ml-72 w-[calc(100%-18rem)]' : 
+                      !isAdminPage ? 'ml-20 w-[calc(100%-5rem)]' : 'w-full'}
                 `}>
                     <div className="min-h-full px-8 py-6 md:px-12 md:py-8 lg:px-16 lg:py-10">
                         <div className="max-w-[1600px] mx-auto">
@@ -28,8 +31,8 @@ export default function MainLayout() {
                 </main>
             </div>
 
-            {/* 드로어 메뉴 */}
-            <DrawerMenu onOpenChange={setIsDrawerOpen} />
+            {/* 드로어 메뉴 - 관리자 페이지가 아닐 때만 표시 */}
+            {!isAdminPage && <DrawerMenu onOpenChange={setIsDrawerOpen} />}
         </div>
     )
 }

@@ -544,6 +544,19 @@ export default function CompletedCanvasPage() {
                                 </button>
                             )}
                         </div>
+
+                        {!authService.isAuthenticated() && (
+                            <div className="p-4 bg-black/50 rounded-lg text-center border border-white/10">
+                                <p className="text-white/60 mb-4">댓글을 작성하려면 로그인이 필요합니다.</p>
+                                <button
+                                    onClick={() => navigate(ROUTES.LOGIN)}
+                                    className="px-4 py-2 bg-white text-black rounded-lg hover:bg-white/90 transition-colors flex items-center justify-center gap-2 mx-auto"
+                                >
+                                    <img src="/google.svg" alt="Google" className="w-5 h-5" />
+                                    <span>Google로 로그인</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

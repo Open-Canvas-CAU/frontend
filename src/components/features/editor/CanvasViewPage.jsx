@@ -1,76 +1,147 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import EditorSection from './EditorSection'
-import api from '@/services/api'
-import { authService } from '@/services/authService'
-import VersionTree from './VersionTree' // 이제 뷰어에 버전 트리 추가
+// src/components/features/editor/CanvasViewPage.jsx
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import EditorSection from './EditorSection';
+import { authService } from '@/services/authService';
+import { coverService } from '@/services/coverService'; // coverService 사용
+import api from '@/services/api'; // 직접 api 사용도 가능
+import VersionTree from './VersionTree';
+import { 
+    ERROR_MESSAGES,
+    SUCCESS_MESSAGES,
+    ROUTES,
+    UI_CONSTANTS,
+    RoomType
+} from '@/types';
 
 export default function CanvasViewPage() {
-    const { coverId } = useParams()
-    const navigate = useNavigate()
+    const { coverId } = useParams();
+    const navigate = useNavigate();
 
-    const [coverData, setCoverData] = useState(null)
-    const [writings, setWritings] = useState([])
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState(null)
-    const [isJoiningRoom, setIsJoiningRoom] = useState(false)
-    const [showVersions, setShowVersions] = useState(false)
-    const [savedWritings, setSavedWritings] = useState([])
+    const [coverData, setCoverData] = useState(null);
+    const [writings, setWritings] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isJoiningRoom, setIsJoiningRoom] = useState(false);
+    const [showVersions, setShowVersions] = useState(false);
+    const [savedWritings, setSavedWritings] = useState([]);
 
     useEffect(() => {
         const fetchCanvasData = async () => {
             if (!coverId) {
-                setError('잘못된 접근입니다. Cover ID가 없습니다.')
-                setIsLoading(false); return
+                setError(ERROR_MESSAGES.INVALID_INPUT);
+                setIsLoading(false);
+                return;
             }
             try {
-                setIsLoading(true)
-                const coverRes = await api.get('/api/covers/check', { params: { coverId } })
-                const cover = coverRes.data
-                setCoverData(cover)
-                let items = []
+                setIsLoading(true);
+                const coverRes = await api.get('/api/covers/check', { params: { coverId } });
+                const cover = coverRes.data;
+                
+                if (!cover) {
+                    setError(ERROR_MESSAGES.NOT_FOUND);
+                    setIsLoading(false);
+                    return;
+                }
+                
+                setCoverData(cover);
+
+                let items = [];
                 if (cover.roomId) {
-                    const roomRes = await api.get(`/api/rooms/${cover.roomId}`)
-                    items = roomRes.data.writingDtos || []
-                    setSavedWritings(roomRes.data.writingDtos || [])
+                    const roomRes = await api.get(`/api/rooms/${cover.roomId}`);
+                    items = roomRes.data?.writingDtos || [];
+                    setSavedWritings(items);
                 }
-                if (cover.contentId) {
-                    const contentRes = await api.get(`/api/contents/${cover.id}`)
-                    items = [{ body: contentRes.data.body }]
+                else if (cover.contentId) {
+                    const contentRes = await api.get(`/api/contents/${cover.id}`);
+                    items = contentRes.data?.writingDtos || [];
+                    setSavedWritings(items);
                 }
-                if (items.length === 0) items = [{ body: '<p>아직 시작되지 않았습니다.</p>' }]
-                setWritings(items)
+                
+                if (items.length === 0) {
+                    items.push({ body: '<p>아직 작성된 내용이 없습니다.</p>' });
+                }
+                setWritings(items);
+
             } catch (err) {
-                setError(err.response?.data?.message || err.message)
+                console.error("CanvasViewPage fetch error:", err);
+                setError(err.response?.data?.message || ERROR_MESSAGES.SERVER_ERROR);
             } finally {
-                setIsLoading(false)
+                setIsLoading(false);
             }
-        }
-        fetchCanvasData()
-    }, [coverId])
+        };
+        fetchCanvasData();
+    }, [coverId]);
 
     const handleStartEditing = async () => {
-        if (!authService.isAuthenticated()) return navigate('/login', { state: { from: `/canvas/${coverId}` } })
-        setIsJoiningRoom(true)
+        if (!authService.isAuthenticated()) {
+            navigate(ROUTES.LOGIN, { state: { from: ROUTES.CANVAS.VIEW(coverId) } });
+            return;
+        }
+        setIsJoiningRoom(true);
         try {
-            let roomId = coverData.roomId
+            let roomId = coverData.roomId;
             if (!roomId) {
-                const initial = { title: coverData.title, body: '<p>새 이야기...</p>', depth: 0, siblingIndex: 0, time: new Date().toISOString() }
-                const roomRes = await api.post('/api/rooms/create', initial)
-                roomId = roomRes.data.roomId
+                const initial = { 
+                    title: coverData.title, 
+                    body: '<p>새 이야기...</p>', 
+                    depth: 0, 
+                    siblingIndex: 0, 
+                    time: new Date().toISOString() 
+                };
+                const roomRes = await api.post('/api/rooms/create', initial);
+                roomId = roomRes.data.roomId;
             } else {
-                await api.get(`/api/rooms/${roomId}`)
+                await api.get(`/api/rooms/${roomId}`);
             }
-            navigate(`/editor/${roomId}/edit`)
+            navigate(ROUTES.EDITOR.EDIT(roomId));
         } catch (err) {
-            alert('편집 진입 실패: '+(err.response?.data?.message||err.message))
-        } finally { setIsJoiningRoom(false) }
+            alert(ERROR_MESSAGES.ROOM_ACCESS_DENIED);
+        } finally {
+            setIsJoiningRoom(false);
+        }
+    };
+
+    const handleViewCompleted = () => navigate(ROUTES.CANVAS.COMPLETED(coverId));
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-black">
+                <div className="text-center space-y-4">
+                    <div className="w-12 h-12 border-4 border-red-300/20 border-t-red-300/80 rounded-full animate-spin"></div>
+                    <div className="text-xl text-white">로딩 중...</div>
+                </div>
+            </div>
+        );
     }
 
-    const handleViewCompleted = () => navigate(`/completed/${coverId}`)
-
-    if (isLoading) return <div>로딩 중...</div>
-    if (error) return <div className="text-red-500">오류: {error}</div>
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-black">
+                <div className="text-center space-y-4 max-w-md">
+                    <div className="text-6xl">⚠️</div>
+                    <div className="text-xl text-red-500">{error}</div>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-300"
+                    >
+                        뒤로 가기
+                    </button>
+                </div>
+            </div>
+        );
+    }
+    
+    if (!coverData) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-black">
+                <div className="text-center space-y-4">
+                    <div className="text-xl text-white">{ERROR_MESSAGES.NOT_FOUND}</div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-black rounded-2xl shadow-lg overflow-hidden">
@@ -86,8 +157,27 @@ export default function CanvasViewPage() {
             </div>
             <div className="p-6">
                 <EditorSection content={writings[0].body} readOnly className="min-h-[300px] prose" />
-                {!coverData.contentId && <button onClick={handleStartEditing} disabled={isJoiningRoom} className="mt-4 px-6 py-3 bg-red-500 text-white rounded"> 편집하기</button>}
-                {coverData.contentId && <button onClick={handleViewCompleted} className="mt-4 px-6 py-3 bg-red-500 text-white rounded">🎨 완성작 보기</button>}
+                {!coverData.contentId && (
+                    <button 
+                        onClick={handleStartEditing} 
+                        disabled={isJoiningRoom || coverData.roomType === 'EDITING'} 
+                        className={`mt-4 px-6 py-3 rounded transition-colors ${
+                            coverData.roomType === 'EDITING'
+                                ? 'bg-gray-500/50 text-gray-400 cursor-not-allowed'
+                                : 'bg-red-500 text-white hover:bg-red-600'
+                        }`}
+                    >
+                        {coverData.roomType === 'EDITING' ? '편집 중 (비활성화)' : '편집하기'}
+                    </button>
+                )}
+                {coverData.contentId && (
+                    <button 
+                        onClick={handleViewCompleted} 
+                        className="mt-4 px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600"
+                    >
+                        🎨 완성작 보기
+                    </button>
+                )}
             </div>
             {showVersions && (
                 <div className="fixed right-0 top-0 w-80 h-full bg-black shadow-2xl z-40">

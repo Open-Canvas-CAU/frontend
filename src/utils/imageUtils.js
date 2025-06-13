@@ -28,7 +28,7 @@ export const generateDefaultCoverImage = (title) => {
         </text>
         <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" 
               font-family="Arial, sans-serif" font-size="12" fill="#0369a1">
-          Live Canvas
+          Open Canvas
         </text>
       </svg>
     `;

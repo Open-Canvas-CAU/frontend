@@ -25,5 +25,5 @@ export const roomApi = {
    * @param {string} roomId 
    * @returns {Promise<string>}
    */
-  exit: (roomId) => api.post(`/rooms/exit?roomId=${roomId}`)
+  exit: (roomId) => api.post(`/rooms/exit`, null, { params: { roomId } })
 }; 

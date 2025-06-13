@@ -1,13 +1,10 @@
 // src/components/layout/Header.jsx - 수정된 헤더 (로그인 버튼 포함)
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
-import { authService } from '@/services/authService';
 
 export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated());
-    const [currentUser, setCurrentUser] = useState(null);
 
     // 검색창 관련 상태
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -16,30 +13,6 @@ export default function Header() {
 
     // 네비게이션 전환 상태
     const [activeNav, setActiveNav] = useState('');
-
-    useEffect(() => {
-        const updateAuthState = async () => {
-            const authStatus = authService.isAuthenticated();
-            setIsAuthenticated(authStatus);
-
-            if (authStatus) {
-                let user = authService.getCurrentUser();
-                if (!user) {
-                    user = await authService.fetchAndSaveUser();
-                }
-                setCurrentUser(user);
-            } else {
-                setCurrentUser(null);
-            }
-        };
-
-        window.addEventListener('auth-change', updateAuthState);
-        updateAuthState();
-
-        return () => {
-            window.removeEventListener('auth-change', updateAuthState);
-        };
-    }, []);
 
     // 현재 페이지에 따른 활성 네비게이션 설정
     useEffect(() => {
@@ -51,18 +24,6 @@ export default function Header() {
             setActiveNav('');
         }
     }, [location.pathname]);
-
-    const handleLogout = () => {
-        authService.logout();
-        navigate('/');
-    };
-
-    //  수정된 로그인 처리 - OAuth2 URL로 직접 이동
-    const handleGoogleLogin = () => {
-        const redirectUri = `${window.location.origin}/oauth2/callback`
-        const googleLoginUrl = authService.getGoogleLoginUrl(redirectUri)
-        window.location.href = googleLoginUrl
-    };
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -117,13 +78,6 @@ export default function Header() {
         return `${baseStyle} text-white hover:text-red-400 hover:bg-black/50 hover:scale-105 hover:shadow-md`;
     };
 
-    const getNotificationStyle = (hasNotification) => {
-        const baseStyle = 'relative px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300'
-        return hasNotification
-            ? `${baseStyle} text-red-600 bg-red-100/80 shadow-lg scale-105`
-            : `${baseStyle} text-white-600 hover:text-white-800 hover:bg-black-50`
-    }
-
     return (
         <header className={`
             h-24 flex items-center justify-between p-4 md:p-6 lg:p-8 border-b backdrop-blur-sm
@@ -136,7 +90,7 @@ export default function Header() {
                     to="/" 
                     className="text-xl font-extrabold text-white hover:text-red-400 transition-colors duration-300 transform hover:scale-105"
                 >
-                    Live Canvas
+                    Open Canvas
                 </Link>
                 
                 <nav className="flex space-x-2 relative">
@@ -166,7 +120,7 @@ export default function Header() {
                 </nav>
             </div>
 
-            {/* 오른쪽 섹션: 검색 및 인증 */}
+            {/* 오른쪽 섹션: 검색 */}
             <div className="flex items-center space-x-6">
                 {/* 검색 영역 */}
                 <div ref={searchRef} className="relative">
@@ -198,27 +152,6 @@ export default function Header() {
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
-                        </button>
-                    )}
-                </div>
-
-                {/* 인증 정보 영역 */}
-                <div className="flex items-center space-x-4">
-                    {isAuthenticated ? (
-                        <div className="flex items-center space-x-4">
-                            <button
-                                onClick={handleLogout}
-                                className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors duration-200"
-                            >
-                                로그아웃
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={handleGoogleLogin}
-                            className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors duration-200"
-                        >
-                            로그인
                         </button>
                     )}
                 </div>

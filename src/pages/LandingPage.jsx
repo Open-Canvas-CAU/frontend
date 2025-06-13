@@ -8,6 +8,13 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
+import { 
+    ERROR_MESSAGES,
+    SUCCESS_MESSAGES,
+    ROUTES,
+    UI_CONSTANTS,
+    RoomType
+} from '@/types'
 
 // 커스텀 스타일 추가
 const customStyles = `
@@ -70,15 +77,26 @@ export default function LandingPage() {
                 let response
 
                 // API 호출
-                switch (filter) {
-                    case '인기순':
-                        response = await coverService.getCoversByLikes()
-                        break
-                    case '최신순':
-                        response = await coverService.getAllCovers()
-                        break
-                    default:
-                        response = await coverService.getCoversByViews()
+                try {
+                    switch (filter) {
+                        case '인기순':
+                            response = await coverService.getCoversByLikes()
+                            break
+                        case '최신순':
+                            response = await coverService.getAllCovers()
+                            break
+                        default:
+                            response = await coverService.getCoversByViews()
+                    }
+                } catch (apiError) {
+                    // 401 에러가 발생해도 빈 배열로 처리하고 계속 진행
+                    if (apiError.response?.status === 401) {
+                        console.warn('인증되지 않은 상태로 데이터를 가져올 수 없습니다:', apiError)
+                        setCovers([])
+                        setLoading(false)
+                        return
+                    }
+                    throw apiError // 다른 에러는 상위로 전파
                 }
                 
                 console.log('📡 API Response:', response.data)
@@ -94,11 +112,11 @@ export default function LandingPage() {
                     }
 
                     if (location.pathname === '/workingon') {
-                        // 작업 중인 캔버스 (contentId가 null이거나 undefined)
+                        // 작업 중인 캔버스 (roomType이 EDITING인 것)
                         const before = filteredCovers.length
                         filteredCovers = response.data.filter(cover => {
-                            const isWorking = cover.contentId === null || cover.contentId === undefined
-                            console.log(`🎨 Cover "${cover.title}": contentId=${cover.contentId}, isWorking=${isWorking}`)
+                            const isWorking = cover.roomType === RoomType.EDITING
+                            console.log(`🎨 Cover "${cover.title}": roomType=${cover.roomType}, isWorking=${isWorking}`)
                             return isWorking
                         })
                         
@@ -107,18 +125,17 @@ export default function LandingPage() {
                         debug.workingCovers = filteredCovers.map(c => ({
                             id: c.id,
                             title: c.title,
-                            contentId: c.contentId,
                             roomType: c.roomType,
                             roomId: c.roomId
                         }))
                         
                         console.log(`📊 Working canvas filter: ${before} → ${filteredCovers.length}`)
                     } else {
-                        // 완성된 캔버스 (contentId가 있음)
+                        // 완성된 캔버스 (roomType이 COMPLETE인 것)
                         const before = filteredCovers.length
                         filteredCovers = response.data.filter(cover => {
-                            const isCompleted = cover.contentId !== null && cover.contentId !== undefined
-                            console.log(`🎭 Cover "${cover.title}": contentId=${cover.contentId}, isCompleted=${isCompleted}`)
+                            const isCompleted = cover.roomType === RoomType.COMPLETE
+                            console.log(`🎭 Cover "${cover.title}": roomType=${cover.roomType}, isCompleted=${isCompleted}`)
                             return isCompleted
                         })
                         
@@ -127,7 +144,6 @@ export default function LandingPage() {
                         debug.completedCovers = filteredCovers.map(c => ({
                             id: c.id,
                             title: c.title,
-                            contentId: c.contentId,
                             roomType: c.roomType
                         }))
                         
@@ -156,10 +172,12 @@ export default function LandingPage() {
     }, [filter, location.pathname])
 
     // 🔧 카드 클릭 핸들러 - 모든 카드는 먼저 보기 모드로
-    const handleCardClick = (doc) => {
-        console.log('🖱️ Card clicked:', doc)
-        console.log(`📖 Navigating to canvas view: /canvas/${doc.id}`)
-        navigate(`/canvas/${doc.id}`)
+    const handleCardClick = (cover) => {
+        if (cover.roomType === RoomType.COMPLETE) {
+            navigate(`/completed/${cover.id}`);
+        } else {
+            navigate(`/canvas/${cover.id}`);
+        }
     }
 
     const getPageInfo = () => {
@@ -358,56 +376,33 @@ export default function LandingPage() {
                         {/* 캔버스 목록 */}
                         {covers.length > 0 && (
                             <div className={`
-                                space-y-12
-                                transition-all duration-700 delay-400
-                                ${isTransitioning ? 'translate-y-8 opacity-0' : 'translate-y-0 opacity-100'}
+                                transition-all duration-700 delay-300
+                                ${isTransitioning ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}
                             `}>
-                                {/* 각 카테고리별 캐러셀 */}
-                                {Object.entries(categorizedCovers).map(([category, categoryCovers]) => (
-                                    categoryCovers.length > 0 && (
-                                        <div key={category} className="space-y-4">
-                                            <h2 className="text-2xl font-bold text-red-100">
-                                                {category === '인기순' ? '🔥 인기 작품' : 
-                                                 category === '최신순' ? '✨ 최신 작품' : 
-                                                 '🎨 전체 작품'}
-                                            </h2>
-                                            <div className="relative h-[400px]">
-                                                <Swiper
-                                                    modules={[Navigation]}
-                                                    spaceBetween={24}
-                                                    slidesPerView={Math.min(4, categoryCovers.length)}
-                                                    navigation
-                                                    loop={categoryCovers.length > 4}
-                                                    className="h-full p-4"
-                                                >
-                                                    {categoryCovers.map((doc, index) => (
-                                                        <SwiperSlide key={`${doc.id}-${doc.contentId || 'working'}-${index}`}>
-                                                            <div 
-                                                                className="h-full flex items-center justify-center px-4"
-                                                                style={{ 
-                                                                    transitionDelay: `${index * 100}ms`
-                                                                }}
-                                                            >
-                                                                <CanvasCard
-                                                                    title={doc.title}
-                                                                    timeAgo={new Date(doc.time).toLocaleDateString()}
-                                                                    description={
-                                                                        isWorkspace
-                                                                            ? `${doc.roomType === 'EDITING' ? '편집 중' : '편집 가능'} • ${new Date(doc.time).toLocaleTimeString()}`
-                                                                            : `조회수: ${doc.view || 0} | 좋아요: ${doc.likeNum || 0}`
-                                                                    }
-                                                                    imgSrc={doc.coverImageUrl}
-                                                                    onClick={() => handleCardClick(doc)}
-                                                                    cardType={isWorkspace ? 'workspace' : 'gallery'}
-                                                                />
-                                                            </div>
-                                                        </SwiperSlide>
-                                                    ))}
-                                                </Swiper>
-                                            </div>
+                                {/* 그리드 레이아웃 */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+                                    {covers.map((cover, index) => (
+                                        <div
+                                            key={cover.id}
+                                            className="transition-all duration-300 ease-in-out"
+                                            style={{ animationDelay: `${index * 80}ms` }}
+                                        >
+                                            <CanvasCard
+                                                title={cover.title}
+                                                timeAgo={new Date(cover.time).toLocaleDateString()}
+                                                description={
+                                                    isWorkspace
+                                                        ? `${cover.roomType === 'EDITING' ? '편집 중' : '편집 가능'} • ${new Date(cover.time).toLocaleTimeString()}`
+                                                        : `조회수: ${cover.view || 0} | 좋아요: ${cover.likeNum || 0}`
+                                                }
+                                                imgSrc={cover.coverImageUrl}
+                                                onClick={() => handleCardClick(cover)}
+                                                cardType={isWorkspace ? 'workspace' : 'gallery'}
+                                                roomType={cover.roomType}
+                                            />
                                         </div>
-                                    )
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>

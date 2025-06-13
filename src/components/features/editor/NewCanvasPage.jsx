@@ -8,14 +8,25 @@ import { illustrationService } from '@/services/illustrationService';
 import { recommendService } from '@/services/recommendService';
 import { authService } from '@/services/authService';
 import { coverService } from '@/services/coverService';
+import { roomService } from '@/services/roomService';
+import { 
+    DEFAULT_IMAGES,
+    DEFAULT_SETTINGS,
+    GENRES,
+    ERROR_MESSAGES,
+    SUCCESS_MESSAGES,
+    UI_CONSTANTS,
+    ROUTES,
+    RoomType
+} from '@/types';
 
 export default function NewCanvasPage() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(DEFAULT_SETTINGS.ROOM.DEFAULT_LIMIT);
   const [genres, setGenres] = useState([]);
-  const [coverImageUrl, setCoverImageUrl] = useState('');
+  const [coverImageUrl, setCoverImageUrl] = useState(DEFAULT_IMAGES.COVER.DEFAULT);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [step, setStep] = useState(1);
@@ -23,13 +34,6 @@ export default function NewCanvasPage() {
   // 일러스트 생성 관련 상태
   const [showIllustrationModal, setShowIllustrationModal] = useState(false);
   const [hasCustomImage, setHasCustomImage] = useState(false);
-
-  // 사전 정의된 장르 목록
-  const AVAILABLE_GENRES = [
-    '판타지', 'SF', '로맨스', '스릴러', '미스터리', 
-    '액션', '모험', '코미디', '드라마', '호러',
-    '역사', '전쟁', '스팀펑크', '사이버펑크', '디스토피아'
-  ];
 
   const handleGenreToggle = (genre) => {
     setGenres(prev => 
@@ -53,7 +57,12 @@ export default function NewCanvasPage() {
   // 1. 일반 '캔버스 생성하기' (작업 중 상태로 생성)
   const handleCreate = async () => {
     if (!title.trim()) {
-      alert('제목을 입력해주세요.');
+      alert(ERROR_MESSAGES.INVALID_INPUT);
+      return;
+    }
+    
+    if (title.length > UI_CONSTANTS.MAX_TITLE_LENGTH) {
+      alert(ERROR_MESSAGES.CONTENT_TOO_LONG);
       return;
     }
     
@@ -67,11 +76,11 @@ export default function NewCanvasPage() {
       setLoadingMessage('표지 정보 생성 중...');
       const coverData = { 
         title, 
-        coverImageUrl: coverImageUrl || `https://via.placeholder.com/400x300/1a1a1a/ffffff?text=${encodeURIComponent(title)}`, 
+        coverImageUrl: coverImageUrl || DEFAULT_COVER_IMAGE, 
         time: new Date().toISOString(), 
         limit,
         genres,
-        roomType: 'AVAILABLE' // 초기 상태는 AVAILABLE
+        roomType: RoomType.AVAILABLE // 초기 상태는 AVAILABLE
       };
 
       // 2. Content 생성
@@ -120,12 +129,12 @@ export default function NewCanvasPage() {
 
       // 이동
       setStep(3);
-      setLoadingMessage('편집 페이지로 이동 중...');
-      setTimeout(() => navigate(`/editor/${cover.id}/edit`), 1000);
+      setLoadingMessage(SUCCESS_MESSAGES.ROOM_CREATED);
+      setTimeout(() => navigate(ROUTES.EDITOR.EDIT(cover.id)), UI_CONSTANTS.LOADING_DELAY);
       
     } catch (err) {
       console.error('캔버스 생성 실패:', err);
-      alert(`캔버스 생성 실패: ${err.response?.data?.message || err.message}`);
+      alert(ERROR_MESSAGES.SERVER_ERROR);
       setIsLoading(false);
     }
   };
@@ -133,7 +142,12 @@ export default function NewCanvasPage() {
   // 2. '완성작으로 생성' (즉시 종료 후 완성본 생성)
   const handleCreateAsCompleted = async () => {
     if (!title.trim()) {
-      alert('제목을 입력해주세요.');
+      alert(ERROR_MESSAGES.INVALID_INPUT);
+      return;
+    }
+    
+    if (title.length > UI_CONSTANTS.MAX_TITLE_LENGTH) {
+      alert(ERROR_MESSAGES.CONTENT_TOO_LONG);
       return;
     }
     
@@ -147,11 +161,11 @@ export default function NewCanvasPage() {
       setLoadingMessage('표지 정보 생성 중...');
       const coverData = { 
         title, 
-        coverImageUrl: coverImageUrl || `https://via.placeholder.com/400x300/1a1a1a/ffffff?text=${encodeURIComponent(title)}`, 
+        coverImageUrl: coverImageUrl || DEFAULT_COVER_IMAGE, 
         time: new Date().toISOString(), 
         limit,
         genres,
-        roomType: 'COMPLETE' // 완성 상태로 생성
+        roomType: RoomType.COMPLETE // 완성 상태로 생성
       };
 
       // 2. Content 생성
@@ -198,12 +212,12 @@ export default function NewCanvasPage() {
       }
 
       setStep(3);
-      setLoadingMessage('완성작 생성 완료! 페이지로 이동합니다.');
-      setTimeout(() => navigate(`/completed/${cover.id}`), 1500);
+      setLoadingMessage(SUCCESS_MESSAGES.ROOM_CREATED);
+      setTimeout(() => navigate(ROUTES.CANVAS.COMPLETED(cover.id)), UI_CONSTANTS.LOADING_DELAY);
       
     } catch (err) {
       console.error('완성작 생성 실패:', err);
-      alert(`완성작 생성 실패: ${err.response?.data?.message || err.message}`);
+      alert(ERROR_MESSAGES.SERVER_ERROR);
       setIsLoading(false);
     }
   };
@@ -233,7 +247,7 @@ export default function NewCanvasPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 text-white text-center">새 캔버스</h1>
+        <h1 className="text-3xl font-bold mb-8 text-white text-center">새로운 이야기</h1>
         
         <div className="space-y-6 max-w-4xl mx-auto">
           {/* 1. 제목 입력 */}
@@ -244,25 +258,29 @@ export default function NewCanvasPage() {
               value={title} 
               onChange={e => setTitle(e.target.value)} 
               placeholder="이야기의 컨셉을 입력하세요" 
+              maxLength={UI_CONSTANTS.MAX_TITLE_LENGTH}
               className="w-full bg-black border border-white/20 rounded p-3 text-white placeholder-white/50 focus:outline-none focus:border-white/50 text-lg"
             />
+            <div className="text-sm text-white/50 mt-1">
+              {title.length}/{UI_CONSTANTS.MAX_TITLE_LENGTH}자
+            </div>
           </div>
           
           {/* 2. 장르 선택 */}
           <div className="border border-white/20 rounded-lg p-6">
             <label className="block text-white mb-2 text-lg">장르 선택</label>
             <div className="flex flex-wrap gap-3">
-              {AVAILABLE_GENRES.map(genre => (
+              {Object.entries(GENRES).map(([key, value]) => (
                 <button
-                  key={genre}
-                  onClick={() => handleGenreToggle(genre)}
+                  key={key}
+                  onClick={() => handleGenreToggle(key)}
                   className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                    genres.includes(genre)
+                    genres.includes(key)
                       ? 'bg-red-500 text-white'
                       : 'bg-white/10 text-white/70 hover:bg-white/20'
                   }`}
                 >
-                  {genre}
+                  {value}
                 </button>
               ))}
             </div>
@@ -296,8 +314,12 @@ export default function NewCanvasPage() {
               content={body} 
               onChange={setBody} 
               readOnly={false} 
+              maxLength={UI_CONSTANTS.MAX_BODY_LENGTH}
               className="bg-black border border-white/20 rounded p-4 min-h-[200px] text-white" 
             />
+            <div className="text-sm text-white/50 mt-1">
+              {body.length}/{UI_CONSTANTS.MAX_BODY_LENGTH}자
+            </div>
           </div>
           
           {/* 5. 일러스트 생성 옵션 */}

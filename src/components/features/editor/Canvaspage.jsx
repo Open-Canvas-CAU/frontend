@@ -5,10 +5,18 @@ import CarouselEditor from './CarouselEditor'
 import api from '@/services/api'
 import websocketService from '@/services/websocketService'
 import { authService } from '@/services/authService'
+import { roomApi } from '@/services/api/roomApi'
+import { 
+    ERROR_MESSAGES,
+    SUCCESS_MESSAGES,
+    ROUTES,
+    UI_CONSTANTS,
+    WS_CONSTANTS
+} from '@/types'
 
 export default function CanvasPage() {
-  const { roomId } = useParams()
-  const navigate = useNavigate()
+  const { roomId } = useParams();
+  const navigate = useNavigate();
 
   const [roomData, setRoomData] = useState(null)
   const [writings, setWritings] = useState([])
@@ -20,15 +28,15 @@ export default function CanvasPage() {
 
   const safeApiCall = async (fn, errMsg) => {
     try {
-      if (!authService.isAuthenticated()) throw new Error('로그인 필요')
+      if (!authService.isAuthenticated()) throw new Error(ERROR_MESSAGES.AUTH_REQUIRED)
       return await fn()
     } catch (err) {
-      if (err.response?.status === 401 || err.message.includes('로그인')) {
+      if (err.response?.status === 401 || err.message.includes(ERROR_MESSAGES.AUTH_REQUIRED)) {
         authService.logout()
-        navigate('/login', { state: { from: `/editor/${roomId}` } })
+        navigate(ROUTES.LOGIN, { state: { from: ROUTES.EDITOR.EDIT(roomId) } })
         return null
       }
-      console.error(` ${errMsg}`, err)
+      console.error(`${errMsg}:`, err)
       throw err
     }
   }
@@ -91,52 +99,46 @@ export default function CanvasPage() {
     if (wsConnected) websocketService.sendThrottledMessage(index, html)
   }
 
-  const handleSave = async () => {
+  const handleSaveAndExit = async () => {
     try {
-      const dto = {
-        roomId,
-        writingDtos: savedWritings.concat({
-          title: roomData.title || '제목 없음',
-          body: writings[0].body,
-          depth: 0,
-          siblingIndex: savedWritings.length,
-          time: new Date().toISOString()
-        })
-      }
       await safeApiCall(
-        () => api.post('/api/rooms/exit', dto),
-        '저장 실패'
-      )
-      alert('저장되었습니다')
-
-      // 저장 후 버전 목록 갱신
-      const roomRes = await safeApiCall(
-        () => api.get(`/api/rooms/${roomId}`),
-        '글 조회 실패'
-      )
-      if (roomRes) {
-        const versions = Array.isArray(roomRes.data.writingDtos)
-          ? roomRes.data.writingDtos
-          : []
-        setSavedWritings(versions)
-      }
-    } catch {
-      alert('저장에 실패했습니다')
+        () => roomApi.exit(roomId),
+        ERROR_MESSAGES.ROOM_EXIT_FAILED
+      );
+      alert(SUCCESS_MESSAGES.ROOM_EXITED);
+      navigate(ROUTES.HOME);
+    } catch (err) {
+      alert(ERROR_MESSAGES.SERVER_ERROR);
     }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-red-300/20 border-t-red-300/80 rounded-full animate-spin"></div>
+          <div className="text-xl text-white">로딩 중...</div>
+        </div>
+      </div>
+    );
   }
 
-  if (isLoading) return <div className="p-8 text-center">로딩 중...</div>
-  if (error) return (
-    <div className="p-8 text-center text-red-500">
-      오류: {error}<br/>
-      <button
-        onClick={() => navigate(-1)}
-        className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
-      >
-        뒤로
-      </button>
-    </div>
-  )
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-6xl">⚠️</div>
+          <div className="text-xl text-red-500">{error}</div>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-300"
+          >
+            뒤로 가기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black rounded-2xl shadow-lg overflow-hidden">
@@ -167,10 +169,10 @@ export default function CanvasPage() {
         />
         <div className="flex justify-end">
           <button
-            onClick={handleSave}
+            onClick={handleSaveAndExit}
             className="px-6 py-3 bg-black-500 text-white rounded-full"
           >
-            임시저장
+            저장 후 퇴장
           </button>
         </div>
       </div>

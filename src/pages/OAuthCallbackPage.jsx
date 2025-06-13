@@ -71,28 +71,32 @@ export default function OAuthCallbackPage() {
                     setTimeout(() => {
                         navigate(redirectPath, { replace: true });
                     }, 2000);
-
                 } else {
                     console.error(' 토큰을 찾을 수 없습니다');
                     console.error('사용 가능한 파라미터:', Array.from(searchParams.entries()));
                     
                     setStatus('error');
+                    setDebugInfo(prev => ({ 
+                        ...prev, 
+                        error: '토큰을 찾을 수 없습니다',
+                        params: Array.from(searchParams.entries())
+                    }));
                     
-                    // 3초 후 로그인 페이지로 리다이렉트
+                    // 에러 메시지만 표시하고 홈으로 이동
                     setTimeout(() => {
                         alert('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
-                        navigate('/login', { replace: true });
+                        navigate('/', { replace: true });
                     }, 3000);
                 }
-                
             } catch (error) {
                 console.error(' OAuth 콜백 처리 중 오류:', error);
                 setStatus('error');
                 setDebugInfo(prev => ({ ...prev, error: error.message }));
                 
+                // 에러 메시지만 표시하고 홈으로 이동
                 setTimeout(() => {
                     alert('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
-                    navigate('/login', { replace: true });
+                    navigate('/', { replace: true });
                 }, 3000);
             }
         };

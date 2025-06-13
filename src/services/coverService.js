@@ -1,4 +1,5 @@
 import api from './api'
+import { authService } from './authService'
 
 export const coverService = {
   // 기존 API들
@@ -118,20 +119,33 @@ export const coverService = {
    */
   createDocumentRoom: async (coverData, contentData) => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('인증 토큰이 없습니다.');
+      }
+
       // 1. Cover 생성
-      const coverResponse = await api.post('/api/covers', coverData)
-      const coverId = coverResponse.data.id
+      const coverResponse = await api.post('/covers', coverData, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const coverId = coverResponse.data.id;
 
       // 2. Content 생성
-      const contentResponse = await api.post(`/api/contents/${coverId}`, contentData)
+      const contentResponse = await api.post(`/contents/${coverId}`, contentData, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
       return {
         cover: coverResponse.data,
         content: contentResponse.data
-      }
+      };
     } catch (error) {
-      console.error('문서방 생성 실패:', error)
-      throw error
+      console.error('문서방 생성 실패:', error);
+      throw error;
     }
   },
 
@@ -150,5 +164,33 @@ export const coverService = {
       console.error('방 나가기 실패:', error)
       throw error
     }
-  }
+  },
+
+  /**
+   * 내가 작성한 캔버스 목록을 가져옵니다.
+   * TODO: 백엔드 API 구현 후 수정 필요
+   */
+  getMyCovers: async () => {
+    try {
+      // 임시로 모든 캔버스를 가져온 후 클라이언트에서 필터링
+      const response = await api.get('/api/covers/all');
+      
+      if (response.data) {
+        // 현재 로그인한 사용자의 이메일로 필터링
+        const currentUser = authService.getCurrentUser();
+        if (currentUser?.email) {
+          response.data = response.data.filter(cover => 
+            cover.userEmail === currentUser.email
+          );
+        } else {
+          response.data = [];
+        }
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('내 캔버스 목록 조회 실패:', error);
+      throw error;
+    }
+  },
 }

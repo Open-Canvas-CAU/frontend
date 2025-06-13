@@ -11,4 +11,16 @@ export * from './dto/report';
 // Enum exports
 export * from './enums/roomType';
 export * from './enums/likeType';
-export * from './enums/userRole'; 
+export * from './enums/userRole';
+
+// Error exports
+export * from './errors';
+
+// Route exports
+export * from './routes';
+
+// Message and UI exports
+export * from './messages';
+
+// Constants exports
+export * from './constants'; 

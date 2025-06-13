@@ -186,8 +186,9 @@ export const authService = {
         console.log('로그아웃 처리 중...')
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
-        // 로그아웃 후 로그인 페이지로 리다이렉트
-        window.location.href = '/login'
+        localStorage.removeItem('user')
+        // 전역 인증 상태 변경 이벤트 발생
+        window.dispatchEvent(new Event('auth-change'))
     },
 
     getGoogleLoginUrl: (redirectUri) => {

@@ -58,8 +58,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         console.error('토큰 재발급 실패:', refreshError);
-        // 토큰 재발급 실패 시 로그인 페이지로 리다이렉트
-        window.location.href = '/login';
+        // 토큰 재발급 실패 시 에러 반환
         return Promise.reject(refreshError);
       }
     }

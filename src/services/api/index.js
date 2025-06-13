@@ -35,12 +35,12 @@ api.interceptors.response.use(
             error.config.headers.Authorization = `Bearer ${accessToken}`;
             return api(error.config);
           })
-          .catch(() => {
+          .catch((refreshError) => {
             // 리프레시 토큰도 만료된 경우
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
-            window.location.href = '/login';
-            return Promise.reject(error);
+            // 로그인 페이지로 리다이렉트하지 않고 에러만 반환
+            return Promise.reject(refreshError);
           });
       }
     }

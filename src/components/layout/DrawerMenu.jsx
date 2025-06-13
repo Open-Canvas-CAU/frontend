@@ -28,7 +28,7 @@ export default function DrawerMenu() {
 
     const menuItems = [
         {
-            path: '/new-canvas',
+            path: '/canvas/new',
             icon: (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -91,50 +91,44 @@ export default function DrawerMenu() {
                 fixed top-24 left-0 h-[calc(100vh-6rem)] 
                 transform transition-all duration-300 ease-in-out z-20
                 ${isOpen ? 'w-72' : 'w-20'}
-                border-r border-white/10
+                border-r border-white/20
             `}>
                 {/* 메뉴 배경 */}
                 <div className={`
-                    h-full bg-black/95 transition-all duration-300
+                    h-full bg-black/95 transition-all duration-300 flex flex-col
                     ${isOpen ? 'w-72' : 'w-20'}
                 `}>
-                    {/* 사용자 프로필 섹션 */}
-                    <div className="p-4 border-b border-white/10">
-                        {isAuthenticated && currentUser ? (
-                            <div className={`
-                                flex items-center space-x-4
-                                ${isOpen ? 'justify-start' : 'justify-center'}
-                            `}>
-                                {currentUser.profileImage ? (
-                                    <img 
-                                        src={currentUser.profileImage} 
-                                        alt="프로필" 
-                                        className="w-12 h-12 rounded-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-xl font-bold">
-                                        {currentUser.nickname?.charAt(0)?.toUpperCase() || 'U'}
-                                    </div>
-                                )}
-                                {isOpen && (
+                    {/* 사용자 프로필 섹션 - 사이드바가 열려있을 때만 표시 */}
+                    {isOpen && (
+                        <div className="p-4 border-b border-white/20">
+                            {isAuthenticated && currentUser ? (
+                                <div className="flex items-center space-x-4">
+                                    {currentUser.profileImage ? (
+                                        <img 
+                                            src={currentUser.profileImage} 
+                                            alt="프로필" 
+                                            className="w-12 h-12 rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-xl font-bold">
+                                            {currentUser.nickname?.charAt(0)?.toUpperCase() || 'U'}
+                                        </div>
+                                    )}
                                     <div>
                                         <div className="font-semibold text-white">{currentUser.nickname}</div>
                                         <div className="text-sm text-white/60">{currentUser.email}</div>
                                     </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className={`
-                                text-white/60
-                                ${isOpen ? 'text-left' : 'text-center'}
-                            `}>
-                                {isOpen ? '로그인이 필요합니다' : '?'}
-                            </div>
-                        )}
-                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-white/60">
+                                    로그인이 필요합니다
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* 메뉴 아이템 */}
-                    <nav className="p-4">
+                    <nav className="p-4 flex-1">
                         {activeItems.map((item, index) => (
                             <button
                                 key={item.path}
@@ -146,7 +140,7 @@ export default function DrawerMenu() {
                                     setIsOpen(false)
                                     if (item.onClick) {
                                         item.onClick()
-                                    } else {
+                                    } else if (!item.disabled) {
                                         navigate(item.path)
                                     }
                                 }}
@@ -154,12 +148,15 @@ export default function DrawerMenu() {
                                     w-full flex items-center space-x-3 p-3 rounded-lg mb-2
                                     transition-all duration-200
                                     ${isOpen ? 'justify-start' : 'justify-center'}
-                                    ${location.pathname === item.path 
-                                        ? 'bg-red-500/20 text-red-400' 
-                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                    ${item.disabled 
+                                        ? 'opacity-50 cursor-not-allowed' 
+                                        : location.pathname === item.path 
+                                            ? 'bg-red-500/20 text-red-400' 
+                                            : 'text-white/80 hover:bg-white/10 hover:text-white'
                                     }
                                 `}
                                 style={{ transitionDelay: `${index * 50}ms` }}
+                                disabled={item.disabled}
                             >
                                 <span className="w-6 h-6 flex-shrink-0">{item.icon}</span>
                                 {isOpen && <span className="whitespace-nowrap">{item.label}</span>}
@@ -167,20 +164,49 @@ export default function DrawerMenu() {
                         ))}
                     </nav>
 
-                    {/* 로그아웃 버튼 */}
-                    {isAuthenticated && isOpen && (
-                        <div className="absolute bottom-0 w-full p-4 border-t border-white/10">
+                    {/* 로그인/로그아웃 버튼 - 사이드바가 열려있을 때만 표시 */}
+                    {isOpen && (
+                        <div className="p-4 border-t border-white/20">
+                            {isAuthenticated ? (
+                                <button
+                                    onClick={() => {
+                                        setIsOpen(false)
+                                        authService.logout()
+                                    }}
+                                    className="w-full flex items-center space-x-3 p-3 rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                    <span>로그아웃</span>
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        setIsOpen(false)
+                                        navigate('/login')
+                                    }}
+                                    className="w-full flex items-center space-x-3 p-3 rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                    </svg>
+                                    <span>로그인</span>
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* 새 캔버스 버튼 - 사이드바가 닫혔을 때 하단에 표시 */}
+                    {!isOpen && (
+                        <div className="mt-auto p-4">
                             <button
-                                onClick={() => {
-                                    setIsOpen(false)
-                                    authService.logout()
-                                }}
-                                className="w-full flex items-center space-x-3 p-3 rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200"
+                                onClick={() => navigate('/canvas/new')}
+                                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-lg p-3 transition-colors duration-200 flex items-center justify-center"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
-                                <span>로그아웃</span>
                             </button>
                         </div>
                     )}

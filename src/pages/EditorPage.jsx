@@ -1,30 +1,95 @@
 // src/pages/EditorPage.jsx
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import CanvasPage from '@/components/features/editor/CanvasPage'
+import CanvasViewPage from '@/components/features/editor/CanvasViewPage'
 import { authService } from '@/services/authService'
+import { roomService } from '@/services/roomService'
+import { 
+    ERROR_MESSAGES,
+    SUCCESS_MESSAGES,
+    ROUTES,
+    UI_CONSTANTS
+} from '@/types'
 
-export default function EditorPage({ isEditing = false }) {
+export default function EditorPage() {
     const location = useLocation()
     const navigate = useNavigate()
     const { roomId } = useParams()
-    const isAuthenticated = authService.isAuthenticated()
+    const [isEditing, setIsEditing] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [roomData, setRoomData] = useState(null)
+
+    useEffect(() => {
+        const checkRoomAccess = async () => {
+            if (!roomId) {
+                setError(ERROR_MESSAGES.INVALID_INPUT)
+                setIsLoading(false)
+                return
+            }
+
+            try {
+                const room = await roomService.getRoom(roomId)
+                setRoomData(room)
+                
+                // 방 타입에 따라 편집 모드 결정
+                if (room.roomType === 'COMPLETE') {
+                    setIsEditing(false)
+                } else {
+                    // 사용자가 인증되어 있고, 방에 참여할 권한이 있는지 확인
+                    const isAuthenticated = authService.isAuthenticated()
+                    if (!isAuthenticated) {
+                        navigate(ROUTES.LOGIN, { 
+                            state: { from: ROUTES.EDITOR.EDIT(roomId) }
+                        })
+                        return
+                    }
+                    setIsEditing(true)
+                }
+            } catch (err) {
+                setError(err.response?.data?.message || ERROR_MESSAGES.SERVER_ERROR)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        checkRoomAccess()
+    }, [roomId, navigate])
 
     const handleEdit = () => {
-        if (!isAuthenticated) {
-            navigate('/login', { state: { from: location } })
+        if (!authService.isAuthenticated()) {
+            navigate(ROUTES.LOGIN, { 
+                state: { from: ROUTES.EDITOR.EDIT(roomId) }
+            })
             return
         }
-        navigate(`/editor/${roomId}/edit`)
+        setIsEditing(true)
     }
 
-    if (!roomId) {
+    if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-red-50">
+            <div className="min-h-screen flex items-center justify-center bg-black">
+                <div className="text-center space-y-4">
+                    <div className="w-12 h-12 border-4 border-red-300/20 border-t-red-300/80 rounded-full animate-spin"></div>
+                    <div className="text-xl text-white">로딩 중...</div>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center space-y-4 max-w-md">
-                    <div className="text-6xl"></div>
-                    <h2 className="text-xl font-semibold text-red-600">잘못된 접근입니다</h2>
-                    <p className="text-white-600">Room ID가 제공되지 않았습니다.</p>
+                    <div className="text-6xl">⚠️</div>
+                    <div className="text-xl text-red-500">{error}</div>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-300"
+                    >
+                        뒤로 가기
+                    </button>
                 </div>
             </div>
         )
@@ -32,24 +97,22 @@ export default function EditorPage({ isEditing = false }) {
 
     if (!isEditing) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-red-50">
-                <div className="text-center space-y-4 max-w-md">
-                    <div className="text-6xl">📖</div>
-                    <h2 className="text-xl font-semibold text-red-600">문서방 보기 모드</h2>
-                    <p className="text-white-600">Room ID: {roomId}</p>
-                    <button onClick={handleEdit} className="px-4 py-2 bg-red-500 text-white rounded">
-                        편집하기
-                    </button>
+            <div className="min-h-screen bg-black">
+                <div className="container mx-auto px-4 py-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h1 className="text-2xl font-bold text-white">{roomData?.title || '문서방'}</h1>
+                        <button 
+                            onClick={handleEdit} 
+                            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
+                        >
+                            편집하기
+                        </button>
+                    </div>
+                    <CanvasViewPage roomId={roomId} />
                 </div>
             </div>
         )
     }
 
-    return (
-        <CanvasPage
-            isEditing={isEditing}
-            onEdit={handleEdit}
-            roomId={roomId}
-        />
-    )
+    return <CanvasPage />
 }

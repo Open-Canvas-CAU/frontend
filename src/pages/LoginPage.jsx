@@ -34,13 +34,11 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-black">
-            <div className="w-full max-w-md p-8 space-y-8 bg-black border border-white/10 rounded-2xl shadow-2xl">
+            <div className="w-full max-w-md p-8 space-y-8 bg-black border border-white/20 rounded-2xl shadow-2xl">
                 <div className="text-center">
-                    <div className="mx-auto h-12 w-12 bg-gradient-to-r from-red-500 to-white-500 rounded-xl flex items-center justify-center">
-                        <span className="text-white text-2xl"></span>
-                    </div>
+                    
                     <h2 className="mt-6 text-3xl font-extrabold text-white">
-                        Live Canvas
+                        Open Canvas
                     </h2>
                     <p className="mt-2 text-sm text-white/60">
                         함께 그림을 그리고 이야기를 만들어보세요

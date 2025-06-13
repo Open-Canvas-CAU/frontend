@@ -7,6 +7,21 @@ import { authService } from '@/services/authService';
 import IllustrationGenerator from '../illustration/IllustrationGenerator';
 import { illustrationService } from '@/services/illustrationService';
 import { recommendService } from '@/services/recommendService';
+import { contentApi } from '@/services/api/contentApi';
+import { writingApi } from '@/services/api/writingApi';
+import { 
+    ERROR_MESSAGES,
+    SUCCESS_MESSAGES,
+    ROUTES,
+    UI_CONSTANTS,
+    RoomType
+} from '@/types';
+
+// 아이콘 import
+import commentIcon from '@/assets/icons/comment.svg';
+import clockRewindIcon from '@/assets/icons/clock-rewind.svg';
+import starIcon from '@/assets/icons/star.svg';
+import starFillIcon from '@/assets/icons/star-fill.svg';
 
 export default function CompletedCanvasPage() {
     const { coverId } = useParams();
@@ -22,7 +37,7 @@ export default function CompletedCanvasPage() {
 
     // UI 상태
     const [showVersions, setShowVersions] = useState(false);
-    const [showComments, setShowComments] = useState(true);
+    const [showComments, setShowComments] = useState(false);
     const [newComment, setNewComment] = useState('');
     const [isCommenting, setIsCommenting] = useState(false);
     
@@ -41,16 +56,45 @@ export default function CompletedCanvasPage() {
         const fetchCanvasData = async () => {
             setIsLoading(true);
             try {
-                // coverId로 컨텐츠 조회 (API가 coverId를 받는다면)
-                const data = await canvasService.getCanvasDetail(coverId);
+                console.log('캔버스 데이터 요청 시작:', coverId);
+                const data = await contentApi.get(Number(coverId));
+                console.log('캔버스 데이터 응답:', data);
                 setCanvasData(data);
                 
+                // 바로 첫 번째 글을 보여줌
                 if (data.writingDtos && data.writingDtos.length > 0) {
+                    console.log('첫 번째 글 설정:', data.writingDtos[0]);
                     setCurrentWriting(data.writingDtos[0]);
+                } else {
+                    console.log('writingDtos가 없거나 비어있음');
+                }
+                
+                // official 글 가져오기
+                if (data.id) {
+                    try {
+                        console.log('official 글 요청 시작:', { id: data.id, title: data.title });
+                        const officialWritings = await writingApi.getOfficial({
+                            id: data.id,
+                            title: data.title
+                        });
+                        console.log('official 글 응답:', officialWritings);
+                        
+                        if (officialWritings && officialWritings.length > 0) {
+                            // official 글 중 마지막 글(가장 최신 버전)을 보여줌
+                            console.log('official 글 설정:', officialWritings[officialWritings.length - 1]);
+                            setCurrentWriting(officialWritings[officialWritings.length - 1]);
+                        } else {
+                            console.log('official 글 없음');
+                        }
+                    } catch (error) {
+                        console.error('official 글 로딩 실패:', error);
+                    }
                 }
 
-                // 댓글 로딩 - API 스키마상 contentId 필요
-                if (data.id) { // content의 실제 ID
+                // 현재 currentWriting 상태 로깅
+                console.log('현재 currentWriting 상태:', currentWriting);
+
+                if (data.id) {
                     const commentsData = await canvasService.getComments(data.id);
                     setComments(Array.isArray(commentsData) ? commentsData : []);
                 }
@@ -58,9 +102,9 @@ export default function CompletedCanvasPage() {
             } catch (e) {
                 console.error('캔버스 데이터를 불러오는데 실패했습니다:', e);
                 if (e.response?.status === 404) {
-                    setError(`완성된 작품을 찾을 수 없습니다. (Cover ID: ${coverId})`);
+                    setError(ERROR_MESSAGES.NOT_FOUND);
                 } else {
-                    setError('데이터를 불러오는 중 오류가 발생했습니다.');
+                    setError(ERROR_MESSAGES.SERVER_ERROR);
                 }
             } finally {
                 setIsLoading(false);
@@ -68,51 +112,63 @@ export default function CompletedCanvasPage() {
         };
         
         if (coverId) {
+            console.log('fetchCanvasData 호출됨, coverId:', coverId);
             fetchCanvasData();
         }
     }, [coverId]);
 
-    // 댓글 작성 함수도 contentId 사용하도록 수정
+    // currentWriting 상태 변경 감지
+    useEffect(() => {
+        console.log('currentWriting 상태 변경됨:', currentWriting);
+    }, [currentWriting]);
+
+    // 댓글 목록 가져오기
+    useEffect(() => {
+        const fetchComments = async () => {
+            if (!canvasData?.id) return;
+            try {
+                const response = await contentApi.getComments(canvasData.id);
+                setComments(response.data);
+            } catch (error) {
+                console.error('댓글 로딩 실패:', error);
+            }
+        };
+        fetchComments();
+    }, [canvasData?.id]);
+
+    // 댓글 작성
     const handleCommentSubmit = async (e) => {
         e.preventDefault();
         if (!newComment.trim() || isCommenting) return;
 
-        if (!authService.isAuthenticated()) {
-            alert('댓글을 작성하려면 로그인이 필요합니다.');
-            navigate('/login');
-            return;
-        }
-
         setIsCommenting(true);
         try {
-            const newCommentData = await canvasService.addComment({
-                contentId: canvasData.id, // canvasData.id가 실제 contentId
-                body: newComment,
+            const response = await contentApi.addComment({
+                contentId: canvasData.id,
+                body: newComment.trim()
             });
-            setComments(prev => [...prev, newCommentData]);
+            setComments(response.data);
             setNewComment('');
-        } catch (e) {
-            console.error('댓글 작성 실패:', e);
-            alert('댓글 작성에 실패했습니다.');
+        } catch (error) {
+            console.error('댓글 작성 실패:', error);
         } finally {
             setIsCommenting(false);
         }
     };
 
-    // 댓글 삭제 함수도 contentId 사용하도록 수정
+    // 댓글 삭제
     const handleCommentDelete = async (commentId) => {
-        if (!confirm('댓글을 삭제하시겠습니까?')) return;
+        if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
 
         try {
-            await canvasService.deleteComment(commentId, canvasData.id); // canvasData.id 사용
-            setComments(prev => prev.filter(comment => comment.id !== commentId));
-        } catch (e) {
-            console.error('댓글 삭제 실패:', e);
-            alert('댓글 삭제에 실패했습니다.');
+            await contentApi.deleteComment(commentId, canvasData.id);
+            setComments(comments.filter(c => c.id !== commentId));
+        } catch (error) {
+            console.error('댓글 삭제 실패:', error);
         }
     };
 
-    // 좋아요 토글도 contentId 사용
+    // 좋아요 토글
     const handleLikeToggle = async () => {
         if (!canvasData || isLiking) return;
         
@@ -121,9 +177,10 @@ export default function CompletedCanvasPage() {
             const newLikeType = canvasData.likeType === 'LIKE' ? null : 'LIKE';
             const updatedCanvas = await canvasService.toggleLike(canvasData.id, newLikeType || 'LIKE');
             setCanvasData(updatedCanvas);
+            alert(SUCCESS_MESSAGES.LIKE_UPDATED);
         } catch (e) {
             console.error('좋아요 토글 실패:', e);
-            alert('좋아요 상태 변경에 실패했습니다.');
+            alert(ERROR_MESSAGES.SERVER_ERROR);
         } finally {
             setIsLiking(false);
         }
@@ -149,7 +206,7 @@ export default function CompletedCanvasPage() {
                 y: rect.bottom + window.scrollY + 8,
             });
         } else {
-             setReportPopover({ show: false, x: 0, y: 0 });
+            setReportPopover({ show: false, x: 0, y: 0 });
         }
     }, []);
 
@@ -157,7 +214,7 @@ export default function CompletedCanvasPage() {
     const handleReportSubmit = async (e) => {
         e.preventDefault();
         if (!reportReason.trim()) {
-            alert('신고 사유를 입력해주세요.');
+            alert(ERROR_MESSAGES.INVALID_INPUT);
             return;
         }
         
@@ -169,32 +226,46 @@ export default function CompletedCanvasPage() {
                 siblingIndex: currentWriting.siblingIndex,
                 body: `[신고된 내용]: "${selectedReportText}"\n[신고 사유]: ${reportReason}`,
             });
-            alert('신고가 접수되었습니다.');
+            alert(SUCCESS_MESSAGES.REPORT_SUBMITTED);
             setIsReportModalOpen(false);
             setReportReason('');
             setSelectedReportText('');
         } catch (error) {
-            alert('신고 접수에 실패했습니다.');
+            alert(ERROR_MESSAGES.SERVER_ERROR);
         } finally {
             setIsReporting(false);
             setReportPopover({ show: false, x: 0, y: 0 });
         }
     };
 
-
-
     // 버전 트리에서 노드 클릭
     const handleVersionNodeClick = (writingNode) => {
         setCurrentWriting(writingNode);
     };
 
+    // 공식 글 토글
+    const handleOfficialToggle = async () => {
+        if (!currentWriting || isOfficialToggling) return;
+        
+        setIsOfficialToggling(true);
+        try {
+            const updatedWriting = await writingApi.toggleOfficial(currentWriting.id);
+            setCurrentWriting(updatedWriting);
+            alert(SUCCESS_MESSAGES.OFFICIAL_UPDATED);
+        } catch (e) {
+            console.error('공식 글 토글 실패:', e);
+            alert(ERROR_MESSAGES.SERVER_ERROR);
+        } finally {
+            setIsOfficialToggling(false);
+        }
+    };
+
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-red-50 to-white-100 flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center space-y-4">
-                    <div className="w-16 h-16 border-4 border-red-200 border-t-red-500 rounded-full animate-spin mx-auto"></div>
-                    <div className="text-xl text-white-700">작품을 불러오고 있습니다...</div>
-                    <div className="text-sm text-white-500">Cover ID: {coverId}</div>
+                    <div className="w-12 h-12 border-4 border-red-300/20 border-t-red-300/80 rounded-full animate-spin"></div>
+                    <div className="text-xl text-white">작품을 불러오고 있습니다...</div>
                 </div>
             </div>
         );
@@ -202,12 +273,13 @@ export default function CompletedCanvasPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center space-y-4 max-w-md">
-                    <div className="text-xl text-red-600">{error}</div>
+                    <div className="text-6xl">⚠️</div>
+                    <div className="text-xl text-red-500">{error}</div>
                     <button
                         onClick={() => navigate(-1)}
-                        className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-300"
                     >
                         뒤로 가기
                     </button>
@@ -218,16 +290,16 @@ export default function CompletedCanvasPage() {
 
     if (!canvasData) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-black">
                 <div className="text-center space-y-4">
-                    <div className="text-xl text-white-600">데이터가 없습니다.</div>
+                    <div className="text-xl text-white">{ERROR_MESSAGES.NOT_FOUND}</div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div onMouseUp={handleTextSelection} className="min-h-screen bg-gradient-to-br from-red-50 via-purple-50 to-white-50">
+        <div onMouseUp={handleTextSelection} className="min-h-screen">
             {/* 신고 팝오버 */}
             {reportPopover.show && (
                 <button
@@ -292,233 +364,248 @@ export default function CompletedCanvasPage() {
             {/* 메인 레이아웃 */}
             <div className="flex min-h-screen">
                 {/* 메인 컨텐츠 */}
-                <div className={`flex-1 transition-all duration-300 ${showVersions ? 'mr-80' : ''}`}>
+                <div className={`flex-1 transition-all duration-300 ${showVersions || showComments ? 'mr-80' : ''}`}>
                     <div className="container mx-auto px-4 py-8">
                         {/* 헤더 */}
                         <div className="bg-black/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 mb-8">
                             <div className="flex items-center justify-between px-8 py-6">
                                 <button
                                     onClick={() => navigate(-1)}
-                                    className="flex items-center space-x-2 text-white-600 hover:text-white-800 transition-colors group"
+                                    className="flex items-center space-x-2 text-white hover:text-red-400 transition-colors"
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-black-100 flex items-center justify-center group-hover:bg-black-200 transition-colors">
+                                    <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
                                         <span className="text-lg">←</span>
                                     </div>
                                     <span className="font-medium">뒤로 가기</span>
                                 </button>
                                 
                                 <div className="text-center">
-                                    <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-white-600 bg-clip-text text-transparent">
+                                    <h1 className="text-3xl font-bold text-white">
                                         {canvasData.title}
                                     </h1>
-                                    <div className="flex items-center justify-center space-x-4 mt-2 text-sm text-white-600">
-                                        <span className="flex items-center space-x-1">
-                                            <span>👁️</span>
-                                            <span>{canvasData.view || 0}</span>
-                                        </span>
-                                        <span className="flex items-center space-x-1">
-                                            <span>❤️</span>
-                                            <span>{canvasData.likeNum || 0}</span>
-                                        </span>
-                                        <span className="flex items-center space-x-1">
-                                            <span>💬</span>
-                                            <span>{comments.length}</span>
-                                        </span>
-                                    </div>
+                                    
                                 </div>
-                                
-                                <div className="flex items-center space-x-3">
+
+                                <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setShowVersions(!showVersions)}
-                                        className={`px-4 py-2 rounded-xl font-medium transition-colors ${
-                                            showVersions ? 'bg-red-100 text-red-600' : 'bg-black-100 text-white-600 hover:bg-black-200'
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${
+                                            showVersions ? 'bg-red-500 text-white' : 'bg-black text-white/80 hover:bg-white/10'
                                         }`}
                                     >
-                                        📊 버전 기록
+                                        <img src={clockRewindIcon} alt="버전" className="w-5 h-5 invert brightness-0" />
+                                        <span className="text-sm">{canvasData.writingDtos?.length || 0}</span>
+                                    </button>
+
+                                    <button
+                                        onClick={handleLikeToggle}
+                                        disabled={isLiking}
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${
+                                            canvasData.likeType === 'LIKE'
+                                                ? 'bg-red-500 text-white'
+                                                : 'bg-black text-white/80 hover:bg-white/10'
+                                        }`}
+                                    >
+                                        <img 
+                                            src={canvasData.likeType === 'LIKE' ? starFillIcon : starIcon} 
+                                            alt="좋아요" 
+                                            className="w-5 h-5 invert brightness-0" 
+                                        />
+                                        <span className="text-sm">{canvasData.likeNum || 0}</span>
+                                        {isLiking && <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>}
+                                    </button>
+
+                                    <button
+                                        onClick={() => setShowComments(!showComments)}
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${
+                                            showComments ? 'bg-red-500 text-white' : 'bg-black text-white/80 hover:bg-white/10'
+                                        }`}
+                                    >
+                                        <img src={commentIcon} alt="댓글" className="w-5 h-5 invert brightness-0" />
+                                        <span className="text-sm">{comments.length}</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 본문 */}
+                        {/* 에디터 섹션 */}
                         <div ref={editorRef} className="bg-black/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 overflow-hidden mb-8">
                             <div className="p-8">
                                 <EditorSection
-                                    content={currentWriting ? currentWriting.body : '내용을 보려면 버전을 선택하세요.'}
+                                    content={currentWriting ? currentWriting.body : '내용을 불러오는 중입니다...'}
                                     readOnly={true}
                                     className="min-h-[400px] prose prose-lg max-w-none"
                                 />
                             </div>
                         </div>
 
-                        {/* 액션 바 */}
-                        <div className="bg-black/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 mb-8">
-                            <div className="flex items-center justify-between px-8 py-6">
-                                <div className="flex items-center space-x-6">
-                                    <button
-                                        onClick={handleLikeToggle}
-                                        disabled={isLiking}
-                                        className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 transform hover:scale-105 ${
-                                            canvasData.likeType === 'LIKE'
-                                                ? 'bg-red-100 text-red-600 border border-red-200'
-                                                : 'bg-black-100 text-white-600 hover:bg-red-50 hover:text-red-500 border border-white-200'
-                                        }`}
-                                    >
-                                        <span className="text-lg">{canvasData.likeType === 'LIKE' ? '❤️' : '🤍'}</span>
-                                        <span>{canvasData.likeType === 'LIKE' ? '좋아요 취소' : '좋아요'}</span>
-                                        {isLiking && <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>}
-                                    </button>
+                        {/* 버전 트리 사이드바 */}
+                        {showVersions && (
+                            <div className="fixed right-0 top-0 w-80 h-full bg-black/95 backdrop-blur-sm border-l border-white/50 shadow-2xl z-40">
+                                <div className="p-6">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-lg font-bold text-white">버전 기록</h3>
+                                        <button
+                                            onClick={() => setShowVersions(false)}
+                                            className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors text-white"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
                                     
-                                    <button
-                                        onClick={() => setShowComments(!showComments)}
-                                        className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-medium transition-colors ${
-                                            showComments ? 'bg-red-100 text-red-600' : 'bg-black-100 text-white-600 hover:bg-red-50'
-                                        }`}
-                                    >
-                                        <span className="text-lg">💬</span>
-                                        <span>댓글 {showComments ? '숨기기' : '보기'}</span>
-                                    </button>
-                                </div>
-                                
-                                <div className="text-sm text-white-500">
-                                    완성작 • {new Date(canvasData.coverDto?.time).toLocaleDateString()}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 댓글 섹션 */}
-                        {showComments && (
-                            <div className="bg-black/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50">
-                                <div className="p-8">
-                                    <h3 className="text-xl font-bold text-white-800 mb-6 flex items-center space-x-2">
-                                        <span className="text-2xl">💬</span>
-                                        <span>댓글 {comments.length}개</span>
-                                    </h3>
-                                    
-                                    {/* 댓글 작성 */}
-                                    {authService.isAuthenticated() ? (
-                                        <form onSubmit={handleCommentSubmit} className="mb-8">
-                                            <div className="flex space-x-4">
-                                                <div className="w-10 h-10 bg-gradient-to-r from-red-400 to-white-500 rounded-full flex items-center justify-center text-white font-bold">
-                                                    {authService.getCurrentUser()?.nickname?.charAt(0)?.toUpperCase() || 'U'}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <textarea
-                                                        value={newComment}
-                                                        onChange={(e) => setNewComment(e.target.value)}
-                                                        placeholder="댓글을 작성해보세요..."
-                                                        className="w-full px-4 py-3 border border-white-300 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
-                                                        rows="3"
-                                                    />
-                                                    <div className="flex justify-end mt-3">
-                                                        <button
-                                                            type="submit"
-                                                            disabled={!newComment.trim() || isCommenting}
-                                                            className={`px-6 py-2 rounded-xl font-medium ${
-                                                                !newComment.trim() || isCommenting
-                                                                    ? 'bg-black-300 text-white-500 cursor-not-allowed'
-                                                                    : 'bg-red-500 text-white hover:bg-red-600'
-                                                            }`}
-                                                        >
-                                                            {isCommenting ? '작성 중...' : '댓글 작성'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
+                                    {canvasData.writingDtos && canvasData.writingDtos.length > 0 ? (
+                                        <VersionTree
+                                            writings={canvasData.writingDtos}
+                                            onNodeClick={handleVersionNodeClick}
+                                            currentVersion={currentWriting}
+                                        />
                                     ) : (
-                                        <div className="mb-8 p-6 bg-black-50 rounded-2xl text-center">
-                                            <p className="text-white-600 mb-4">댓글을 작성하려면 로그인이 필요합니다.</p>
-                                            <button
-                                                onClick={() => navigate('/login')}
-                                                className="px-6 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
-                                            >
-                                                로그인하기
-                                            </button>
+                                        <div className="text-center text-white/60 py-8">
+                                            <div className="text-2xl mb-2">📊</div>
+                                            <p>버전 기록이 없습니다.</p>
                                         </div>
                                     )}
-                                    
-                                    {/* 댓글 목록 */}
-                                    <div className="space-y-6">
-                                        {comments.length === 0 ? (
-                                            <div className="text-center py-12 text-white-500">
-                                                <div className="text-4xl mb-4">💭</div>
-                                                <p>아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!</p>
-                                            </div>
-                                        ) : (
-                                            comments.map((comment) => (
-                                                <div key={comment.id} className="flex space-x-4 p-4 bg-black-50 rounded-2xl">
-                                                    <div className="w-10 h-10 bg-gradient-to-r from-red-400 to-white-500 rounded-full flex items-center justify-center text-white font-bold">
-                                                        U
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 댓글 사이드바 */}
+                        {showComments && (
+                            <div className="fixed right-0 top-0 w-80 h-full bg-black/95 backdrop-blur-sm border-l border-white/50 shadow-2xl z-40">
+                                <div className="p-6 h-full flex flex-col">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-lg font-bold text-white">댓글</h3>
+                                        <button
+                                            onClick={() => setShowComments(false)}
+                                            className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors text-white"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+
+                                    <div className="flex-1 overflow-y-auto space-y-4">
+                                        {/* 댓글 작성 */}
+                                        {authService.isAuthenticated() ? (
+                                            <form onSubmit={handleCommentSubmit} className="mb-6">
+                                                <div className="flex space-x-4">
+                                                    <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold">
+                                                        {authService.getCurrentUser()?.nickname?.charAt(0)?.toUpperCase() || 'U'}
                                                     </div>
                                                     <div className="flex-1">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <span className="font-medium text-white-800">사용자</span>
-                                                            <div className="flex items-center space-x-2">
-                                                                <span className="text-sm text-white-500">
-                                                                    {new Date(comment.time).toLocaleString()}
-                                                                </span>
-                                                                {authService.getCurrentUser()?.id === comment.userId && (
-                                                                    <button
-                                                                        onClick={() => handleCommentDelete(comment.id)}
-                                                                        className="text-red-500 hover:text-red-700 text-sm"
-                                                                    >
-                                                                        삭제
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                        <p className="text-white-700 leading-relaxed">{comment.body}</p>
-                                                        <div className="flex items-center space-x-4 mt-3 text-sm text-white-500">
-                                                            <span className="flex items-center space-x-1">
-                                                                <span>👍</span>
-                                                                <span>{comment.likeNum || 0}</span>
-                                                            </span>
-                                                            <span className="flex items-center space-x-1">
-                                                                <span>👎</span>
-                                                                <span>{comment.disLikeNum || 0}</span>
-                                                            </span>
+                                                        <textarea
+                                                            value={newComment}
+                                                            onChange={(e) => setNewComment(e.target.value)}
+                                                            placeholder="댓글을 작성해보세요..."
+                                                            className="w-full px-4 py-3 bg-black border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none text-white"
+                                                            rows="3"
+                                                        />
+                                                        <div className="flex justify-end mt-3">
+                                                            <button
+                                                                type="submit"
+                                                                disabled={!newComment.trim() || isCommenting}
+                                                                className={`px-4 py-2 rounded-lg font-medium ${
+                                                                    !newComment.trim() || isCommenting
+                                                                        ? 'bg-black/50 text-white/50 cursor-not-allowed'
+                                                                        : 'bg-red-500 text-white hover:bg-red-600'
+                                                                }`}
+                                                            >
+                                                                {isCommenting ? '작성 중...' : '댓글 작성'}
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            ))
+                                            </form>
+                                        ) : (
+                                            <div className="p-4 bg-black rounded-lg text-center">
+                                                <p className="text-white/60 mb-4">댓글을 작성하려면 로그인이 필요합니다.</p>
+                                                <button
+                                                    onClick={() => navigate('/login')}
+                                                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                                >
+                                                    로그인하기
+                                                </button>
+                                            </div>
                                         )}
+                                        
+                                        {/* 댓글 목록 */}
+                                        <div className="space-y-4">
+                                            {comments.length === 0 ? (
+                                                <div className="text-center py-12 text-white/60">
+                                                    <div className="text-4xl mb-4">💭</div>
+                                                    <p>아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!</p>
+                                                </div>
+                                            ) : (
+                                                comments.map((comment) => (
+                                                    <div key={comment.id} className="flex space-x-4 p-4 bg-black rounded-lg">
+                                                        <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold">
+                                                            U
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span className="font-medium text-white">사용자</span>
+                                                                <div className="flex items-center space-x-2">
+                                                                    <span className="text-sm text-white/60">
+                                                                        {new Date(comment.time).toLocaleString()}
+                                                                    </span>
+                                                                    {authService.getCurrentUser()?.id === comment.userId && (
+                                                                        <button
+                                                                            onClick={() => handleCommentDelete(comment.id)}
+                                                                            className="text-red-500 hover:text-red-400 text-sm"
+                                                                        >
+                                                                            삭제
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-white/80 leading-relaxed">{comment.body}</p>
+                                                            <div className="flex items-center space-x-4 mt-3 text-sm text-white/60">
+                                                                <span className="flex items-center space-x-1">
+                                                                    <span>👍</span>
+                                                                    <span>{comment.likeNum || 0}</span>
+                                                                </span>
+                                                                <span className="flex items-center space-x-1">
+                                                                    <span>👎</span>
+                                                                    <span>{comment.disLikeNum || 0}</span>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         )}
-                    </div>
-                </div>
 
-                {/* 버전 트리 사이드바 */}
-                {showVersions && (
-                    <div className="fixed right-0 top-0 w-80 h-full bg-black/95 backdrop-blur-sm border-l border-white/50 shadow-2xl z-40">
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-lg font-bold text-white-800">버전 기록</h3>
+                        {/* 버튼 그룹 */}
+                        <div className="flex justify-end space-x-4 mb-8">
+                            <button
+                                onClick={() => setShowComments(!showComments)}
+                                className="px-4 py-2 bg-black/50 text-white rounded-lg hover:bg-black/70 transition-colors flex items-center space-x-2"
+                            >
+                                <span>💬</span>
+                                <span>댓글</span>
+                            </button>
+                            {authService.isAuthenticated() && authService.getCurrentUser()?.id === canvasData?.userId && (
                                 <button
-                                    onClick={() => setShowVersions(false)}
-                                    className="w-8 h-8 rounded-full bg-black-100 flex items-center justify-center hover:bg-black-200 transition-colors"
+                                    onClick={handleOfficialToggle}
+                                    disabled={isOfficialToggling}
+                                    className={`px-4 py-2 rounded-lg font-medium flex items-center space-x-2 ${
+                                        isOfficialToggling
+                                            ? 'bg-black/50 text-white/50 cursor-not-allowed'
+                                            : currentWriting?.isOfficial
+                                            ? 'bg-red-500 text-white hover:bg-red-600'
+                                            : 'bg-black/50 text-white hover:bg-black/70'
+                                    }`}
                                 >
-                                    ✕
+                                    <span>🏆</span>
+                                    <span>{currentWriting?.isOfficial ? '채택 취소' : '채택하기'}</span>
                                 </button>
-                            </div>
-                            
-                            {canvasData.writingDtos && canvasData.writingDtos.length > 0 ? (
-                                <VersionTree
-                                    writings={canvasData.writingDtos}
-                                    onNodeClick={handleVersionNodeClick}
-                                    currentVersion={currentWriting}
-                                />
-                            ) : (
-                                <div className="text-center text-white-500 py-8">
-                                    <div className="text-2xl mb-2">📊</div>
-                                    <p>버전 기록이 없습니다.</p>
-                                </div>
                             )}
                         </div>
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

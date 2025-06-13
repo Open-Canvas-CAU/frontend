@@ -33,7 +33,7 @@ export default function Sidebar() {
                 </NavLink>
             </nav>
             <button
-                onClick={() => navigate('/editor/new')}
+                onClick={() => navigate('/canvas/new')}
                 className="mt-auto bg-red-300 hover:bg-red-300/80 rounded-full transition-colors"
             >
                 <img src={PlusIconUrl} alt="New Canvas" className="w-6 h-6"/>

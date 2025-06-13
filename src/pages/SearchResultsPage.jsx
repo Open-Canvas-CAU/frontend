@@ -270,59 +270,25 @@ export default function SearchResultsPage() {
 
                         {/* 검색 결과 그리드 */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                            {covers.map((cover, index) => {
-                                const statusInfo = getStatusInfo(cover.roomType)
-                                return (
-                                    <div 
-                                        key={cover.id} 
-                                        className="transform transition-all duration-500 hover:scale-105"
-                                        style={{ animationDelay: `${index * 100}ms` }}
-                                    >
-                                        <CanvasCard
-                                            title={cover.title}
-                                            timeAgo={new Date(cover.time).toLocaleDateString('ko-KR', {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric'
-                                            })}
-                                            description={
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center space-x-2">
-                                                        <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold ${statusInfo.bgColor} ${statusInfo.color} border border-white/20`}>
-                                                            <span className="mr-1">{statusInfo.icon}</span>
-                                                            {statusInfo.text}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center space-x-4 text-xs text-white/60">
-                                                        <span className="flex items-center space-x-1">
-                                                            <span>👁️</span>
-                                                            <span>{cover.view || 0}</span>
-                                                        </span>
-                                                        <span className="flex items-center space-x-1">
-                                                            <span>❤️</span>
-                                                            <span>{cover.likeNum || 0}</span>
-                                                        </span>
-                                                        {cover.limit && (
-                                                            <span className="text-xs text-white/60">
-                                                                최대 {cover.limit}명
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            }
-                                            imgSrc={cover.coverImageUrl}
-                                            onClick={() => handleCardClick(cover)}
-                                            cardType={cover.roomType === 'COMPLETE' ? 'gallery' : 'workspace'}
-                                            status={statusInfo}
-                                            stats={{
-                                                views: cover.view,
-                                                likes: cover.likeNum,
-                                                progress: cover.roomType === 'COMPLETE' ? 100 : Math.floor(Math.random() * 80) + 20
-                                            }}
-                                        />
-                                    </div>
-                                )
-                            })}
+                            {covers.map((cover, index) => (
+                                <div 
+                                    key={cover.id} 
+                                    className="transform transition-all duration-500 hover:scale-105"
+                                    style={{ animationDelay: `${index * 100}ms` }}
+                                >
+                                    <CanvasCard
+                                        title={cover.title}
+                                        timeAgo={new Date(cover.time).toLocaleDateString('ko-KR', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                        imgSrc={cover.coverImageUrl}
+                                        onClick={() => handleCardClick(cover)}
+                                        cardType=""
+                                    />
+                                </div>
+                            ))}
                         </div>
 
                         {/* 추가 액션 */}

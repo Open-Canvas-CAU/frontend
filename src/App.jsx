@@ -16,6 +16,8 @@ import DashboardPage from "@/pages/DashboardPage.jsx";
 import ProtectedRoute from "@/components/features/auth/ProtectedRoute.jsx";
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import OAuthCallbackPage from '@/pages/OAuthCallbackPage';
+import MyCanvasPage from '@/pages/MyCanvasPage';
+import ProfilePage from '@/pages/ProfilePage';
 
 export default function App() {
     return (
@@ -23,26 +25,27 @@ export default function App() {
             <BrowserRouter>
                 <Routes>
                     <Route element={<MainLayout />}>
+                        {/* 공개 페이지들 */}
                         <Route path="/" element={<LandingPage />} />
                         <Route path="/gallery" element={<LandingPage />} />
                         <Route path="/workingon" element={<LandingPage />} />
                         <Route path="/search" element={<SearchResultsPage />} />
                         <Route path="/login" element={<LoginPage />} />
-                        
-                        {/* OAuth2 콜백 라우트 */}
                         <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
-
-                        {/* 새로운 캔버스 보기 라우트 - 모든 카드 클릭 시 이동 */}
                         <Route path="/canvas/:coverId" element={<CanvasViewPage />} />
-                        
-                        {/* 완성된 작품 보기 - coverId 사용 */}
                         <Route path="/completed/:coverId" element={<CompletedCanvasPage />} />
-                        
-                        {/* 기존 contentId를 사용하는 라우트는 coverId로 리다이렉트 */}
                         <Route path="/content/:contentId" element={<CompletedCanvasPage />} />
-                        
-                        {/* 에디터 라우팅 - 실제 편집 모드에서만 사용 */}
                         <Route path="/editor/:roomId" element={<EditorPage />} />
+
+                        {/* 인증이 필요한 페이지들 */}
+                        <Route
+                            path="/canvas/new"
+                            element={
+                                <ProtectedRoute>
+                                    <CreatePage />
+                                </ProtectedRoute>
+                            }
+                        />
                         <Route
                             path="/editor/new"
                             element={
@@ -51,7 +54,6 @@ export default function App() {
                                 </ProtectedRoute>
                             }
                         />
-                        {/*  편집 모드 - 인증 필요 */}
                         <Route
                             path="/editor/:roomId/edit"
                             element={
@@ -60,13 +62,11 @@ export default function App() {
                                 </ProtectedRoute>
                             }
                         />
-                        
-                        {/* 사용자 전용 페이지들 */}
                         <Route
-                            path="/palette"
+                            path="/my-canvas"
                             element={
                                 <ProtectedRoute>
-                                    <PalettePage />
+                                    <MyCanvasPage />
                                 </ProtectedRoute>
                             }
                         />
@@ -79,10 +79,18 @@ export default function App() {
                             }
                         />
                         <Route
-                            path="/mypage"
+                            path="/profile"
                             element={
                                 <ProtectedRoute>
-                                    <DashboardPage />
+                                    <ProfilePage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/palette"
+                            element={
+                                <ProtectedRoute>
+                                    <PalettePage />
                                 </ProtectedRoute>
                             }
                         />

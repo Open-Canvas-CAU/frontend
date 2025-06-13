@@ -4,7 +4,6 @@ import { canvasService } from '@/services/canvasService';
 import VersionTree from './VersionTree';
 import EditorSection from './EditorSection';
 import { authService } from '@/services/authService';
-import IllustrationGenerator from '../illustration/IllustrationGenerator';
 import { illustrationService } from '@/services/illustrationService';
 import { recommendService } from '@/services/recommendService';
 import { contentApi } from '@/services/api/contentApi';

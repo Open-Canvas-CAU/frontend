@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ThemeInput from './ThemeInput';
 import EditorSection from './EditorSection';
-import IllustrationGenerator from '../illustration/IllustrationGenerator';
 import { illustrationService } from '@/services/illustrationService';
 import { recommendService } from '@/services/recommendService';
 import { authService } from '@/services/authService';

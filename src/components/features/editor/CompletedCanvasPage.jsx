@@ -51,6 +51,9 @@ export default function CompletedCanvasPage() {
     // 좋아요 상태
     const [isLiking, setIsLiking] = useState(false);
 
+    // 드래그 관련 상태
+    const [commentButtonPosition, setCommentButtonPosition] = useState({ show: false, x: 0, y: 0 });
+
     // 데이터 로딩
     useEffect(() => {
         const fetchCanvasData = async () => {
@@ -190,15 +193,30 @@ export default function CompletedCanvasPage() {
     const handleTextSelection = useCallback(() => {
         const selection = window.getSelection();
         if (!selection || selection.isCollapsed || !editorRef.current?.contains(selection.anchorNode)) {
+            setCommentButtonPosition({ show: false, x: 0, y: 0 });
             return;
         }
 
         const selectedText = selection.toString().trim();
         if (selectedText.length > 0) {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
             setSelectedReportText(selectedText);
-            setShowComments(true); // 댓글 드로어 열기
+            setCommentButtonPosition({
+                show: true,
+                x: rect.left + window.scrollX,
+                y: rect.bottom + window.scrollY + 8
+            });
+        } else {
+            setCommentButtonPosition({ show: false, x: 0, y: 0 });
         }
     }, []);
+
+    // 댓글 달기 버튼 클릭 핸들러
+    const handleCommentButtonClick = () => {
+        setShowComments(true);
+        setCommentButtonPosition({ show: false, x: 0, y: 0 });
+    };
 
     // 신고 제출
     const handleReportSubmit = async (e) => {
@@ -318,6 +336,22 @@ export default function CompletedCanvasPage() {
 
     return (
         <div onMouseUp={handleTextSelection} className="min-h-screen">
+            {/* 댓글 달기 버튼 */}
+            {commentButtonPosition.show && (
+                <button
+                    onClick={handleCommentButtonClick}
+                    className="fixed z-50 bg-red-600 text-white px-3 py-1.5 rounded-lg shadow-lg text-sm flex items-center gap-1 hover:bg-red-700 transition-colors"
+                    style={{
+                        top: `${commentButtonPosition.y}px`,
+                        left: `${commentButtonPosition.x}px`,
+                        transform: 'translateX(-50%)'
+                    }}
+                >
+                    <span>💬</span>
+                    <span>댓글 달기</span>
+                </button>
+            )}
+
             {/* 메인 레이아웃 */}
             <div className="flex min-h-screen">
                 {/* 메인 컨텐츠 */}

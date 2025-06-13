@@ -146,7 +146,7 @@ export default function CanvasViewPage() {
     return (
         <div className="min-h-screen bg-black rounded-2xl shadow-lg overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b">
-                <button onClick={()=>navigate(-1)} className="text-zinc-700">← 나가기</button>
+                <button onClick={()=>navigate(-1)} className="text-white">← 나가기</button>
                 <div className="text-center">
                     <div className="text-xl font-semibold">{coverData.title}</div>
                     <div className="text-sm text-white-500">RoomType: {coverData.roomType}</div>

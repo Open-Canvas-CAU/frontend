@@ -190,23 +190,13 @@ export default function CompletedCanvasPage() {
     const handleTextSelection = useCallback(() => {
         const selection = window.getSelection();
         if (!selection || selection.isCollapsed || !editorRef.current?.contains(selection.anchorNode)) {
-            setReportPopover({ show: false, x: 0, y: 0 });
             return;
         }
 
         const selectedText = selection.toString().trim();
         if (selectedText.length > 0) {
-            const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-            
             setSelectedReportText(selectedText);
-            setReportPopover({
-                show: true,
-                x: rect.left + window.scrollX,
-                y: rect.bottom + window.scrollY + 8,
-            });
-        } else {
-            setReportPopover({ show: false, x: 0, y: 0 });
+            setShowComments(true); // 댓글 드로어 열기
         }
     }, []);
 
@@ -260,6 +250,34 @@ export default function CompletedCanvasPage() {
         }
     };
 
+    // 댓글 추가 핸들러
+    const handleAddComment = async () => {
+        if (!authService.isAuthenticated()) {
+            navigate(ROUTES.LOGIN, { state: { from: ROUTES.CANVAS.COMPLETED(coverId) } });
+            return;
+        }
+
+        if (!newComment.trim()) return;
+
+        try {
+            setIsCommenting(true);
+            await contentApi.addComment(coverId, {
+                content: newComment,
+                selectedText: selectedReportText // 선택한 텍스트도 함께 전송
+            });
+            setNewComment(''); // 입력창 초기화
+            setSelectedReportText(''); // 선택한 텍스트 초기화
+            // 댓글 목록 새로고침
+            const updatedComments = await contentApi.getComments(coverId);
+            setComments(updatedComments);
+        } catch (err) {
+            console.error('댓글 작성 실패:', err);
+            alert(ERROR_MESSAGES.COMMENT_FAILED);
+        } finally {
+            setIsCommenting(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black">
@@ -300,67 +318,6 @@ export default function CompletedCanvasPage() {
 
     return (
         <div onMouseUp={handleTextSelection} className="min-h-screen">
-            {/* 신고 팝오버 */}
-            {reportPopover.show && (
-                <button
-                    onClick={() => setIsReportModalOpen(true)}
-                    style={{ top: `${reportPopover.y}px`, left: `${reportPopover.x}px` }}
-                    className="fixed z-50 bg-red-500 text-white px-3 py-1 rounded-lg shadow-lg text-sm flex items-center gap-1 hover:bg-red-600 transition-colors"
-                >
-                    <span></span>
-                    <span>신고하기</span>
-                </button>
-            )}
-
-            {/* 신고 모달 */}
-            {isReportModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-black rounded-3xl p-8 w-full max-w-md mx-4">
-                        <form onSubmit={handleReportSubmit} className="space-y-6">
-                            <div className="text-center">
-                                <div className="text-4xl mb-4"></div>
-                                <h3 className="text-xl font-bold text-white-800">내용 신고</h3>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-white-700 mb-2">신고할 내용</label>
-                                <p className="p-3 bg-black-100 rounded-xl border text-white-700 text-sm">
-                                    "{selectedReportText}"
-                                </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-white-700 mb-2">신고 사유</label>
-                                <textarea
-                                    value={reportReason}
-                                    onChange={(e) => setReportReason(e.target.value)}
-                                    placeholder="신고 사유를 구체적으로 작성해주세요."
-                                    className="w-full px-4 py-3 border border-white-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                                    rows="4"
-                                    required
-                                />
-                            </div>
-                            <div className="flex space-x-4">
-                                <button 
-                                    type="button" 
-                                    onClick={() => setIsReportModalOpen(false)} 
-                                    className="flex-1 py-3 border border-white-300 rounded-xl font-medium text-white-700 hover:bg-black-50"
-                                >
-                                    취소
-                                </button>
-                                <button 
-                                    type="submit" 
-                                    disabled={isReporting} 
-                                    className={`flex-1 py-3 rounded-xl font-medium text-white ${
-                                        isReporting ? 'bg-red-300 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'
-                                    }`}
-                                >
-                                    {isReporting ? '전송 중...' : '신고 제출'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-            
             {/* 메인 레이아웃 */}
             <div className="flex min-h-screen">
                 {/* 메인 컨텐츠 */}
@@ -441,7 +398,7 @@ export default function CompletedCanvasPage() {
 
                         {/* 버전 트리 사이드바 */}
                         {showVersions && (
-                            <div className="fixed right-0 top-0 w-80 h-full bg-black/95 backdrop-blur-sm border-l border-white/50 shadow-2xl z-40">
+                            <div className="fixed right-0 top-0 w-80 h-full bg-black backdrop-blur-sm border-l border-white/50 shadow-2xl z-40">
                                 <div className="p-6">
                                     <div className="flex items-center justify-between mb-6">
                                         <h3 className="text-lg font-bold text-white">버전 기록</h3>
@@ -471,109 +428,58 @@ export default function CompletedCanvasPage() {
 
                         {/* 댓글 사이드바 */}
                         {showComments && (
-                            <div className="fixed right-0 top-0 w-80 h-full bg-black/95 backdrop-blur-sm border-l border-white/50 shadow-2xl z-40">
-                                <div className="p-6 h-full flex flex-col">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h3 className="text-lg font-bold text-white">댓글</h3>
-                                        <button
+                            <div className="fixed right-0 top-0 h-full w-80 bg-black backdrop-blur-sm border-l border-white-900/50 shadow-xl overflow-y-auto">
+                                <div className="p-4 border-b border-red-900/50">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-semibold text-white">댓글</h3>
+                                        <button 
                                             onClick={() => setShowComments(false)}
-                                            className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors text-white"
+                                            className="text-white/60 hover:text-white"
                                         >
                                             ✕
                                         </button>
                                     </div>
-
-                                    <div className="flex-1 overflow-y-auto space-y-4">
-                                        {/* 댓글 작성 */}
-                                        {authService.isAuthenticated() ? (
-                                            <form onSubmit={handleCommentSubmit} className="mb-6">
-                                                <div className="flex space-x-4">
-                                                    <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold">
-                                                        {authService.getCurrentUser()?.nickname?.charAt(0)?.toUpperCase() || 'U'}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <textarea
-                                                            value={newComment}
-                                                            onChange={(e) => setNewComment(e.target.value)}
-                                                            placeholder="댓글을 작성해보세요..."
-                                                            className="w-full px-4 py-3 bg-black border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none text-white"
-                                                            rows="3"
-                                                        />
-                                                        <div className="flex justify-end mt-3">
-                                                            <button
-                                                                type="submit"
-                                                                disabled={!newComment.trim() || isCommenting}
-                                                                className={`px-4 py-2 rounded-lg font-medium ${
-                                                                    !newComment.trim() || isCommenting
-                                                                        ? 'bg-black/50 text-white/50 cursor-not-allowed'
-                                                                        : 'bg-red-500 text-white hover:bg-red-600'
-                                                                }`}
-                                                            >
-                                                                {isCommenting ? '작성 중...' : '댓글 작성'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        ) : (
-                                            <div className="p-4 bg-black rounded-lg text-center">
-                                                <p className="text-white/60 mb-4">댓글을 작성하려면 로그인이 필요합니다.</p>
-                                                <button
-                                                    onClick={() => navigate('/login')}
-                                                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                                                >
-                                                    로그인하기
-                                                </button>
-                                            </div>
-                                        )}
-                                        
-                                        {/* 댓글 목록 */}
-                                        <div className="space-y-4">
-                                            {comments.length === 0 ? (
-                                                <div className="text-center py-12 text-white/60">
-                                                    <div className="text-4xl mb-4">💭</div>
-                                                    <p>아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!</p>
-                                                </div>
-                                            ) : (
-                                                comments.map((comment) => (
-                                                    <div key={comment.id} className="flex space-x-4 p-4 bg-black rounded-lg">
-                                                        <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold">
-                                                            U
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <span className="font-medium text-white">사용자</span>
-                                                                <div className="flex items-center space-x-2">
-                                                                    <span className="text-sm text-white/60">
-                                                                        {new Date(comment.time).toLocaleString()}
-                                                                    </span>
-                                                                    {authService.getCurrentUser()?.id === comment.userId && (
-                                                                        <button
-                                                                            onClick={() => handleCommentDelete(comment.id)}
-                                                                            className="text-red-500 hover:text-red-400 text-sm"
-                                                                        >
-                                                                            삭제
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                            <p className="text-white/80 leading-relaxed">{comment.body}</p>
-                                                            <div className="flex items-center space-x-4 mt-3 text-sm text-white/60">
-                                                                <span className="flex items-center space-x-1">
-                                                                    <span>👍</span>
-                                                                    <span>{comment.likeNum || 0}</span>
-                                                                </span>
-                                                                <span className="flex items-center space-x-1">
-                                                                    <span>👎</span>
-                                                                    <span>{comment.disLikeNum || 0}</span>
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            )}
+                                    {selectedReportText && (
+                                        <div className="mb-4 p-3 bg-red-900/30 rounded-lg border border-white-800/30">
+                                            <p className="text-sm text-white/80 italic">"{selectedReportText}"</p>
                                         </div>
+                                    )}
+                                    <div className="flex space-x-2">
+                                        <input
+                                            type="text"
+                                            value={newComment}
+                                            onChange={(e) => setNewComment(e.target.value)}
+                                            placeholder="댓글을 입력하세요..."
+                                            className="flex-1 px-3 py-2 bg-black border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40"
+                                        />
+                                        <button
+                                            onClick={handleAddComment}
+                                            disabled={isCommenting || !newComment.trim()}
+                                            className={`px-4 py-2 rounded-lg ${
+                                                isCommenting || !newComment.trim()
+                                                    ? 'bg-black/50 text-white/40 cursor-not-allowed border border-white/20'
+                                                    : 'bg-red-600 text-white hover:bg-red-700'
+                                            }`}
+                                        >
+                                            {isCommenting ? '전송 중...' : '전송'}
+                                        </button>
                                     </div>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                    {comments.map((comment) => (
+                                        <div key={comment.id} className="bg-red-900/30 rounded-lg p-4 border border-red-800/30">
+                                            {comment.selectedText && (
+                                                <div className="mb-2 p-2 bg-red-950/50 rounded border border-red-800/20">
+                                                    <p className="text-sm text-white/60 italic">"{comment.selectedText}"</p>
+                                                </div>
+                                            )}
+                                            <p className="text-white/80">{comment.content}</p>
+                                            <div className="mt-2 flex items-center justify-between text-sm text-white/40">
+                                                <span>{comment.author}</span>
+                                                <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}

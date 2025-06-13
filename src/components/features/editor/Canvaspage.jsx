@@ -145,7 +145,7 @@ export default function CanvasPage() {
       <div className="flex items-center justify-between px-6 py-4 border-b">
         <button
           onClick={() => navigate(-1)}
-          className="text-zinc-700"
+          className="text-white"
         >
           ← 나가기
         </button>
